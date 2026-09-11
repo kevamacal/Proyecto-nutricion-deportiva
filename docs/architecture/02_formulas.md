@@ -20,15 +20,15 @@ $$\text{User Inputs / Activities} \xrightarrow{\text{Deterministic Engine}} \tex
 
 The system uses the **Mifflin-St Jeor** equation, recognized as the most accurate standard for non-clinical populations:
 
-$$\text{BMR}_{\text{male}} = (10 \times \text{weight\_kg}) + (6.25 \times \text{height\_cm}) - (5 \times \text{age\_years}) + 5$$
+$$\text{BMR}_{\text{male}} = (10 \times \text{weight (kg)}) + (6.25 \times \text{height (cm)}) - (5 \times \text{age (years)}) + 5$$
 
-$$\text{BMR}_{\text{female}} = (10 \times \text{weight\_kg}) + (6.25 \times \text{height\_cm}) - (5 \times \text{age\_years}) - 161$$
+$$\text{BMR}_{\text{female}} = (10 \times \text{weight (kg)}) + (6.25 \times \text{height (cm)}) - (5 \times \text{age (years)}) - 161$$
 
 ### 2.2. Total Daily Energy Expenditure (TDEE)
 
 TDEE incorporates baseline non-sport Physical Activity Level (PAL):
 
-$$\text{TDEE} = \text{BMR} \times \text{PAL\_Multiplier}$$
+$$\text{TDEE} = \text{BMR} \times \text{PAL Multiplier}$$
 
 | Activity Level (`activity_level`) | PAL Multiplier | Description |
 |---|---|---|
@@ -39,7 +39,7 @@ $$\text{TDEE} = \text{BMR} \times \text{PAL\_Multiplier}$$
 
 ### 2.3. Caloric Target Adjustment by Body Composition Goal
 
-$$\text{Daily Calories Target} = \text{TDEE} \times (1 + \text{Goal\_Adjustment})$$
+$$\text{Daily Calories Target} = \text{TDEE} \times (1 + \text{Goal Adjustment})$$
 
 | Goal (`body_composition_goal`) | Adjustment Factor | Caloric Delta | Purpose |
 |---|---|---|---|
@@ -54,7 +54,7 @@ Macronutrient targets are derived deterministically based on body weight and the
 
 #### Step 1: Protein Target Calculation
 
-$$\text{Daily Protein Target (g)} = \text{weight\_kg} \times \text{Protein\_Factor}$$
+$$\text{Daily Protein Target (g)} = \text{weight (kg)} \times \text{Protein Factor}$$
 
 | Nutritional Goal (`nutritional_goal`) | Protein Factor ($\text{g/kg}$) | Focus Area |
 |---|---|---|
@@ -89,7 +89,7 @@ $$\text{Daily Carbs Target (g)} = \frac{\text{Carbs Calories (kcal)}}{4\text{ kc
 
 Basketball expenditure is calculated using Metabolic Equivalent of Task (MET) values. To ensure robust backend execution, the MET value is determined via a complete lookup matrix covering all intensity levels (`LOW`, `MEDIUM`, `HIGH`, `VERY_HIGH`):
 
-$$\text{Expenditure}_{\text{kcal}} = \text{MET} \times \text{weight\_kg} \times \left(\frac{\text{duration\_minutes}}{60}\right)$$
+$$\text{Expenditure (kcal)} = \text{MET} \times \text{weight (kg)} \times \left(\frac{\text{duration (minutes)}}{60}\right)$$
 
 #### Basketball MET Lookup Matrix
 
@@ -103,13 +103,13 @@ $$\text{Expenditure}_{\text{kcal}} = \text{MET} \times \text{weight\_kg} \times 
 High-intensity basketball causes rapid muscle glycogen depletion and fluid loss through sweating.
 
 #### 1. Glycogen Resynthesis Demand (Carbohydrates)
-$$\text{Carb Recovery Demand (g)} = \begin{cases} \text{weight\_kg} \times 1.0 & \text{if } \text{session\_category} = \text{'TRAINING'} \\ \text{weight\_kg} \times 1.2 & \text{if } \text{session\_category} = \text{'MATCH'} \end{cases}$$
+$$\text{Carb Recovery Demand (g)} = \begin{cases} \text{weight (kg)} \times 1.0 & \text{if session category = TRAINING} \\ \text{weight (kg)} \times 1.2 & \text{if session category = MATCH} \end{cases}$$
 
 #### 2. Rehydration Demand (Fluid)
-$$\text{Hydration Demand (ml)} = \text{duration\_minutes} \times 12.5\text{ ml/min} \quad (\approx 750\text{ ml per hour of play})$$
+$$\text{Hydration Demand (ml)} = \text{duration (minutes)} \times 12.5\text{ ml/min} \quad (\approx 750\text{ ml per hour of play})$$
 
 #### 3. Output Context Tag
-$$\text{recovery\_priority} = \text{'GLYCOGEN\_REPLETON\_AND\_HYDRATION'}$$
+$$\text{recovery priority} = \text{'GLYCOGEN REPLETON AND HYDRATION'}$$
 
 ---
 
@@ -119,7 +119,7 @@ $$\text{recovery\_priority} = \text{'GLYCOGEN\_REPLETON\_AND\_HYDRATION'}$$
 
 Strength training expenditure accounts for exercise type, load, volume, and rest intervals. The system maps all combinations of `training_type` and `intensity` to guarantee no unhandled execution paths:
 
-$$\text{Expenditure}_{\text{kcal}} = \text{MET} \times \text{weight\_kg} \times \left(\frac{\text{duration\_minutes}}{60}\right)$$
+$$\text{Expenditure (kcal)} = \text{MET} \times \text{weight (kg)} \times \left(\frac{\text{duration (minutes)}}{60}\right)$$
 
 #### Strength Training MET Lookup Matrix
 
@@ -134,13 +134,13 @@ $$\text{Expenditure}_{\text{kcal}} = \text{MET} \times \text{weight\_kg} \times 
 Resistance training triggers mechanical tension and micro-tears in muscle fibers, requiring an immediate post-workout amino acid spike.
 
 #### 1. Muscle Protein Synthesis (MPS) Recovery Demand
-$$\text{Protein Recovery Demand (g)} = \max\left(30.0, \, \text{weight\_kg} \times 0.35\right)$$
+$$\text{Protein Recovery Demand (g)} = \max\left(30.0, \, \text{weight (kg)} \times 0.35\right)$$
 
 #### 2. Glycogen Replenishment Demand
-$$\text{Carb Recovery Demand (g)} = \text{weight\_kg} \times 0.60$$
+$$\text{Carb Recovery Demand (g)} = \text{weight (kg)} \times 0.60$$
 
 #### 3. Output Context Tag
-$$\text{recovery\_priority} = \text{'MUSCLE\_PROTEIN\_SYNTHESIS\_AND\_REPAIR'}$$
+$$\text{recovery priority} = \text{'MUSCLE PROTEIN SYNTHESIS AND REPAIR'}$$
 
 ---
 
@@ -150,17 +150,17 @@ $$\text{recovery\_priority} = \text{'MUSCLE\_PROTEIN\_SYNTHESIS\_AND\_REPAIR'}$$
 
 For any given day $T$:
 
-$$\text{Consumed}_{\text{calories}} = \sum_{i \in \text{Meals}_T} \text{Meal}_i.\text{total\_calories\_kcal}$$
+$$\text{Consumed}_{\text{calories}} = \sum_{i \in \text{Meals}_T} \text{Meal}_i.\text{total calories (kcal)}$$
 
-$$\text{Consumed}_{\text{protein}} = \sum_{i \in \text{Meals}_T} \text{Meal}_i.\text{total\_protein\_g}$$
+$$\text{Consumed}_{\text{protein}} = \sum_{i \in \text{Meals}_T} \text{Meal}_i.\text{total protein (g)}$$
 
-$$\text{Consumed}_{\text{carbs}} = \sum_{i \in \text{Meals}_T} \text{Meal}_i.\text{total\_carbs\_g}$$
+$$\text{Consumed}_{\text{carbs}} = \sum_{i \in \text{Meals}_T} \text{Meal}_i.\text{total carbs (g)}$$
 
-$$\text{Consumed}_{\text{fat}} = \sum_{i \in \text{Meals}_T} \text{Meal}_i.\text{total\_fat\_g}$$
+$$\text{Consumed}_{\text{fat}} = \sum_{i \in \text{Meals}_T} \text{Meal}_i.\text{total fat (g)}$$
 
 ### 5.2. Aggregation of Activity Expenditure
 
-$$\text{Expended}_{\text{activities}} = \sum_{j \in \text{Activities}_T} \text{Activity}_j.\text{estimated\_expenditure\_kcal}$$
+$$\text{Expended}_{\text{activities}} = \sum_{j \in \text{Activities}_T} \text{Activity}_j.\text{estimated expenditure (kcal)}$$
 
 ### 5.3. Dynamic Adjusted Daily Targets
 
@@ -189,7 +189,7 @@ Before passing candidate ingredients to the LLM agent, the deterministic engine 
 ### Algorithm Steps
 
 1. **Status & Quantity Filter**:
-   $$\text{Filter: } \text{InventoryItem}.\text{status} = \text{'AVAILABLE'} \quad \text{AND} \quad \text{InventoryItem}.\text{quantity} > 0$$
+   $$\text{Filter: } \text{InventoryItem.status} = \text{'AVAILABLE'} \quad \text{AND} \quad \text{InventoryItem.quantity} > 0$$
 
 2. **Expiration Urgency Sorting**:
    Sort items by `expiration_date ASC` (nulls last) to prioritize consuming expiring foods first.
@@ -197,9 +197,9 @@ Before passing candidate ingredients to the LLM agent, the deterministic engine 
 3. **Macronutrient Profile Classification**:
    For each item, compute energy density per serving:
    
-   - **Protein-Dense**: $\frac{\text{protein\_g} \times 4}{\text{calories\_kcal}} \ge 0.35$
-   - **Carb-Dense**: $\frac{\text{carbohydrates\_g} \times 4}{\text{calories\_kcal}} \ge 0.55$
-   - **Fat-Dense**: $\frac{\text{fat\_g} \times 9}{\text{calories\_kcal}} \ge 0.50$
+   - **Protein-Dense**: $\frac{\text{protein (g)} \times 4}{\text{calories (kcal)}} \ge 0.35$
+   - **Carb-Dense**: $\frac{\text{carbohydrates (g)} \times 4}{\text{calories (kcal)}} \ge 0.55$
+   - **Fat-Dense**: $\frac{\text{fat (g)} \times 9}{\text{calories (kcal)}} \ge 0.50$
 
 4. **Need-Driven Inventory Selection**:
    - If $\text{Remaining Protein} > 30\text{g}$: Filter and include all `Protein-Dense` inventory items.

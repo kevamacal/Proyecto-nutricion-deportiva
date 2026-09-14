@@ -1,0 +1,11 @@
+[tool.mypy]
+python_version = "3.14"
+explicit_package_bases = true
+mypy_path = "."
+
+[tool.ruff]
+line-length = 88
+target-version = "py314"
+
+[tool.pytest.ini_options]
+pythonpath = ["."]

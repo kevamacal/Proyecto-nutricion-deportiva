@@ -14,6 +14,8 @@ This directory contains specialized developer skills used by AI coding agents wh
 | **RLS Migration Audit** | [`skills/rls_migration_skill/SKILL.md`](./rls_migration_skill/SKILL.md) | Backend & RLS Specialist | Supabase database migration audit ensuring `ENABLE ROW LEVEL SECURITY` and multi-user isolation tests. |
 | **Sports Nutrition Domain Math** | [`skills/sports_nutrition_domain_skill.md`](./sports_nutrition_domain_skill.md) | Sports Nutrition Specialist | Physiological math reference (Mifflin-St Jeor, TDEE multipliers, Basketball/Gym METs, Recovery). |
 | **Sports Nutrition UI Direction** | [`skills/sports_nutrition_ui_direction/SKILL.MD`](./sports_nutrition_ui_direction/SKILL.MD) | Frontend & UI Specialist | Scoreboard & Nutrition Label design tokens, color palette (`#171511`, `#2A2118`, `#C1622B`), and ledger layouts. |
+| **Supabase Core** | [`skills/supabase/SKILL.md`](./supabase/SKILL.md) | Backend & RLS Specialist | Core Supabase guidelines: DB, Auth, Edge Functions, Storage, RLS policies & security checklist. |
+| **Supabase Postgres Best Practices** | [`skills/supabase-postgres-best-practices/SKILL.md`](./supabase-postgres-best-practices/SKILL.md) | Backend & RLS Specialist | Database performance rules, indexing, connection pooling, and Postgres query optimization. |
 
 ## Execution Rule for Developer Agents
 

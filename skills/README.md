@@ -16,7 +16,7 @@ This directory contains specialized developer skills used by AI coding agents wh
 | **Sports Nutrition UI Direction** | [`skills/sports_nutrition_ui_direction/SKILL.MD`](./sports_nutrition_ui_direction/SKILL.MD) | Frontend & UI Specialist | Scoreboard & Nutrition Label design tokens, color palette (`#171511`, `#2A2118`, `#C1622B`), and ledger layouts. |
 | **Supabase Core** | [`skills/supabase/SKILL.md`](./supabase/SKILL.md) | Backend & RLS Specialist | Core Supabase guidelines: DB, Auth, Edge Functions, Storage, RLS policies & security checklist. |
 | **Supabase Postgres Best Practices** | [`skills/supabase-postgres-best-practices/SKILL.md`](./supabase-postgres-best-practices/SKILL.md) | Backend & RLS Specialist | Database performance rules, indexing, connection pooling, and Postgres query optimization. |
-| **SonarCloud Integration** | [`.agents/skills/sonarcloud/SKILL.md`](../.agents/skills/sonarcloud/SKILL.md) | QA & Code Review Agent | SonarCloud code quality, bug, security hotspot, and code smell auditing integration. |
+| **SonarCloud Integration** | [`skills/sonarcloud/SKILL.md`](./sonarcloud/SKILL.md) | QA & Code Review Agent | SonarCloud code quality, bug, security hotspot, and code smell auditing integration. |
 
 ## Execution Rule for Developer Agents
 

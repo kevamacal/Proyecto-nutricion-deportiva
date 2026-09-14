@@ -1,6 +1,12 @@
 {
   "version": 1,
   "skills": {
+    "sonarcloud": {
+      "source": "membranedev/application-skills",
+      "sourceType": "github",
+      "skillPath": "skills/sonarcloud/SKILL.md",
+      "computedHash": "62e07b0c1180603dbbd6b5a2b4d6127d3049215d37eeb10dae9d83585722716f"
+    },
     "supabase": {
       "source": "supabase/agent-skills",
       "sourceType": "github",

@@ -50,7 +50,7 @@ $$\text{Daily Calories Target} = \text{TDEE} \times (1 + \text{Goal Adjustment})
 
 ### 2.4. Macronutrient Distribution Target Algorithm
 
-Macronutrient targets are derived deterministically based on body weight and the selected `nutritional_goal`:
+Macronutrient targets are derived deterministically in physiological order based on body weight, goal, and energy availability:
 
 #### Step 1: Protein Target Calculation
 
@@ -58,24 +58,28 @@ $$\text{Daily Protein Target (g)} = \text{weight (kg)} \times \text{Protein Fact
 
 | Nutritional Goal (`nutritional_goal`) | Protein Factor ($\text{g/kg}$) | Focus Area |
 |---|---|---|
-| `HYPERTROPHY` | `2.0 - 2.2 g/kg` | Maximizing muscle protein synthesis |
-| `PERFORMANCE` | `1.6 - 1.8 g/kg` | Athletic endurance & recovery |
-| `FAT_LOSS_FOCUS` | `2.2 - 2.4 g/kg` | Satiety & muscle preservation during deficit |
-| `HEALTH` | `1.4 - 1.6 g/kg` | General balanced nutrition |
+| `HYPERTROPHY` | `2.0 g/kg` | Maximizing muscle protein synthesis |
+| `PERFORMANCE` | `1.8 g/kg` | Athletic endurance, recovery & work capacity |
+| `FAT_LOSS_FOCUS` | `2.3 g/kg` | Satiety & lean tissue preservation in deficit |
+| `HEALTH` | `1.5 g/kg` | General balanced healthy nutrition |
 
 $$\text{Protein Calories (kcal)} = \text{Daily Protein Target (g)} \times 4\text{ kcal/g}$$
 
 #### Step 2: Fat Target Calculation
 
-Fat is allocated as $25\%$ of total daily calories, bounded between $0.8\text{ g/kg}$ and $1.2\text{ g/kg}$:
+Fat is calculated on a bodyweight basis ($\text{g/kg}$) to ensure endocrine & hormonal health without over-saturating caloric intake, bounded between $20\%$ (minimum safety floor) and $30\%$ (maximum cap) of total daily calories:
 
-$$\text{Fat Calories (kcal)} = \text{Daily Calories Target} \times 0.25$$
+$$\text{Fat Factor} = \begin{cases} 0.9\text{ g/kg} & \text{if } \text{nutritional\_goal} = \text{'FAT\_LOSS\_FOCUS'} \\ 1.0\text{ g/kg} & \text{otherwise} \end{cases}$$
 
-$$\text{Daily Fat Target (g)} = \frac{\text{Fat Calories (kcal)}}{9\text{ kcal/g}}$$
+$$\text{Raw Fat Target (g)} = \text{weight (kg)} \times \text{Fat Factor}$$
+
+$$\text{Daily Fat Target (g)} = \text{Clamp}\left(\text{Raw Fat Target (g)}, \, \frac{\text{Daily Calories} \times 0.20}{9}, \, \frac{\text{Daily Calories} \times 0.30}{9}\right)$$
+
+$$\text{Fat Calories (kcal)} = \text{Daily Fat Target (g)} \times 9\text{ kcal/g}$$
 
 #### Step 3: Carbohydrate Target Calculation
 
-Carbohydrates absorb all remaining daily energy after protein and fat allocations:
+Carbohydrates absorb all remaining daily energy after protein and fat allocations to maximize glycogen replenishment:
 
 $$\text{Carbs Calories (kcal)} = \text{Daily Calories Target} - (\text{Protein Calories} + \text{Fat Calories})$$
 

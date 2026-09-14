@@ -28,10 +28,18 @@ GOAL_CALORIC_ADJUSTMENTS: dict[BodyCompositionGoal, float] = {
 
 # Nutritional Goal Protein Factors (g/kg bodyweight)
 PROTEIN_FACTORS: dict[NutritionalGoal, float] = {
-    NutritionalGoal.HYPERTROPHY: 2.1,
-    NutritionalGoal.PERFORMANCE: 1.7,
+    NutritionalGoal.HYPERTROPHY: 2.0,
+    NutritionalGoal.PERFORMANCE: 1.8,
     NutritionalGoal.FAT_LOSS_FOCUS: 2.3,
     NutritionalGoal.HEALTH: 1.5,
+}
+
+# Nutritional Goal Fat Factors (g/kg bodyweight)
+FAT_FACTORS: dict[NutritionalGoal, float] = {
+    NutritionalGoal.FAT_LOSS_FOCUS: 0.9,
+    NutritionalGoal.HYPERTROPHY: 1.0,
+    NutritionalGoal.PERFORMANCE: 1.0,
+    NutritionalGoal.HEALTH: 1.0,
 }
 
 
@@ -101,6 +109,12 @@ def calculate_macronutrient_targets(
 ) -> dict[str, float]:
     """Calculate daily protein, fat, and carbohydrate targets.
 
+    Order of allocation:
+    1. Protein: g/kg bodyweight based on goal.
+    2. Fat: g/kg bodyweight (1.0 g/kg base, 0.9 g/kg fat loss), bounded between
+       min 20% and max 30% of total daily calories for endocrine health.
+    3. Carbs: Remaining calories absorb glycogen replenishment demands.
+
     Args:
         weight_kg: Weight in kilograms (> 0).
         daily_calories_target: Daily energy target in kcal (> 0).
@@ -115,14 +129,20 @@ def calculate_macronutrient_targets(
     if weight_kg <= 0 or daily_calories_target <= 0:
         raise ValueError("Weight and calories target must be strictly positive")
 
-    # Step 1: Protein target
+    # Step 1: Protein target (g/kg)
     protein_factor = PROTEIN_FACTORS[nutritional_goal]
     protein_g = round(weight_kg * protein_factor, 2)
     protein_kcal = protein_g * 4.0
 
-    # Step 2: Fat target (25% of daily calories)
-    fat_kcal = daily_calories_target * 0.25
-    fat_g = round(fat_kcal / 9.0, 2)
+    # Step 2: Fat target (g/kg, bounded between 20% and 30% of total daily calories)
+    fat_factor = FAT_FACTORS.get(nutritional_goal, 1.0)
+    raw_fat_g = weight_kg * fat_factor
+    min_fat_g = (daily_calories_target * 0.20) / 9.0
+    max_fat_g = (daily_calories_target * 0.30) / 9.0
+
+    clamped_fat_g = max(min_fat_g, min(raw_fat_g, max_fat_g))
+    fat_g = round(clamped_fat_g, 2)
+    fat_kcal = fat_g * 9.0
 
     # Step 3: Carbohydrate target (remaining calories)
     remaining_kcal = max(0.0, daily_calories_target - (protein_kcal + fat_kcal))

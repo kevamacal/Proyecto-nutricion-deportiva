@@ -55,21 +55,38 @@ def test_calculate_caloric_target_goals():
     assert calculate_daily_calories_target(tdee, BodyCompositionGoal.RECOMP) == 2500.0
 
 
-def test_calculate_macronutrient_targets():
+def test_calculate_macronutrient_targets_g_per_kg_refactor():
     weight_kg = 80.0
     calories_target = 2800.0
 
-    # Hypertrophy goal: protein factor = 2.1 => 168.0g protein (672 kcal)
-    # Fat = 25% of 2800 = 700 kcal / 9 => 77.78g fat
-    # Carbs = (2800 - 672 - 700) = 1428 kcal / 4 => 357.0g carbs
+    # Hypertrophy goal: protein factor = 2.0 => 160.0g protein (640 kcal)
+    # Fat factor = 1.0 => 80.0g fat (720 kcal). 720 kcal is 25.7% of 2800 (within 20-30% bounds)
+    # Carbs = (2800 - 640 - 720) = 1440 kcal / 4 => 360.0g carbs
     macros = calculate_macronutrient_targets(
         weight_kg=weight_kg,
         daily_calories_target=calories_target,
         nutritional_goal=NutritionalGoal.HYPERTROPHY,
     )
-    assert macros["daily_protein_g_target"] == 168.0
-    assert macros["daily_fat_g_target"] == 77.78
-    assert macros["daily_carbs_g_target"] == 357.0
+    assert macros["daily_protein_g_target"] == 160.0
+    assert macros["daily_fat_g_target"] == 80.0
+    assert macros["daily_carbs_g_target"] == 360.0
+
+
+def test_calculate_macronutrient_targets_fat_loss_focus():
+    weight_kg = 68.0
+    calories_target = 2000.0
+
+    # Fat loss focus: protein factor = 2.3 => 156.4g protein (625.6 kcal)
+    # Fat factor = 0.9 => 61.2g fat (550.8 kcal). 550.8 / 2000 = 27.54% (within 20-30% bounds)
+    # Carbs = (2000 - 625.6 - 550.8) = 823.6 kcal / 4 => 205.9g carbs
+    macros = calculate_macronutrient_targets(
+        weight_kg=weight_kg,
+        daily_calories_target=calories_target,
+        nutritional_goal=NutritionalGoal.FAT_LOSS_FOCUS,
+    )
+    assert macros["daily_protein_g_target"] == 156.4
+    assert macros["daily_fat_g_target"] == 61.2
+    assert macros["daily_carbs_g_target"] == 205.9
 
 
 def test_full_nutritional_profile_pipeline():

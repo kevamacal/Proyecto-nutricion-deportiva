@@ -131,5 +131,11 @@ Before pushing changes or opening a PR, the agent MUST run and ensure exit code 
 
 Developer agents utilize standardized skill templates defined under `skills/`:
 - `skills/README.md`: Skill directory index and usage guidelines.
-- `skills/boilerplate_skill.md`: Starter template for creating new developer skills.
-- `skills/sports_nutrition_domain_skill.md`: Domain verification skill for sports nutrition math and athletic formulas.
+- `skills/adr_maintenance/SKILL.md`: ADR creation and superseding rules.
+- `skills/ci_quality_gate/SKILL.md`: CI Quality Gate verification protocol.
+- `skills/deterministic_boundary_audit/SKILL.md`: Zero-LLM math audit procedure.
+- `skills/node_contract_compatibility/SKILL.md`: LangGraph Pydantic contract check.
+- `skills/pr_review_skill/SKILL.md`: Independent PR review checklist.
+- `skills/rls_migration_skill/SKILL.md`: Supabase RLS migration & multi-user isolation audit.
+- `skills/sports_nutrition_domain_skill.md`: Bioenergetics math reference.
+- `skills/sports_nutrition_ui_direction/SKILL.MD`: Scoreboard & Nutrition Label UI tokens & ledger layouts.

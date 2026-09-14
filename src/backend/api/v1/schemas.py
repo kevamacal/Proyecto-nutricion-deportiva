@@ -140,3 +140,50 @@ class DailySummaryResponse(BaseModel):
     consumed_carbohydrates_g: float
     consumed_fat_g: float
     meals_logged_count: int
+
+
+class TargetCalculationRequest(BaseModel):
+    """Payload for deterministic Target Calculation API."""
+
+    user_id: UUID
+    weight_kg: float = Field(..., gt=0, le=300)
+    height_cm: float = Field(..., gt=0, le=300)
+    age: int = Field(..., gt=0, le=120)
+    sex: str = Field(..., pattern="^(male|female|hombre|mujer|M|F)$")
+    activity_level: str = Field(..., min_length=1)
+    goal: str = Field(..., min_length=1)
+
+
+class TargetCalculationResponse(BaseModel):
+    """Response payload with calculated caloric and macronutrient targets."""
+
+    user_id: UUID
+    bmr_kcal: float
+    base_tdee_kcal: float
+    calories_target_kcal: float
+    protein_target_g: float
+    fat_target_g: float
+    carbs_target_g: float
+
+
+class ActivityLogRequest(BaseModel):
+    """Payload for logging an athletic session."""
+
+    user_id: UUID
+    sport_type: str = Field(..., min_length=1)
+    duration_minutes: float = Field(..., gt=0)
+    weight_kg: float = Field(..., gt=0)
+    intensity: str = Field(default="moderate")
+    rpe: float | None = Field(default=None, ge=1, le=10)
+
+
+class ActivityLogResponse(BaseModel):
+    """Response DTO for logged athletic activity session."""
+
+    id: UUID = Field(default_factory=uuid4)
+    user_id: UUID
+    sport_type: str
+    duration_minutes: float
+    energy_expended_kcal: float
+    hydration_recommendation_ml: float
+    recovery_notes: str

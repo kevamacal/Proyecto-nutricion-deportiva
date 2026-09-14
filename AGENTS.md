@@ -76,7 +76,7 @@ During the development lifecycle, AI coding tasks are handled through specialize
 ### 2.6. Code Review Agent (Independent PR Auditor)
 - **Responsibilities**: Conducts an independent code review on open PRs prior to human review, operating under a distinct evaluation persona to prevent self-review bias.
 - **Review Checklist**:
-  1. *Security Audit*: Verifies RLS policies, zero hardcoded credentials, and proper secret loading.
+  1. *Security & SonarQube Audit*: Verifies RLS policies, zero hardcoded credentials, and passing status on **SonarQube Cloud Quality Gate** (0 security hotspots, 0 critical code smells/vulnerabilities).
   2. *Architectural Decoupling*: Ensures Core vs. Sports decoupling is preserved per ADRs.
   3. *Deterministic Boundary*: Audits endpoints to guarantee no math calculations leaked into LLM prompts.
   4. *Readability & Test Coverage*: Ensures unit tests exist and code style adheres to project standards.
@@ -114,12 +114,14 @@ All development contributions must strictly follow this workflow:
 4. **Pull Request Submission**: Push branch to `origin` and open a PR via `gh pr create` referencing `Closes #<issue-id>` with a detailed description.
 5. **No Auto-Merge Policy**: **DO NOT merge the PR to `main`**. Leave the PR open on GitHub for manual user review and approval.
 
-### 4.1. Quality Gate (Pre-PR Verification)
-Before pushing changes or opening a PR, the agent MUST run and ensure exit code 0 on:
+### 4.1. Quality Gate (Pre-PR Verification & SonarQube Integration)
+Before pushing changes or opening a PR, the agent MUST run locally and ensure exit code 0 on:
 1. `ruff check .` and `ruff format --check .`
 2. `mypy src/backend`
 3. `pytest`
 4. `pip-audit` (or `safety check`)
+
+Additionally, every Pull Request MUST achieve a **Passed** status on **SonarQube Cloud Quality Gate** (0 Security Hotspots, 0 Critical/Blocker Code Smells, code coverage, zero duplication) on GitHub Actions before human review.
 
 ### 4.2. PR Scope, Size & Reasoning Traceability Rules
 - **Atomic PR Size Limit**: Pull Requests MUST be focused and atomic (targeting `< 300 lines` of code changed whenever possible). Large multi-component tasks MUST be split by the Lead Orchestrator into smaller, sequential PRs.

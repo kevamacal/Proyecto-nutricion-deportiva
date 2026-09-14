@@ -42,6 +42,7 @@ During the development lifecycle, AI coding tasks are handled through specialize
 ### 2.1. Lead Orchestrator Agent
 - **Responsibilities**: Analyzes GitHub issues, creates branch strategies, coordinates feature development across components, writes implementation plans, opens Pull Requests, and tracks task lists.
 - **Rule**: Enforces issue-driven development. **NEVER auto-merge PRs into `main`**; PRs must remain open for user review.
+- **Context Hierarchy**: Before planning any feature, the agent MUST read the Architectural Decision Records in `docs/architecture/04_architecture_decision_record/` to respect decisions regarding Core vs. Sports decoupling, isolated ticket pipelines, and naming conventions.
 
 ### 2.2. Backend & Security / RLS Specialist Agent
 - **Responsibilities**: Implements REST API endpoints, SQLModel data entities, repository layers, and Supabase migrations.
@@ -79,6 +80,12 @@ All development contributions must strictly follow this workflow:
    - `chore(component): routine tasks`
 4. **Pull Request Submission**: Push branch to `origin` and open a PR via `gh pr create` referencing `Closes #<issue-id>` with a detailed description.
 5. **No Auto-Merge Policy**: **DO NOT merge the PR to `main`**. Leave the PR open on GitHub for manual user review and approval.
+
+### 3.1. Quality Gate (Pre-PR Verification)
+Before pushing changes or opening a PR, the agent MUST run and ensure exit code 0 on:
+1. `ruff check .` and `ruff format --check .`
+2. `mypy src/backend`
+3. `pytest`
 
 ---
 

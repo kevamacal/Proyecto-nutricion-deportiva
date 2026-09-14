@@ -3,7 +3,6 @@
 Checks requirements for Issue #7.
 """
 
-import re
 from pathlib import Path
 
 SEED_PATH = Path(__file__).parent.parent / "supabase" / "seed.sql"
@@ -39,22 +38,20 @@ def test_all_expected_food_items_seeded():
         )
 
 
-def test_idempotency_guards_present():
-    """Verify idempotent IF NOT EXISTS checks exist for every food item."""
+def test_idempotency_cte_guard_present():
+    """Verify CTE idempotency check WHERE NOT EXISTS is present."""
     sql = SEED_PATH.read_text(encoding="utf-8")
-    for item in EXPECTED_FOOD_ITEMS:
-        pattern = rf"IF NOT EXISTS\s*\(\s*SELECT 1 FROM food_items WHERE name = '{re.escape(item)}'"
-        assert re.search(pattern, sql), (
-            f"Idempotency check missing for food item '{item}'"
-        )
-
-
-def test_nutritional_information_entries_exist():
-    """Verify INSERT INTO nutritional_information is executed for each item."""
-    sql = SEED_PATH.read_text(encoding="utf-8")
-    insert_count = len(
-        re.findall(r"INSERT INTO nutritional_information", sql, re.IGNORECASE)
+    assert "WHERE NOT EXISTS" in sql, "Idempotency check WHERE NOT EXISTS missing"
+    assert "SELECT 1 FROM food_items fi WHERE fi.name = fc.name" in sql, (
+        "Item name matching check missing from CTE"
     )
-    assert insert_count == len(EXPECTED_FOOD_ITEMS), (
-        f"Expected {len(EXPECTED_FOOD_ITEMS)} nutritional info inserts, found {insert_count}"
+
+
+def test_declarative_cte_structure():
+    """Verify script uses a clean declarative CTE structure without PL/pgSQL duplication."""
+    sql = SEED_PATH.read_text(encoding="utf-8")
+    assert "WITH food_catalog" in sql, "Declarative CTE food_catalog missing"
+    assert "INSERT INTO food_items" in sql, "Food items insertion statement missing"
+    assert "INSERT INTO nutritional_information" in sql, (
+        "Nutritional information insertion statement missing"
     )

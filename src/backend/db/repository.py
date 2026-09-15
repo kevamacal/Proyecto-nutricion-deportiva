@@ -1,13 +1,18 @@
 """In-memory database repository layer for Food Catalog and Inventory Management."""
 
+from datetime import date
 from uuid import UUID, uuid4
 
 from src.backend.api.v1.schemas import (
+    DailySummaryResponse,
     FoodItemCreate,
     FoodItemResponse,
     InventoryItemCreate,
     InventoryItemResponse,
     InventoryItemUpdate,
+    MealCreate,
+    MealItemResponse,
+    MealResponse,
     NutritionalInfoSchema,
 )
 from src.backend.core.inventory.models import InventoryStatus
@@ -145,6 +150,99 @@ class InventoryRepository:
         return False
 
 
+class MealRepository:
+    """Repository handling Meal logging and intake aggregation."""
+
+    def __init__(self, food_repo: FoodCatalogRepository) -> None:
+        self._meals: dict[UUID, MealResponse] = {}
+        self._food_repo = food_repo
+
+    def log_meal(self, payload: MealCreate) -> MealResponse:
+        """Log a meal event and aggregate item macronutrients."""
+        meal_id = uuid4()
+        calculated_items: list[MealItemResponse] = []
+        tot_cal, tot_prot, tot_carb, tot_fat = 0.0, 0.0, 0.0, 0.0
+
+        for item_payload in payload.items:
+            food_item = self._food_repo.get_by_id(item_payload.food_item_id)
+            if food_item and food_item.nutrition:
+                factor = item_payload.quantity / food_item.nutrition.serving_size
+                cal = food_item.nutrition.calories_kcal * factor
+                prot = food_item.nutrition.protein_g * factor
+                carb = food_item.nutrition.carbohydrates_g * factor
+                fat = food_item.nutrition.fat_g * factor
+                name = food_item.name
+            else:
+                cal, prot, carb, fat = 0.0, 0.0, 0.0, 0.0
+                name = "Unknown Food Item"
+
+            tot_cal += cal
+            tot_prot += prot
+            tot_carb += carb
+            tot_fat += fat
+
+            calculated_items.append(
+                MealItemResponse(
+                    id=uuid4(),
+                    food_item_id=item_payload.food_item_id,
+                    food_item_name=name,
+                    quantity=item_payload.quantity,
+                    unit=item_payload.unit,
+                    calories_kcal=round(cal, 2),
+                    protein_g=round(prot, 2),
+                    carbohydrates_g=round(carb, 2),
+                    fat_g=round(fat, 2),
+                )
+            )
+
+        response = MealResponse(
+            id=meal_id,
+            user_id=payload.user_id,
+            meal_type=payload.meal_type,
+            logged_at=payload.logged_at,
+            items=calculated_items,
+            total_calories_kcal=round(tot_cal, 2),
+            total_protein_g=round(tot_prot, 2),
+            total_carbohydrates_g=round(tot_carb, 2),
+            total_fat_g=round(tot_fat, 2),
+        )
+        self._meals[meal_id] = response
+        return response
+
+    def list_meals(
+        self, user_id: UUID, target_date: date | None = None
+    ) -> list[MealResponse]:
+        """List meals logged by user, optionally filtered by date."""
+        results: list[MealResponse] = []
+        for meal in self._meals.values():
+            if meal.user_id == user_id and (
+                target_date is None or meal.logged_at.date() == target_date
+            ):
+                results.append(meal)
+        return results
+
+    def get_daily_summary(
+        self, user_id: UUID, target_date: date
+    ) -> DailySummaryResponse:
+        """Aggregate total consumed calories and macronutrients for a given date."""
+        meals = self.list_meals(user_id, target_date)
+        consumed_cal = sum(m.total_calories_kcal for m in meals)
+        consumed_prot = sum(m.total_protein_g for m in meals)
+        consumed_carb = sum(m.total_carbohydrates_g for m in meals)
+        consumed_fat = sum(m.total_fat_g for m in meals)
+
+        return DailySummaryResponse(
+            date=target_date,
+            user_id=user_id,
+            consumed_calories_kcal=round(consumed_cal, 2),
+            consumed_protein_g=round(consumed_prot, 2),
+            consumed_carbohydrates_g=round(consumed_carb, 2),
+            consumed_fat_g=round(consumed_fat, 2),
+            meals_logged_count=len(meals),
+        )
+
+
 # Global singletons
 food_repository = FoodCatalogRepository()
 inventory_repository = InventoryRepository(food_repository)
+meal_repository = MealRepository(food_repository)

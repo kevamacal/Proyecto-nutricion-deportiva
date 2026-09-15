@@ -83,3 +83,60 @@ class InventoryItemResponse(BaseModel):
     expiration_date: date | None = None
     status: InventoryStatus = Field(default=InventoryStatus.AVAILABLE)
     food_item: FoodItemResponse | None = None
+
+
+class MealItemCreate(BaseModel):
+    """Item component in a logged meal."""
+
+    food_item_id: UUID
+    quantity: float = Field(..., gt=0)
+    unit: str = Field(default="g")
+
+
+class MealItemResponse(BaseModel):
+    """Calculated nutrition item response in a logged meal."""
+
+    id: UUID = Field(default_factory=uuid4)
+    food_item_id: UUID
+    food_item_name: str
+    quantity: float
+    unit: str
+    calories_kcal: float
+    protein_g: float
+    carbohydrates_g: float
+    fat_g: float
+
+
+class MealCreate(BaseModel):
+    """Payload for logging a meal event."""
+
+    user_id: UUID
+    meal_type: str = Field(default="Breakfast", min_length=1, max_length=50)
+    logged_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    items: list[MealItemCreate] = Field(..., min_length=1)
+
+
+class MealResponse(BaseModel):
+    """Response DTO for logged meal event with aggregated totals."""
+
+    id: UUID = Field(default_factory=uuid4)
+    user_id: UUID
+    meal_type: str
+    logged_at: datetime
+    items: list[MealItemResponse]
+    total_calories_kcal: float
+    total_protein_g: float
+    total_carbohydrates_g: float
+    total_fat_g: float
+
+
+class DailySummaryResponse(BaseModel):
+    """Response DTO for aggregated daily nutritional intake summary."""
+
+    date: date
+    user_id: UUID
+    consumed_calories_kcal: float
+    consumed_protein_g: float
+    consumed_carbohydrates_g: float
+    consumed_fat_g: float
+    meals_logged_count: int

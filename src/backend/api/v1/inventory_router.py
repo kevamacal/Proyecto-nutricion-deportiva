@@ -11,7 +11,7 @@ from src.backend.api.v1.schemas import (
     InventoryItemUpdate,
 )
 from src.backend.core.inventory.models import InventoryStatus
-from src.backend.db.repository import inventory_repository
+from src.backend.services.inventory_service import inventory_service
 
 router = APIRouter(prefix="/rest/v1/inventory_items", tags=["Inventory"])
 
@@ -25,7 +25,9 @@ def get_inventory_items(
     ] = None,
 ) -> list[InventoryItemResponse]:
     """List pantry inventory stock items for a user."""
-    return inventory_repository.list_by_user(user_id, status=status_filter)
+    return inventory_service.list_inventory_items(
+        user_id=user_id, status_filter=status_filter
+    )
 
 
 @router.post("", status_code=status.HTTP_201_CREATED)
@@ -33,7 +35,7 @@ def add_inventory_item(
     payload: InventoryItemCreate,
 ) -> InventoryItemResponse:
     """Add a new food item portion to pantry inventory stock."""
-    return inventory_repository.add_item(payload)
+    return inventory_service.add_inventory_item(payload)
 
 
 @router.patch("/{item_id}")
@@ -41,7 +43,7 @@ def update_inventory_item(
     item_id: UUID, payload: InventoryItemUpdate
 ) -> InventoryItemResponse:
     """Update stock quantity, expiration date or status of a pantry item."""
-    updated = inventory_repository.update_item(item_id, payload)
+    updated = inventory_service.update_inventory_item(item_id=item_id, payload=payload)
     if not updated:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -53,7 +55,7 @@ def update_inventory_item(
 @router.delete("/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_inventory_item(item_id: UUID) -> None:
     """Remove an item from pantry inventory stock."""
-    deleted = inventory_repository.delete_item(item_id)
+    deleted = inventory_service.delete_inventory_item(item_id)
     if not deleted:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

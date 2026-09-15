@@ -187,3 +187,48 @@ class ActivityLogResponse(BaseModel):
     energy_expended_kcal: float
     hydration_recommendation_ml: float
     recovery_notes: str
+
+
+class RecommendationRequest(BaseModel):
+    """Request payload for deterministic non-LLM recommendation engine."""
+
+    user_id: UUID
+    target_calories_kcal: float = Field(..., gt=0)
+    target_protein_g: float = Field(..., gt=0)
+    target_carbohydrates_g: float = Field(..., gt=0)
+    target_fat_g: float = Field(..., gt=0)
+    consumed_calories_kcal: float = Field(default=0.0, ge=0)
+    consumed_protein_g: float = Field(default=0.0, ge=0)
+    consumed_carbohydrates_g: float = Field(default=0.0, ge=0)
+    consumed_fat_g: float = Field(default=0.0, ge=0)
+    activity_expenditure_kcal: float = Field(default=0.0, ge=0)
+    activity_carb_demand_g: float = Field(default=0.0, ge=0)
+    activity_protein_demand_g: float = Field(default=0.0, ge=0)
+
+
+class IngredientMatch(BaseModel):
+    """Pantry inventory item matched for meal recommendation."""
+
+    food_item_id: UUID
+    food_name: str
+    category: str
+    available_stock: float
+    unit: str
+    recommended_portion_g: float
+    calories_contribution_kcal: float
+    protein_contribution_g: float
+    carbs_contribution_g: float
+    fat_contribution_g: float
+
+
+class RecommendationResponse(BaseModel):
+    """Response payload with calculated remaining intake demands and matched pantry stock."""
+
+    user_id: UUID
+    remaining_calories_kcal: float
+    remaining_protein_g: float
+    remaining_carbohydrates_g: float
+    remaining_fat_g: float
+    dominant_deficit_macronutrient: str
+    recommended_ingredients: list[IngredientMatch]
+    recommendation_summary: str

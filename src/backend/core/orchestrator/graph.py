@@ -2,7 +2,10 @@
 
 from typing import Any, Literal
 
-from langgraph.graph import END, StateGraph
+from langgraph.graph import (  # type: ignore[import-not-found,import-untyped]
+    END,
+    StateGraph,
+)
 
 from src.backend.core.orchestrator.nodes import (
     basketball_node,

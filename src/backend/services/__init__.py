@@ -11,11 +11,14 @@ from src.backend.services.nutrition_service import (
     NutritionService,
     nutrition_service,
 )
+from src.backend.services.orchestrator_service import OrchestratorService
 from src.backend.services.recipe_service import RecipeService, recipe_service
 from src.backend.services.recommendation_service import (
     RecommendationService,
     recommendation_service,
 )
+
+orchestrator_service = OrchestratorService()
 
 __all__ = [
     "ActivityService",
@@ -23,6 +26,7 @@ __all__ = [
     "InventoryService",
     "MealService",
     "NutritionService",
+    "OrchestratorService",
     "RecipeService",
     "RecommendationService",
     "activity_service",
@@ -30,6 +34,7 @@ __all__ = [
     "inventory_service",
     "meal_service",
     "nutrition_service",
+    "orchestrator_service",
     "recipe_service",
     "recommendation_service",
 ]

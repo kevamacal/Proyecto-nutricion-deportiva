@@ -69,7 +69,7 @@ $$\text{Protein Calories (kcal)} = \text{Daily Protein Target (g)} \times 4\text
 
 Fat is calculated on a bodyweight basis ($\text{g/kg}$) to ensure endocrine & hormonal health without over-saturating caloric intake, bounded between $20\%$ (minimum safety floor) and $30\%$ (maximum cap) of total daily calories:
 
-$$\text{Fat Factor} = \begin{cases} 0.9\text{ g/kg} & \text{if } \text{nutritional\_goal} = \text{'FAT\_LOSS\_FOCUS'} \\ 1.0\text{ g/kg} & \text{otherwise} \end{cases}$$
+$$\text{Fat Factor} = \begin{cases} 0.9\text{ g/kg} & \text{if } \text{nutritional\textunderscore{}goal} = \text{'FAT\_LOSS\_FOCUS'} \\ 1.0\text{ g/kg} & \text{otherwise} \end{cases}$$
 
 $$\text{Raw Fat Target (g)} = \text{weight (kg)} \times \text{Fat Factor}$$
 

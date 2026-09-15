@@ -27,7 +27,7 @@ from src.backend.sports.strength_training.models import StrengthTrainingType
 
 def _parse_duration(query: str, default: int = 60) -> int:
     """Extract duration in minutes from query string if present."""
-    match = re.search(r"(\d+)\s*(?:min|minutos|minute|minutes)", query, re.IGNORECASE)
+    match = re.search(r"(\d+)\s*min", query, re.IGNORECASE)
     if match:
         return int(match.group(1))
     return default

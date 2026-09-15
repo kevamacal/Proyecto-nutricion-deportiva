@@ -61,7 +61,8 @@ def test_recipe_node_contract_schema_compatibility() -> None:
     assert output.total_time_minutes <= 25
     assert len(output.ingredients_used) > 0
     assert output.estimated_nutritional_summary.protein_g > 0.0
-    assert output.nutritional_fit_score >= 0.0 and output.nutritional_fit_score <= 100.0
+    assert output.nutritional_fit_score >= 0.0
+    assert output.nutritional_fit_score <= 100.0
     assert "BASKETBALL" in output.explanation
 
 

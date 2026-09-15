@@ -3,6 +3,10 @@ python_version = "3.14"
 explicit_package_bases = true
 mypy_path = "."
 
+[[tool.mypy.overrides]]
+module = "langgraph.*"
+ignore_missing_imports = true
+
 [tool.ruff]
 line-length = 88
 target-version = "py314"

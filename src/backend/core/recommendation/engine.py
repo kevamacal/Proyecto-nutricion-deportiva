@@ -7,6 +7,7 @@ Zero LLM calls or external client SDK invocations.
 from src.backend.api.v1.schemas import (
     IngredientMatch,
     InventoryItemResponse,
+    NutritionalInfoSchema,
     RecommendationRequest,
     RecommendationResponse,
 )
@@ -43,9 +44,64 @@ def identify_dominant_deficit(
     """Identify dominant deficit macronutrient (PROTEIN, CARBOHYDRATES, or BALANCED)."""
     if remaining_protein_g >= 25.0 and remaining_protein_g > remaining_carbs_g * 0.4:
         return "PROTEIN"
-    elif remaining_carbs_g >= 40.0 and remaining_carbs_g > remaining_protein_g * 1.5:
+    if remaining_carbs_g >= 40.0 and remaining_carbs_g > remaining_protein_g * 1.5:
         return "CARBOHYDRATES"
     return "BALANCED"
+
+
+def _score_pantry_item(item: InventoryItemResponse, dominant_deficit: str) -> float:
+    """Helper scoring a pantry stock item based on dominant deficit density."""
+    if not item.food_item or not item.food_item.nutrition:
+        return 0.0
+    nutr = item.food_item.nutrition
+    if dominant_deficit == "PROTEIN":
+        return nutr.protein_g
+    if dominant_deficit == "CARBOHYDRATES":
+        return nutr.carbohydrates_g
+    return nutr.protein_g + nutr.carbohydrates_g
+
+
+def _calculate_desired_portion(
+    nutr: NutritionalInfoSchema,
+    dominant_deficit: str,
+    remaining_cal: float,
+    remaining_prot: float,
+    remaining_carbs: float,
+) -> float:
+    """Helper calculating desired portion in grams based on remaining deficit."""
+    serving = nutr.serving_size if nutr.serving_size > 0 else 100.0
+
+    if dominant_deficit == "PROTEIN" and nutr.protein_g > 0:
+        return (remaining_prot / nutr.protein_g) * serving
+    if dominant_deficit == "CARBOHYDRATES" and nutr.carbohydrates_g > 0:
+        return (remaining_carbs / nutr.carbohydrates_g) * serving
+    if nutr.calories_kcal > 0:
+        return (remaining_cal / nutr.calories_kcal) * serving
+    return serving
+
+
+def _create_ingredient_match(
+    item: InventoryItemResponse, portion_g: float
+) -> IngredientMatch:
+    """Helper constructing IngredientMatch DTO for a given portion size."""
+    food = item.food_item
+    assert food is not None and food.nutrition is not None
+    nutr = food.nutrition
+    serving = nutr.serving_size if nutr.serving_size > 0 else 100.0
+
+    factor = portion_g / serving
+    return IngredientMatch(
+        food_item_id=food.id,
+        food_name=food.name,
+        category=food.category,
+        available_stock=item.quantity,
+        unit=item.unit,
+        recommended_portion_g=portion_g,
+        calories_contribution_kcal=round(nutr.calories_kcal * factor, 2),
+        protein_contribution_g=round(nutr.protein_g * factor, 2),
+        carbs_contribution_g=round(nutr.carbohydrates_g * factor, 2),
+        fat_contribution_g=round(nutr.fat_g * factor, 2),
+    )
 
 
 def match_ingredients_from_pantry(
@@ -56,76 +112,36 @@ def match_ingredients_from_pantry(
     remaining_carbs: float,
 ) -> list[IngredientMatch]:
     """Rank available pantry items matching dominant deficit and compute recommended portion sizes."""
-    matches: list[IngredientMatch] = []
-
-    # Filter items with non-zero stock having valid nutrition
     valid_items = [
         item
         for item in pantry_items
         if item.quantity > 0 and item.food_item and item.food_item.nutrition
     ]
 
-    # Score function based on dominant deficit macronutrient per 100g
-    def score_item(item: InventoryItemResponse) -> float:
-        if not item.food_item or not item.food_item.nutrition:
-            return 0.0
-        nutr = item.food_item.nutrition
-        if dominant_deficit == "PROTEIN":
-            return nutr.protein_g
-        elif dominant_deficit == "CARBOHYDRATES":
-            return nutr.carbohydrates_g
-        else:
-            return nutr.protein_g + nutr.carbohydrates_g
+    sorted_items = sorted(
+        valid_items,
+        key=lambda i: _score_pantry_item(i, dominant_deficit),
+        reverse=True,
+    )
 
-    sorted_items = sorted(valid_items, key=score_item, reverse=True)
-
+    matches: list[IngredientMatch] = []
     for item in sorted_items:
-        food = item.food_item
-        assert food is not None and food.nutrition is not None
-        nutr = food.nutrition
+        if not item.food_item or not item.food_item.nutrition:
+            continue
+        nutr = item.food_item.nutrition
+        desired_g = _calculate_desired_portion(
+            nutr=nutr,
+            dominant_deficit=dominant_deficit,
+            remaining_cal=remaining_cal,
+            remaining_prot=remaining_prot,
+            remaining_carbs=remaining_carbs,
+        )
 
-        # Standard reference serving (default 100g)
-        serving = nutr.serving_size if nutr.serving_size > 0 else 100.0
-
-        # Calculate max portion needed based on remaining deficit
-        if dominant_deficit == "PROTEIN" and nutr.protein_g > 0:
-            desired_g = (remaining_prot / nutr.protein_g) * serving
-        elif dominant_deficit == "CARBOHYDRATES" and nutr.carbohydrates_g > 0:
-            desired_g = (remaining_carbs / nutr.carbohydrates_g) * serving
-        else:
-            desired_g = (
-                (remaining_cal / nutr.calories_kcal) * serving
-                if nutr.calories_kcal > 0
-                else serving
-            )
-
-        # Cap recommended portion by available inventory quantity
         portion_g = round(min(desired_g, item.quantity, 300.0), 2)
         if portion_g <= 0:
             continue
 
-        factor = portion_g / serving
-        c_cal = round(nutr.calories_kcal * factor, 2)
-        c_prot = round(nutr.protein_g * factor, 2)
-        c_carbs = round(nutr.carbohydrates_g * factor, 2)
-        c_fat = round(nutr.fat_g * factor, 2)
-
-        matches.append(
-            IngredientMatch(
-                food_item_id=food.id,
-                food_name=food.name,
-                category=food.category,
-                available_stock=item.quantity,
-                unit=item.unit,
-                recommended_portion_g=portion_g,
-                calories_contribution_kcal=c_cal,
-                protein_contribution_g=c_prot,
-                carbs_contribution_g=c_carbs,
-                fat_contribution_g=c_fat,
-            )
-        )
-
-        # Limit to top 3 matched ingredients
+        matches.append(_create_ingredient_match(item, portion_g))
         if len(matches) >= 3:
             break
 

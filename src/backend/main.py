@@ -8,6 +8,7 @@ from src.backend.api.v1.food_router import router as food_router
 from src.backend.api.v1.inventory_router import router as inventory_router
 from src.backend.api.v1.meals_router import router as meals_router
 from src.backend.api.v1.nutrition_router import router as nutrition_router
+from src.backend.api.v1.recommendation_router import router as recommendation_router
 from src.backend.api.v1.summary_router import router as summary_router
 
 app = FastAPI(
@@ -32,6 +33,7 @@ app.include_router(meals_router)
 app.include_router(summary_router)
 app.include_router(nutrition_router)
 app.include_router(activities_router)
+app.include_router(recommendation_router)
 
 
 @app.get("/health", tags=["Health"])

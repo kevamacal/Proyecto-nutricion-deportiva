@@ -16,9 +16,7 @@ from src.backend.sports.strength_training.models import StrengthTrainingType
 router = APIRouter(prefix="/api/v1/activities", tags=["Activities"])
 
 
-@router.post(
-    "/log", response_model=ActivityLogResponse, status_code=status.HTTP_201_CREATED
-)
+@router.post("/log", status_code=status.HTTP_201_CREATED)
 def log_activity(payload: ActivityLogRequest) -> ActivityLogResponse:
     """Log an athletic activity session (Basketball or Strength Training) and return expenditure."""
     # Intensity mapping

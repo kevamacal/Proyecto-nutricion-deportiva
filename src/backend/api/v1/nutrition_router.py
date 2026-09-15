@@ -16,7 +16,7 @@ from src.backend.core.user.models import (
 router = APIRouter(prefix="/api/v1/nutrition", tags=["Target Calculation"])
 
 
-@router.post("/calculate-targets", response_model=TargetCalculationResponse)
+@router.post("/calculate-targets")
 def calculate_targets(payload: TargetCalculationRequest) -> TargetCalculationResponse:
     """Calculate BMR, TDEE, and macronutrient target distribution deterministically."""
     # Map sex string

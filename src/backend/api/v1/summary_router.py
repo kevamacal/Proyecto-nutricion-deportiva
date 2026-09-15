@@ -7,7 +7,7 @@ from uuid import UUID
 from fastapi import APIRouter, Query
 
 from src.backend.api.v1.schemas import DailySummaryResponse
-from src.backend.db.repository import meal_repository
+from src.backend.services.meal_service import meal_service
 
 router = APIRouter(prefix="/api/v1/nutrition", tags=["Daily Summary"])
 
@@ -20,4 +20,4 @@ def get_daily_summary(
     ],
 ) -> DailySummaryResponse:
     """Retrieve daily intake summary aggregating logged meals for a given date."""
-    return meal_repository.get_daily_summary(user_id=user_id, target_date=target_date)
+    return meal_service.get_daily_summary(user_id=user_id, target_date=target_date)

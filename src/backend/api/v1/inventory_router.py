@@ -1,5 +1,6 @@
 """FastAPI router for Pantry Inventory CRUD endpoints."""
 
+from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, HTTPException, Query, status
@@ -15,22 +16,19 @@ from src.backend.db.repository import inventory_repository
 router = APIRouter(prefix="/rest/v1/inventory_items", tags=["Inventory"])
 
 
-@router.get("", response_model=list[InventoryItemResponse])
+@router.get("")
 def get_inventory_items(
-    user_id: UUID = Query(..., description="User ID owner of pantry inventory"),
-    status_filter: InventoryStatus | None = Query(
-        default=None, alias="status", description="Filter stock by availability status"
-    ),
+    user_id: Annotated[UUID, Query(description="User ID owner of pantry inventory")],
+    status_filter: Annotated[
+        InventoryStatus | None,
+        Query(alias="status", description="Filter stock by availability status"),
+    ] = None,
 ) -> list[InventoryItemResponse]:
     """List pantry inventory stock items for a user."""
     return inventory_repository.list_by_user(user_id, status=status_filter)
 
 
-@router.post(
-    "",
-    response_model=InventoryItemResponse,
-    status_code=status.HTTP_201_CREATED,
-)
+@router.post("", status_code=status.HTTP_201_CREATED)
 def add_inventory_item(
     payload: InventoryItemCreate,
 ) -> InventoryItemResponse:
@@ -38,7 +36,7 @@ def add_inventory_item(
     return inventory_repository.add_item(payload)
 
 
-@router.patch("/{item_id}", response_model=InventoryItemResponse)
+@router.patch("/{item_id}")
 def update_inventory_item(
     item_id: UUID, payload: InventoryItemUpdate
 ) -> InventoryItemResponse:

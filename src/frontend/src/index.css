@@ -1,0 +1,409 @@
+/* Sports Nutrition Platform CSS Design System
+   Conforms strictly to skills/sports_nutrition_ui_direction/SKILL.MD
+*/
+
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,600;0,700;0,800;1,700&family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
+
+:root {
+  /* Color Tokens */
+  --bg-court: #171511;
+  --surface-hardwood: #2A2118;
+  --surface-card: #221B14;
+  --ink-chalk: #F2EFE6;
+  --ink-muted: #A39D90;
+  --accent-ember: #C1622B;
+  --accent-lake: #3E6E64;
+  --accent-flag: #B23A48;
+  --line-graphite: #4A473F;
+  --line-heavy: #6E685C;
+
+  /* Typography Tokens */
+  --font-display: 'Barlow Condensed', sans-serif;
+  --font-body: 'Public Sans', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--bg-court);
+  color: var(--ink-chalk);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.5;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Header & Scoreboard Banner */
+.app-header {
+  background-color: var(--surface-hardwood);
+  border-bottom: 2px solid var(--line-heavy);
+  padding: 1.25rem 2rem;
+}
+
+.brand-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.25rem;
+}
+
+.brand-title {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--ink-chalk);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.brand-badge {
+  background-color: var(--accent-ember);
+  color: var(--ink-chalk);
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 0.25rem 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Scoreboard Ledger Header */
+.scoreboard-ledger {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.5rem;
+  background-color: var(--surface-card);
+  border: 1px solid var(--line-graphite);
+  padding: 1.25rem 1.5rem;
+}
+
+.score-stat {
+  display: flex;
+  flex-direction: column;
+}
+
+.score-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--ink-muted);
+  margin-bottom: 0.35rem;
+}
+
+.score-value {
+  font-family: var(--font-display);
+  font-size: 2.8rem;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--accent-ember);
+  font-feature-settings: "tnum" 1, "lnum" 1;
+}
+
+.score-value.lake {
+  color: var(--accent-lake);
+}
+
+.score-unit {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-left: 0.25rem;
+  color: var(--ink-muted);
+}
+
+/* Fuel Gauge Macro Bars */
+.macro-gauge-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  margin-top: 0.2rem;
+}
+
+.macro-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.macro-info {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.macro-bar-track {
+  height: 8px;
+  background-color: var(--line-graphite);
+  overflow: hidden;
+}
+
+.macro-bar-fill {
+  height: 100%;
+  transition: width 0.4s ease;
+}
+
+.macro-bar-fill.prot {
+  background-color: var(--accent-ember);
+}
+
+.macro-bar-fill.carb {
+  background-color: #D9A05B;
+}
+
+.macro-bar-fill.fat {
+  background-color: var(--accent-lake);
+}
+
+/* Main Layout Grid */
+.app-container {
+  display: grid;
+  grid-template-columns: 1fr 1.1fr;
+  gap: 1.5rem;
+  padding: 2rem;
+  flex: 1;
+}
+
+@media (max-width: 960px) {
+  .app-container {
+    grid-template-columns: 1fr;
+    padding: 1rem;
+  }
+}
+
+/* Panel Containers */
+.panel-card {
+  background-color: var(--surface-hardwood);
+  border: 1px solid var(--line-graphite);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.panel-header {
+  background-color: var(--surface-card);
+  border-bottom: 1px solid var(--line-graphite);
+  padding: 1rem 1.25rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.panel-title {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--ink-chalk);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.panel-body {
+  padding: 1.25rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* Chat Assistant Panel */
+.chat-messages {
+  flex: 1;
+  min-height: 380px;
+  max-height: 520px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding-right: 0.5rem;
+}
+
+.chat-message {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  max-width: 95%;
+}
+
+.chat-message.user {
+  align-self: flex-end;
+  background-color: var(--surface-card);
+  border: 1px solid var(--line-heavy);
+  padding: 0.85rem 1.1rem;
+}
+
+.chat-message.agent {
+  align-self: flex-start;
+  background-color: var(--bg-court);
+  border: 1px solid var(--line-graphite);
+  padding: 1rem 1.25rem;
+  width: 100%;
+}
+
+.message-author {
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--accent-ember);
+}
+
+/* Execution Path Badges */
+.execution-path-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.5rem;
+}
+
+.node-badge {
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-weight: 700;
+  background-color: var(--surface-card);
+  border: 1px solid var(--line-heavy);
+  color: var(--ink-chalk);
+  padding: 0.15rem 0.5rem;
+  text-transform: uppercase;
+}
+
+.node-badge.active {
+  background-color: var(--accent-lake);
+  border-color: var(--accent-lake);
+}
+
+/* Chat Input Form */
+.chat-input-form {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.chat-input {
+  flex: 1;
+  background-color: var(--bg-court);
+  border: 1px solid var(--line-heavy);
+  color: var(--ink-chalk);
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  padding: 0.75rem 1rem;
+}
+
+.chat-input:focus {
+  outline: none;
+  border-color: var(--accent-ember);
+}
+
+.btn-scoreboard {
+  background-color: var(--accent-ember);
+  color: var(--ink-chalk);
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border: none;
+  padding: 0.75rem 1.25rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: background-color 0.2s ease;
+}
+
+.btn-scoreboard:hover {
+  background-color: #a85222;
+}
+
+.btn-scoreboard.lake {
+  background-color: var(--accent-lake);
+}
+
+.btn-scoreboard.lake:hover {
+  background-color: #315850;
+}
+
+/* Index-Card Pantry Manager */
+.pantry-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 1rem;
+}
+
+.pantry-card {
+  background-color: var(--surface-card);
+  border: 1px solid var(--line-graphite);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.pantry-name {
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--ink-chalk);
+}
+
+.pantry-tag {
+  align-self: flex-start;
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  background-color: var(--line-graphite);
+  color: var(--ink-chalk);
+}
+
+.pantry-tag.PROTEIN_DENSE {
+  background-color: var(--accent-ember);
+}
+
+.pantry-tag.CARB_DENSE {
+  background-color: #D9A05B;
+  color: #171511;
+}
+
+.pantry-tag.FAT_DENSE {
+  background-color: var(--accent-lake);
+}
+
+.pantry-quantity {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--ink-chalk);
+  font-feature-settings: "tnum" 1;
+}
+
+/* PWA Installation Alert Banner */
+.pwa-banner {
+  background-color: var(--surface-card);
+  border: 1px solid var(--accent-ember);
+  padding: 0.75rem 1.25rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}

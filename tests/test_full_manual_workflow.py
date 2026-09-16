@@ -44,7 +44,7 @@ def test_full_athlete_workflow() -> None:
     )  # Surplus for bulk
 
     # 2. Query catalog and add item to pantry inventory
-    cat_resp = client.get("/rest/v1/food_items?query=Arroz")
+    cat_resp = client.get("/api/v1/food_items?query=Arroz")
     assert cat_resp.status_code == 200
     rice_items = [i for i in cat_resp.json() if "Arroz" in i["name"]]
     assert len(rice_items) > 0
@@ -56,7 +56,7 @@ def test_full_athlete_workflow() -> None:
         "quantity": 1000.0,
         "unit": "g",
     }
-    inv_resp = client.post("/rest/v1/inventory_items", json=inv_payload)
+    inv_resp = client.post("/api/v1/inventory_items", json=inv_payload)
     assert inv_resp.status_code == 201
 
     # 3. Log a meal
@@ -71,7 +71,7 @@ def test_full_athlete_workflow() -> None:
             }
         ],
     }
-    meal_resp = client.post("/rest/v1/meals", json=meal_payload)
+    meal_resp = client.post("/api/v1/meals", json=meal_payload)
     assert meal_resp.status_code == 201
     assert meal_resp.json()["total_calories_kcal"] == 260.0  # 130 * 2
 

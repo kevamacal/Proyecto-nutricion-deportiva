@@ -24,7 +24,7 @@ def test_log_meal_and_query_daily_summary() -> None:
     today_str = datetime.now(UTC).date().isoformat()
 
     # 1. Fetch default food item (Pechuga de pollo)
-    cat_resp = client.get("/rest/v1/food_items?query=Pechuga")
+    cat_resp = client.get("/api/v1/food_items?query=Pechuga")
     assert cat_resp.status_code == 200
     items = cat_resp.json()
     assert len(items) > 0
@@ -42,7 +42,7 @@ def test_log_meal_and_query_daily_summary() -> None:
             }
         ],
     }
-    log_resp = client.post("/rest/v1/meals", json=meal_payload)
+    log_resp = client.post("/api/v1/meals", json=meal_payload)
     assert log_resp.status_code == 201
     meal_data = log_resp.json()
     assert meal_data["user_id"] == user_id
@@ -50,7 +50,7 @@ def test_log_meal_and_query_daily_summary() -> None:
     assert meal_data["total_protein_g"] == 62.0  # 31 * 2
 
     # 3. Retrieve meals for user
-    get_meals_resp = client.get(f"/rest/v1/meals?user_id={user_id}")
+    get_meals_resp = client.get(f"/api/v1/meals?user_id={user_id}")
     assert get_meals_resp.status_code == 200
     user_meals = get_meals_resp.json()
     assert len(user_meals) == 1

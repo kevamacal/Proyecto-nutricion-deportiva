@@ -16,7 +16,7 @@ client = TestClient(app)
 
 
 def test_get_food_items_catalog():
-    response = client.get("/rest/v1/food_items")
+    response = client.get("/api/v1/food_items")
     assert response.status_code == 200
     data = response.json()
     assert len(data) >= 6
@@ -26,7 +26,7 @@ def test_get_food_items_catalog():
 
 
 def test_get_food_items_search_filter():
-    response = client.get("/rest/v1/food_items?q=pollo")
+    response = client.get("/api/v1/food_items?q=pollo")
     assert response.status_code == 200
     data = response.json()
     assert len(data) == 1
@@ -47,7 +47,7 @@ def test_create_custom_food_item():
         "fat_g": 0.2,
         "user_id": user_id,
     }
-    response = client.post("/rest/v1/food_items", json=payload)
+    response = client.post("/api/v1/food_items", json=payload)
     assert response.status_code == 201
     data = response.json()
     assert data["name"] == "Manzana Fuji"
@@ -57,7 +57,7 @@ def test_create_custom_food_item():
 
 def test_inventory_crud_lifecycle():
     user_id = str(uuid4())
-    food_id = client.get("/rest/v1/food_items?q=pollo").json()[0]["id"]
+    food_id = client.get("/api/v1/food_items?q=pollo").json()[0]["id"]
 
     # 1. Add item to pantry inventory
     add_payload = {
@@ -67,7 +67,7 @@ def test_inventory_crud_lifecycle():
         "unit": "g",
         "expiration_date": "2026-10-15",
     }
-    add_resp = client.post("/rest/v1/inventory_items", json=add_payload)
+    add_resp = client.post("/api/v1/inventory_items", json=add_payload)
     assert add_resp.status_code == 201
     inv_data = add_resp.json()
     item_id = inv_data["id"]
@@ -75,7 +75,7 @@ def test_inventory_crud_lifecycle():
     assert inv_data["status"] == "AVAILABLE"
 
     # 2. Get inventory items by user
-    get_resp = client.get(f"/rest/v1/inventory_items?user_id={user_id}")
+    get_resp = client.get(f"/api/v1/inventory_items?user_id={user_id}")
     assert get_resp.status_code == 200
     items = get_resp.json()
     assert len(items) == 1
@@ -83,7 +83,7 @@ def test_inventory_crud_lifecycle():
 
     # 3. Update quantity and status (PATCH)
     patch_resp = client.patch(
-        f"/rest/v1/inventory_items/{item_id}",
+        f"/api/v1/inventory_items/{item_id}",
         json={"quantity": 200.0, "status": "LOW_STOCK"},
     )
     assert patch_resp.status_code == 200
@@ -92,10 +92,10 @@ def test_inventory_crud_lifecycle():
     assert updated["status"] == "LOW_STOCK"
 
     # 4. Delete item from inventory (DELETE)
-    del_resp = client.delete(f"/rest/v1/inventory_items/{item_id}")
+    del_resp = client.delete(f"/api/v1/inventory_items/{item_id}")
     assert del_resp.status_code == 204
 
     # 5. Verify deletion
-    verify_resp = client.get(f"/rest/v1/inventory_items?user_id={user_id}")
+    verify_resp = client.get(f"/api/v1/inventory_items?user_id={user_id}")
     assert verify_resp.status_code == 200
     assert len(verify_resp.json()) == 0

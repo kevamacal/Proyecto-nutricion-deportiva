@@ -25,6 +25,60 @@ export interface CatalogFoodItem {
   };
 }
 
+export interface TargetCalculationRequest {
+  user_id: string;
+  weight_kg: number;
+  height_cm: number;
+  age: number;
+  sex: string;
+  activity_level: string;
+  goal: string;
+}
+
+export interface TargetCalculationResponse {
+  user_id: string;
+  bmr_kcal: number;
+  base_tdee_kcal: number;
+  calories_target_kcal: number;
+  protein_target_g: number;
+  fat_target_g: number;
+  carbs_target_g: number;
+}
+
+export interface BasketballLogPayload {
+  user_id: string;
+  session_category: 'TRAINING' | 'MATCH';
+  duration_minutes: number;
+  intensity: 'LOW' | 'MEDIUM' | 'HIGH' | 'VERY_HIGH';
+  weight_kg: number;
+}
+
+export interface StrengthLogPayload {
+  user_id: string;
+  training_type: 'HYPERTROPHY' | 'STRENGTH' | 'POWER' | 'HYBRID' | 'ENDURANCE';
+  duration_minutes: number;
+  intensity: 'LOW' | 'MEDIUM' | 'HIGH' | 'VERY_HIGH';
+  weight_kg: number;
+  targeted_muscles: string[];
+  total_sets?: number;
+  total_reps?: number;
+  total_volume_kg?: number;
+}
+
+export async function calculateTargets(
+  payload: TargetCalculationRequest
+): Promise<TargetCalculationResponse> {
+  const response = await fetch(`${API_BASE_URL}/nutrition/calculate-targets`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  if (!response.ok) {
+    throw new Error(`Error calculating targets: ${response.status}`);
+  }
+  return response.json();
+}
+
 export async function fetchDailySummary(
   userId: string,
   date: string = '2026-09-15'
@@ -39,7 +93,7 @@ export async function fetchDailySummary(
 }
 
 export async function fetchPantryInventory(userId: string): Promise<PantryItem[]> {
-  const response = await fetch(`/rest/v1/inventory_items?user_id=${userId}`);
+  const response = await fetch(`${API_BASE_URL}/inventory?user_id=${userId}`);
   if (!response.ok) {
     throw new Error(`Error fetching inventory: ${response.status}`);
   }
@@ -70,7 +124,7 @@ export async function fetchPantryInventory(userId: string): Promise<PantryItem[]
 }
 
 export async function fetchFoodCatalog(): Promise<CatalogFoodItem[]> {
-  const response = await fetch('/rest/v1/food_items');
+  const response = await fetch(`${API_BASE_URL}/food`);
   if (!response.ok) {
     throw new Error(`Error fetching catalog: ${response.status}`);
   }
@@ -84,7 +138,7 @@ export async function addPantryItem(payload: {
   unit: string;
   expiration_date?: string | null;
 }): Promise<any> {
-  const response = await fetch('/rest/v1/inventory_items', {
+  const response = await fetch(`${API_BASE_URL}/inventory`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
@@ -96,12 +150,36 @@ export async function addPantryItem(payload: {
 }
 
 export async function deletePantryItem(itemId: string): Promise<void> {
-  const response = await fetch(`/rest/v1/inventory_items/${itemId}`, {
+  const response = await fetch(`${API_BASE_URL}/inventory/${itemId}`, {
     method: 'DELETE',
   });
   if (!response.ok && response.status !== 204) {
     throw new Error(`Error deleting pantry item: ${response.status}`);
   }
+}
+
+export async function logBasketballActivity(payload: BasketballLogPayload): Promise<any> {
+  const response = await fetch(`${API_BASE_URL}/activities/basketball`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  if (!response.ok) {
+    throw new Error(`Error logging basketball activity: ${response.status}`);
+  }
+  return response.json();
+}
+
+export async function logStrengthActivity(payload: StrengthLogPayload): Promise<any> {
+  const response = await fetch(`${API_BASE_URL}/activities/strength`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  if (!response.ok) {
+    throw new Error(`Error logging strength activity: ${response.status}`);
+  }
+  return response.json();
 }
 
 export async function logActivity(payload: {
@@ -127,7 +205,7 @@ export async function logMeal(payload: {
   meal_type: string;
   items: Array<{ food_item_id: string; quantity: number; unit: string }>;
 }): Promise<any> {
-  const response = await fetch('/rest/v1/meals', {
+  const response = await fetch(`${API_BASE_URL}/meals`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
@@ -161,3 +239,4 @@ export async function sendAgentQuery(
 
   return response.json();
 }
+

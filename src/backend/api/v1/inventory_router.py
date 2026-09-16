@@ -13,7 +13,7 @@ from src.backend.api.v1.schemas import (
 from src.backend.core.inventory.models import InventoryStatus
 from src.backend.services.inventory_service import inventory_service
 
-router = APIRouter(prefix="/rest/v1/inventory_items", tags=["Inventory"])
+router = APIRouter(prefix="/api/v1/inventory_items", tags=["Inventory"])
 
 
 @router.get("")

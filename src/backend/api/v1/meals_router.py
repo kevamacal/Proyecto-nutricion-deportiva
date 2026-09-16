@@ -9,7 +9,7 @@ from fastapi import APIRouter, Query, status
 from src.backend.api.v1.schemas import MealCreate, MealResponse
 from src.backend.services.meal_service import meal_service
 
-router = APIRouter(prefix="/rest/v1/meals", tags=["Meals"])
+router = APIRouter(prefix="/api/v1/meals", tags=["Meals"])
 
 
 @router.post("", status_code=status.HTTP_201_CREATED)

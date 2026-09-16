@@ -8,7 +8,7 @@ from fastapi import APIRouter, Query, status
 from src.backend.api.v1.schemas import FoodItemCreate, FoodItemResponse
 from src.backend.services.food_service import food_service
 
-router = APIRouter(prefix="/rest/v1/food_items", tags=["Food Catalog"])
+router = APIRouter(prefix="/api/v1/food_items", tags=["Food Catalog"])
 
 
 @router.get("")

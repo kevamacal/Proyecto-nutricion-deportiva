@@ -1,15 +1,15 @@
-# REST API Specification
+# api API Specification
 
 ## 1. Architectural Overview & API Strategy
 
 The Intelligent Sports Nutrition System utilizes a **Hybrid API Model** combining Supabase's managed infrastructure with custom backend service endpoints:
 
-1. **Direct Database Data API (Supabase PostgREST)**: Standard Create, Read, Update, Delete (CRUD) operations on relational entities (`FoodItem`, `InventoryItem`, `Meal`, `Activity`) are accessed directly via Supabase auto-generated PostgREST endpoints and the `@supabase/supabase-js` client SDK.
-2. **Custom Business Logic & Engine Endpoints**: Complex deterministic calculations (BMR/TDEE math, MET expenditure, sports recovery demands, remaining macro balances), multimodal receipt OCR processing, and LLM agent orchestration are exposed via custom REST API endpoints (FastAPI / Supabase Edge Functions).
+1. **Direct Database Data API (Supabase Postgapi)**: Standard Create, Read, Update, Delete (CRUD) operations on relational entities (`FoodItem`, `InventoryItem`, `Meal`, `Activity`) are accessed directly via Supabase auto-generated Postgapi endpoints and the `@supabase/supabase-js` client SDK.
+2. **Custom Business Logic & Engine Endpoints**: Complex deterministic calculations (BMR/TDEE math, MET expenditure, sports recovery demands, remaining macro balances), multimodal receipt OCR processing, and LLM agent orchestration are exposed via custom api API endpoints (FastAPI / Supabase Edge Functions).
 
 ```mermaid
 graph LR
-    Client[Client App / Mobile] -->|Direct CRUD + Auth| SupabaseAPI[Supabase PostgREST Data API]
+    Client[Client App / Mobile] -->|Direct CRUD + Auth| SupabaseAPI[Supabase Postgapi Data API]
     Client -->|Custom Logic / Agent / OCR| CustomAPI[Custom Business Service API]
     
     SupabaseAPI --> Postgres[(Supabase PostgreSQL)]
@@ -50,36 +50,36 @@ All API requests require standard authentication headers managed via Supabase Au
 
 ---
 
-## 3. Direct Database Data API (Supabase PostgREST)
+## 3. Direct Database Data API (Supabase Postgapi)
 
-Supabase automatically exposes REST endpoints over PostgreSQL tables. Row Level Security (RLS) policies enforce user-level data isolation (`auth.uid() = user_id`).
+Supabase automatically exposes api endpoints over PostgreSQL tables. Row Level Security (RLS) policies enforce user-level data isolation (`auth.uid() = user_id`).
 
 ### 3.1. `FoodItem` Dictionary Catalog
 
-- `GET /rest/v1/food_items?select=*,nutritional_information(*)`
+- `GET /api/v1/food_items?select=*,nutritional_information(*)`
   - Query food catalog with associated 1:1 nutritional composition.
   - Query parameters: `name=ilike.*chicken*`, `category=eq.Poultry`, `limit=20`.
-- `POST /rest/v1/food_items`
+- `POST /api/v1/food_items`
   - Create a custom user-defined food catalog item.
 
 ### 3.2. `InventoryItem` Pantry Stock
 
-- `GET /rest/v1/inventory_items?select=*,food_item:food_items(*)`
+- `GET /api/v1/inventory_items?select=*,food_item:food_items(*)`
   - Fetch user's pantry inventory.
   - Query parameters: `status=eq.AVAILABLE`, `order=expiration_date.asc.nullslast`.
-- `POST /rest/v1/inventory_items`
+- `POST /api/v1/inventory_items`
   - Insert new item into pantry.
-- `PATCH /rest/v1/inventory_items?id=eq.{uuid}`
+- `PATCH /api/v1/inventory_items?id=eq.{uuid}`
   - Update quantity or status of an existing pantry item.
-- `DELETE /rest/v1/inventory_items?id=eq.{uuid}`
+- `DELETE /api/v1/inventory_items?id=eq.{uuid}`
   - Remove item from pantry.
 
 ### 3.3. `Meal` Intake Logs
 
-- `GET /rest/v1/meals?select=*,meal_items(*,food_item:food_items(*))`
+- `GET /api/v1/meals?select=*,meal_items(*,food_item:food_items(*))`
   - Fetch user logged meals.
   - Query parameters: `logged_at=gte.2026-09-11T00:00:00Z`, `order=logged_at.desc`.
-- `POST /rest/v1/meals`
+- `POST /api/v1/meals`
   - Log a meal record.
 
 ---
@@ -88,7 +88,7 @@ Supabase automatically exposes REST endpoints over PostgreSQL tables. Row Level 
 
 These custom endpoints execute server-side business logic, deterministic calculations, and agent workflows.
 
-### 4.1. `POST /api/v1/nutrition/calculate-targets`
+### 4.1. `POST /api/v1/nutrition/calculate_targets`
 
 Recalculates daily caloric and macronutrient targets deterministically based on user physical attributes and goals.
 
@@ -124,7 +124,7 @@ Recalculates daily caloric and macronutrient targets deterministically based on 
 
 ---
 
-### 4.2. `GET /api/v1/nutrition/daily-summary`
+### 4.2. `GET /api/v1/nutrition/daily_summary`
 
 Returns a complete deterministic snapshot of daily targets, consumed intake, activity expenditures, and remaining macronutrient balance.
 
@@ -295,13 +295,13 @@ Uploads a supermarket purchase receipt image for OCR text extraction (PaddleOCR)
 
 | Method | Endpoint Path | Service Layer | Purpose |
 |---|---|---|---|
-| `GET` | `/rest/v1/food_items` | Supabase PostgREST | Search global food catalog |
-| `POST` | `/rest/v1/food_items` | Supabase PostgREST | Create custom food catalog item |
-| `GET` | `/rest/v1/inventory_items` | Supabase PostgREST | Query active user pantry stock |
-| `POST` | `/rest/v1/inventory_items` | Supabase PostgREST | Add item to pantry inventory |
-| `POST` | `/rest/v1/meals` | Supabase PostgREST | Log consumed meal |
-| `POST` | `/api/v1/nutrition/calculate-targets` | Custom Engine | Compute BMR/TDEE & daily macro goals |
-| `GET` | `/api/v1/nutrition/daily-summary` | Custom Engine | Fetch daily snapshot & remaining macros |
+| `GET` | `/api/v1/food_items` | Supabase Postgapi | Search global food catalog |
+| `POST` | `/api/v1/food_items` | Supabase Postgapi | Create custom food catalog item |
+| `GET` | `/api/v1/inventory_items` | Supabase Postgapi | Query active user pantry stock |
+| `POST` | `/api/v1/inventory_items` | Supabase Postgapi | Add item to pantry inventory |
+| `POST` | `/api/v1/meals` | Supabase Postgapi | Log consumed meal |
+| `POST` | `/api/v1/nutrition/calculate_targets` | Custom Engine | Compute BMR/TDEE & daily macro goals |
+| `GET` | `/api/v1/nutrition/daily_summary` | Custom Engine | Fetch daily snapshot & remaining macros |
 | `POST` | `/api/v1/activities/log` | Custom Engine | Log activity & calculate MET energy + recovery |
 | `POST` | `/api/v1/agent/query` | Agent Orchestrator | Natural language query & recipe recommendation |
 | `POST` | `/api/v1/inventory/ocr` | OCR Worker | Parse receipt image into candidate inventory items |

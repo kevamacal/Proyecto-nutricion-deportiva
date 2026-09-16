@@ -12,7 +12,7 @@ from src.backend.services.meal_service import meal_service
 router = APIRouter(prefix="/api/v1/nutrition", tags=["Daily Summary"])
 
 
-@router.get("/daily-summary")
+@router.get("/daily_summary")
 def get_daily_summary(
     user_id: Annotated[UUID, Query(description="User ID for daily summary")],
     target_date: Annotated[

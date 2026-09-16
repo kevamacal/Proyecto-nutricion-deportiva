@@ -33,7 +33,7 @@ def test_full_athlete_workflow() -> None:
         "goal": "bulk",
     }
     target_resp = client.post(
-        "/api/v1/nutrition/calculate-targets", json=target_payload
+        "/api/v1/nutrition/calculate_targets", json=target_payload
     )
     assert target_resp.status_code == 200
     targets = target_resp.json()
@@ -89,7 +89,7 @@ def test_full_athlete_workflow() -> None:
 
     # 5. Query Daily Summary
     summary_resp = client.get(
-        f"/api/v1/nutrition/daily-summary?user_id={user_id}&date={today_str}"
+        f"/api/v1/nutrition/daily_summary?user_id={user_id}&date={today_str}"
     )
     assert summary_resp.status_code == 200
     summary = summary_resp.json()

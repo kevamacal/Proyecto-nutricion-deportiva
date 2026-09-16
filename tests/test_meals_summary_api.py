@@ -57,7 +57,7 @@ def test_log_meal_and_query_daily_summary() -> None:
 
     # 4. Retrieve daily summary
     summary_resp = client.get(
-        f"/api/v1/nutrition/daily-summary?user_id={user_id}&date={today_str}"
+        f"/api/v1/nutrition/daily_summary?user_id={user_id}&date={today_str}"
     )
     assert summary_resp.status_code == 200
     summary_data = summary_resp.json()

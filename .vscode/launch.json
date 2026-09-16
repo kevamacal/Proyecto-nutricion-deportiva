@@ -17,7 +17,6 @@
       }
     },
     {
-      "name": "Debug Frontend (Attach to Brave)",
       "type": "chrome",
       "request": "attach",
       "name": "Attach to Brave (Port 9222)",
@@ -33,7 +32,7 @@
         "src.backend.main:app",
         "--reload",
         "--port",
-        "8080"
+        "8001"
       ],
       "jinja": true,
       "justMyCode": true

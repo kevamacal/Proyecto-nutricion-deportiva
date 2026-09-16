@@ -1,63 +1,50 @@
-# Skill: Sports Nutrition UI Direction
+Skill: Sports Nutrition Flow Direction
+Purpose
 
-## Purpose
-`frontend-design` (installed at `.agents/skills/frontend-design/`) tells agents *how* to avoid generic AI aesthetics and *how* to derive a direction from the brief. This skill supplies the actual direction for this project, so every agent lands on the same visual identity instead of each one improvising — and so nobody defaults to the wellness-app cliché (cream background, terracotta accent, rounded soft-shadow cards, leaf icons).
+sports_nutrition_ui_direction defines how a screen should look (tokens, ledger/scoreboard layout). It does not define which screen the user should be looking at, or how the app moves between them. This skill fills that gap: it turns the app into a state machine driven by real backend data, instead of one dashboard that always renders everything — populated or not — at once.
 
-Run this skill together with `frontend-design`, not instead of it: `frontend-design` still governs process (plan → critique against brief → build), accessibility floor, motion restraint, and copy voice. This document only fixes the tokens and layout concept that process should converge on for this specific product.
+Run this skill before sports_nutrition_ui_direction: first decide what state the user is in and what flow step that implies, then apply the visual tokens to that specific step.
 
-## Grounding concept
-This product sits at the intersection of two real objects that already have a distinctive, legible visual language of their own — lean on them instead of a generic dashboard look:
+Core rule
 
-1. **The nutrition facts label** — thick/thin horizontal rule hierarchy, left-aligned labels, right-aligned tabular numbers, dense but scannable.
-2. **The sport scoreboard / split timer** — large, high-contrast condensed numerals, built for reading at a glance mid-activity.
+Never render the full dashboard as the default view. Always derive the current view from the user's actual data state. If you find yourself passing zeros or empty arrays into the same component that shows real data, stop — that is the empty-dashboard anti-pattern this skill exists to prevent.
 
-Every screen that shows macros, calories, sets, reps, or time should look like it belongs to one of these two objects, not to a generic SaaS card.
+Canonical application states
+State	Condition (backend data)	What the user must see
+ONBOARDING_PROFILE	No profile record exists for the user	Single-step-at-a-time profile wizard (age, sex, weight, height, activity level, goal). No dashboard chrome visible yet.
+ONBOARDING_TARGETS	Profile exists, but targets (BMR/TDEE/macros) haven't been calculated/confirmed	A single confirmation screen showing the calculated targets (from the deterministic backend engine) with an explicit "Confirmar objetivos" action — not buried inside a wider dashboard.
+PANTRY_EMPTY_GUIDED	Profile + targets confirmed, but pantry has zero items	Dashboard chrome may appear, but the primary panel is a guided "añade tus primeros alimentos" flow (receipt OCR upload or manual quick-add), not an empty ledger card with a placeholder message.
+ACTIVE_NO_LOGS_TODAY	Pantry has items, but no meals/sessions logged today	Full dashboard, but calorie/macro ledger explicitly reads as "not started today" (e.g. full-width empty gauge with a clear call to action), distinguished visually from a day in progress — not the same bar at 0%.
+ACTIVE_IN_PROGRESS	At least one meal or session logged today	Full ledger/scoreboard dashboard as designed in sports_nutrition_ui_direction, populated with real running totals.
+AGENT_QUERY_IN_FLIGHT	User has sent a message to the LangGraph orchestrator and a response is pending	Chat view shows the routing in progress (see "Agent chat feedback" below) — never a frozen input with no feedback.
 
-## Design tokens
+Treat this table as the source of truth for "what screen renders" — a component that ignores this and renders ACTIVE_IN_PROGRESS's layout regardless of state is a bug, not a design choice.
 
-### Color (5 named hex values, not 4–6 generic ones — pick exactly these unless the brief overrides)
-- `--bg-court: #171511` — near-black with a warm, slightly green-brown undertone (hardwood-under-lights, not the flat neutral #0B0B0B/#111 "tinted near-black" tell).
-- `--surface-hardwood: #2A2118` — dark leather/oak brown, used for raised surfaces (cards, panels). Grounded in gym equipment materials, not a generic dark-mode grey.
-- `--ink-chalk: #F2EFE6` — warm chalk white for text and rules on dark surfaces.
-- `--accent-ember: #C1622B` — muted baked-clay orange (basketball leather / hardwood, deliberately duller than a bright SaaS orange). Reserve for the single most important number on a screen (e.g. calories remaining), never for decoration.
-- `--accent-lake: #3E6E64` — deep teal-green for recovery/hydration states (cooldown, water intake). Never paired with `--accent-ember` in equal weight — one leads per screen.
-- `--accent-flag: #B23A48` — muted brick red, used only for deficit/limit warnings, like a referee's flag. Never used as a default UI color.
-- `--line-graphite: #4A473F` — mid-tone rule color for secondary dividers.
+Step-by-step wizards (ONBOARDING_PROFILE, ONBOARDING_TARGETS, PANTRY_EMPTY_GUIDED)
+One question or one decision per screen. Do not group multiple unrelated fields (e.g. weight + activity level + goal) into a single step just to reduce step count.
+Persist progress after every step (so a refresh or a later session resumes where the user left off — read from backend state, don't rely on local-only state for this).
+Forward navigation is only enabled once the current step's data is valid (use the same Pydantic validation the backend enforces; don't re-invent looser client-side rules).
+Always show where the user is in the sequence (e.g. a slim progress rule at the top consistent with the ledger's "thick rule = hierarchy" language from sports_nutrition_ui_direction — not a generic numbered-dot stepper, to stay consistent with that skill's typographic direction).
+Backward navigation must always be available and must not discard already-valid data.
+Transitions and motion (this overrides frontend-design's general motion restraint for these specific cases)
 
-Explicitly avoid: cream/near-#F4F1EA backgrounds, terracotta near #D97757, bright acid-green or vermilion-on-black, and identical rounded cards with a uniform `rgba(0,0,0,.1)` shadow.
+frontend-design and sports_nutrition_ui_direction are right that decorative motion (hover-lift on every card, fade-up-on-scroll) is a generic AI tell and should be avoided. That guidance is about decorative motion. It does not apply to structural motion that carries the user between application states — that motion is load-bearing, not decorative, and is required here:
 
-### Typography (roles, not just fonts)
-- **Display / section headers / big stats:** a condensed grotesk with real personality — e.g. Barlow Condensed SemiBold, or Big Shoulders Display. Used for jersey-style numerals (calories remaining, PRs, current streak). Avoid Oswald by default; it's become the condensed-sans version of the cream/terracotta tell.
-- **Body / ingredient lists / instructions:** a humanist sans with strong legibility at small sizes — Public Sans or IBM Plex Sans. Avoid defaulting to Inter; it's the single most common "AI default" body face and reads as templated the instant it's recognized.
-- **All numeric data (macros, kcal, reps, sets, weights, times):** use tabular/lining figures via OpenType features on the chosen sans, not a separate monospace face. `frontend-design` explicitly flags "a monospace face for small data labels" as a generic tell — don't reach for it here even though the content is numeric. The one exception: a live rest-timer or workout-split countdown may use a monospace face, because that's the one place a "terminal/stopwatch" register is actually earned by the content, not decorative.
-
-### Layout concept
-```
-Dashboard (ledger layout, not a card grid):
-┌─────────────────────────────────────┐
-│ TODAY                    ═══════════│ ← thick rule under page title
-│ Calories remaining         1,240    │ ← --accent-ember, large condensed numeral, right-aligned
-│ ─────────────────────────────────── │ ← thin rule
-│ Protein        142g / 180g   ▓▓▓▓░  │ ← horizontal fuel-gauge bar, not a donut chart
-│ Carbs          210g / 260g   ▓▓▓░░  │
-│ Fat             48g /  70g   ▓▓░░░  │
-│ ─────────────────────────────────── │
-│ NEXT MEAL                            │
-│ Grilled chicken bowl      12:30     │ ← left label / right tabular time, index-card style
-└─────────────────────────────────────┘
-```
-- Left-align labels, right-align all numbers — this single rule does most of the work of feeling like a real nutrition label instead of a generic dashboard.
-- Replace donut/pie macro charts with horizontal stacked or fuel-gauge bars; they read faster at a glance (the scoreboard influence) and avoid the now-common "three overlapping rings" motif.
-- Recipe and meal cards: zero or minimal border-radius, a single hairline rule instead of a soft drop shadow — think index card / recipe box, not SaaS card kit. If you want one signature tactile detail, a subtle torn/perforated top edge on recipe cards is a reasonable place to "spend the one bold choice" `frontend-design` asks for — don't add a second one elsewhere on the same screen.
-- Numbered markers (01/02/03) are earned only where content is genuinely sequential — a daily meal timeline or a workout's set order qualifies; a features list or a macro breakdown does not.
-
-## Principles
-1. Every visual device should encode real data hierarchy (rule weight = importance), not decorate an otherwise generic layout.
-2. Spend the one bold, memorable choice per screen — usually the ledger/scoreboard treatment of the primary stat — and keep everything else quiet and disciplined around it.
-3. Motion is reserved for state changes the user caused: a macro bar filling after logging a meal, a set being checked off. No default hover-lift or fade-up-on-scroll on every element.
-4. Interface voice is a coach's voice: active, specific, no filler. "Log meal," "142g protein logged," not "Submit" or "Success!"
-5. When a screen's draft starts resembling the generic AI defaults `frontend-design` calls out (cream+terracotta, rounded card grid, ALL-CAPS eyebrows, "→" on buttons), stop and re-derive it from the ledger/scoreboard concept above instead.
-
-## When to trigger
-- Any time the Frontend & UI Specialist Agent starts a new screen, component, or significant visual revision.
-- Run in the same pass as `frontend-design`'s plan step — use these tokens as the starting point for that skill's "compact token system," rather than generating a new one from scratch each time.
+Step-to-step transition (wizards): slide + fade, ~220–280ms, ease-out on enter / ease-in on exit. The outgoing step slides toward the direction of travel (forward = exits left, back = exits right) so the user's sense of direction in the flow is never ambiguous.
+State-to-state transition (e.g. PANTRY_EMPTY_GUIDED → ACTIVE_NO_LOGS_TODAY after the first item is added): the dashboard chrome should assemble in — e.g. the ledger rules draw in top-to-bottom, ~300–400ms — rather than popping in fully formed. This is the "one orchestrated moment" frontend-design explicitly allows, and it should be spent here, not on a generic page-load animation.
+Data-driven change within a state (macro bar filling after logging a meal, session added to today's log): animate the bar/number transition itself (~300ms ease-out), matching sports_nutrition_ui_direction's existing "motion reserved for state changes the user caused" principle. This was already correctly specified — keep it as-is.
+Do not add entrance animation to elements that were already visible before the state change. Only what actually changed should move.
+Implementation: use a single animation approach consistently across the app (e.g. Framer Motion if React) rather than mixing CSS transitions and a JS library across different screens.
+Respect prefers-reduced-motion for all of the above, per frontend-design's accessibility floor — swap slides/draw-ins for simple opacity crossfades.
+Agent chat feedback (AGENT_QUERY_IN_FLIGHT)
+The chat must show which part of the LangGraph flow is executing when it's slower than an instant reply (e.g. "Consultando tu inventario…" while inventory_node runs, "Generando receta…" while recipe_node runs), sourced from real orchestrator step events, not a generic spinner with static text.
+If the orchestrator's routing touches multiple nodes for one query (e.g. basketball_node → nutrition_node → inventory_node → recipe_node), reflect that as a short sequence of state labels, not a single unlabeled loading state — this doubles as a truthful, low-effort way to make the multi-agent architecture visible to the user instead of hiding it behind one spinner.
+Checklist before opening a PR for any screen
+Which row of the canonical states table does this screen correspond to?
+Does the component branch on real backend state, or does it just receive different prop values into the same always-rendered layout?
+If this is a wizard, is there exactly one decision per step, and is progress resumable from backend state?
+Does every animation added correspond to an actual state or data change — not a decorative default?
+Has prefers-reduced-motion been checked?
+When to trigger
+Any time the Frontend & UI Specialist Agent starts a new screen, resolves a UI-related GitHub issue, or is asked to "connect" a screen to real backend/session state.
+Always in the same pass as sports_nutrition_ui_direction, and before it: decide the state/step first, then style it.

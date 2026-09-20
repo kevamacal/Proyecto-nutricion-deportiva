@@ -102,6 +102,7 @@ export async function saveUserProfile(profile: SupabaseUserProfile): Promise<Sup
         weight_kg: profile.weight_kg,
         height_cm: profile.height_cm,
         age: profile.age,
+        gender: profile.gender || 'male',
         activity_level: profile.activity_level || 'ACTIVE',
         body_composition_goal: profile.body_composition_goal || 'BULK',
         nutritional_goal: profile.nutritional_goal || 'PERFORMANCE',
@@ -130,11 +131,31 @@ export async function updateUserProfile(
   userId: string,
   updates: Partial<SupabaseUserProfile>
 ): Promise<SupabaseUserProfile | null> {
+  const existing = await fetchUserProfile(userId);
+
+  if (!existing) {
+    // If no row exists yet in Supabase for this user, create complete initial profile with defaults + updates
+    return await saveUserProfile({
+      user_id: userId,
+      weight_kg: updates.weight_kg || 70,
+      height_cm: updates.height_cm || 175,
+      age: updates.age || 25,
+      gender: updates.gender || 'MALE',
+      activity_level: updates.activity_level || 'ACTIVE',
+      body_composition_goal: updates.body_composition_goal || 'BULK',
+      nutritional_goal: updates.nutritional_goal || 'PERFORMANCE',
+      daily_calories_target: updates.daily_calories_target ?? 2500,
+      daily_protein_g_target: updates.daily_protein_g_target ?? 160,
+      daily_carbs_g_target: updates.daily_carbs_g_target ?? 280,
+      daily_fat_g_target: updates.daily_fat_g_target ?? 70,
+    });
+  }
+
+  // Row exists: perform clean, lightweight UPDATE
   const payload: Record<string, any> = {
     updated_at: new Date().toISOString(),
   };
 
-  // Only copy defined values
   Object.entries(updates).forEach(([key, value]) => {
     if (value !== undefined && key !== 'user_id' && key !== 'id') {
       payload[key] = value;
@@ -175,6 +196,7 @@ export async function ensureUserProfileExists(
       weight_kg: 70,
       height_cm: 175,
       age: 25,
+      gender: 'male',
       activity_level: 'ACTIVE',
       body_composition_goal: 'BULK',
       nutritional_goal: 'PERFORMANCE',

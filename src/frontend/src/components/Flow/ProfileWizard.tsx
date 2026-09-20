@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import type { UserProfileStateData } from '../../types/flow';
 import { ArrowLeft, ArrowRight, Check, Activity } from 'lucide-react';
 
+import { useAuth } from '../../context/AuthContext';
+
 interface ProfileWizardProps {
   onComplete: (data: Required<UserProfileStateData>) => void;
 }
@@ -31,12 +33,13 @@ const slideVariants = {
 };
 
 export const ProfileWizard: React.FC<ProfileWizardProps> = ({ onComplete }) => {
+  const { user } = useAuth();
   const [step, setStep] = useState<number>(1);
   const [direction, setDirection] = useState<number>(1);
   const totalSteps = 6;
 
   const [formData, setFormData] = useState<Partial<UserProfileStateData>>({
-    user_id: '9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d',
+    user_id: user?.id || 'demo-user-id',
   });
 
   const isStepValid = (): boolean => {

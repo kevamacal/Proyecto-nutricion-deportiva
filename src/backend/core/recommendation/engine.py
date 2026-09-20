@@ -6,8 +6,8 @@ Zero LLM calls or external client SDK invocations.
 
 from src.backend.api.v1.schemas import (
     IngredientMatch,
-    InventoryItemResponse,
-    NutritionalInfoSchema,
+    PantryItemInput,
+    PantryItemNutritionInput,
     RecommendationRequest,
     RecommendationResponse,
 )
@@ -49,11 +49,9 @@ def identify_dominant_deficit(
     return "BALANCED"
 
 
-def _score_pantry_item(item: InventoryItemResponse, dominant_deficit: str) -> float:
+def _score_pantry_item(item: PantryItemInput, dominant_deficit: str) -> float:
     """Helper scoring a pantry stock item based on dominant deficit density."""
-    if not item.food_item or not item.food_item.nutrition:
-        return 0.0
-    nutr = item.food_item.nutrition
+    nutr = item.nutrition
     if dominant_deficit == "PROTEIN":
         return nutr.protein_g
     if dominant_deficit == "CARBOHYDRATES":
@@ -62,7 +60,7 @@ def _score_pantry_item(item: InventoryItemResponse, dominant_deficit: str) -> fl
 
 
 def _calculate_desired_portion(
-    nutr: NutritionalInfoSchema,
+    nutr: PantryItemNutritionInput,
     dominant_deficit: str,
     remaining_cal: float,
     remaining_prot: float,
@@ -81,20 +79,18 @@ def _calculate_desired_portion(
 
 
 def _create_ingredient_match(
-    item: InventoryItemResponse, portion_g: float
+    item: PantryItemInput, portion_g: float
 ) -> IngredientMatch:
     """Helper constructing IngredientMatch DTO for a given portion size."""
-    food = item.food_item
-    assert food is not None and food.nutrition is not None
-    nutr = food.nutrition
+    nutr = item.nutrition
     serving = nutr.serving_size if nutr.serving_size > 0 else 100.0
 
     factor = portion_g / serving
     return IngredientMatch(
-        food_item_id=food.id,
-        food_name=food.name,
-        category=food.category,
-        available_stock=item.quantity,
+        food_item_id=item.food_item_id,
+        food_name=item.name,
+        category=item.category,
+        available_stock=item.available_quantity,
         unit=item.unit,
         recommended_portion_g=portion_g,
         calories_contribution_kcal=round(nutr.calories_kcal * factor, 2),
@@ -105,7 +101,7 @@ def _create_ingredient_match(
 
 
 def match_ingredients_from_pantry(
-    pantry_items: list[InventoryItemResponse],
+    pantry_items: list[PantryItemInput],
     dominant_deficit: str,
     remaining_cal: float,
     remaining_prot: float,
@@ -113,9 +109,7 @@ def match_ingredients_from_pantry(
 ) -> list[IngredientMatch]:
     """Rank available pantry items matching dominant deficit and compute recommended portion sizes."""
     valid_items = [
-        item
-        for item in pantry_items
-        if item.quantity > 0 and item.food_item and item.food_item.nutrition
+        item for item in pantry_items if item.available_quantity > 0 and item.nutrition
     ]
 
     sorted_items = sorted(
@@ -126,9 +120,7 @@ def match_ingredients_from_pantry(
 
     matches: list[IngredientMatch] = []
     for item in sorted_items:
-        if not item.food_item or not item.food_item.nutrition:
-            continue
-        nutr = item.food_item.nutrition
+        nutr = item.nutrition
         desired_g = _calculate_desired_portion(
             nutr=nutr,
             dominant_deficit=dominant_deficit,
@@ -137,7 +129,7 @@ def match_ingredients_from_pantry(
             remaining_carbs=remaining_carbs,
         )
 
-        portion_g = round(min(desired_g, item.quantity, 300.0), 2)
+        portion_g = round(min(desired_g, item.available_quantity, 300.0), 2)
         if portion_g <= 0:
             continue
 
@@ -149,7 +141,7 @@ def match_ingredients_from_pantry(
 
 
 def generate_deterministic_recommendation(
-    payload: RecommendationRequest, pantry_items: list[InventoryItemResponse]
+    payload: RecommendationRequest,
 ) -> RecommendationResponse:
     """Execute complete deterministic recommendation pipeline without LLM inference."""
     demands = calculate_remaining_demands(payload)
@@ -160,7 +152,7 @@ def generate_deterministic_recommendation(
 
     deficit = identify_dominant_deficit(rem_prot, rem_carbs)
     matches = match_ingredients_from_pantry(
-        pantry_items=pantry_items,
+        pantry_items=payload.pantry_items,
         dominant_deficit=deficit,
         remaining_cal=rem_cal,
         remaining_prot=rem_prot,

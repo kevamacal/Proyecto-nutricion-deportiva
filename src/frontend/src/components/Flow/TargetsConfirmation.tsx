@@ -36,11 +36,6 @@ export const TargetsConfirmation: React.FC<TargetsConfirmationProps> = ({ target
           boxShadow: '0 12px 40px rgba(0,0,0,0.5)',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-          <span className="brand-badge" style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-            <Zap className="w-3.5 h-3.5 text-[#FFF]" /> Motor Fisiológico Determinista
-          </span>
-        </div>
 
         <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '2.25rem', fontWeight: 800, textTransform: 'uppercase', marginBottom: '0.5rem', letterSpacing: '0.5px' }}>
           Objetivos Fisiológicos Calculados

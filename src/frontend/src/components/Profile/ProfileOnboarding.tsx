@@ -5,14 +5,16 @@ import { calculateTargets } from '../../services/api';
 export const ProfileOnboarding: React.FC<{ onComplete?: () => void }> = ({ onComplete }) => {
   const { user, isDemoMode, logout, updateProfile, setTargets } = useAuth();
 
-  const [weightKg, setWeightKg] = useState<number>(user.weight_kg);
-  const [heightCm, setHeightCm] = useState<number>(user.height_cm);
-  const [age, setAge] = useState<number>(user.age);
-  const [gender, setSex] = useState<'male' | 'female'>(user.gender);
-  const [activityLevel, setActivityLevel] = useState<string>(user.activity_level);
-  const [bodyCompositionGoal, setBodyCompositionGoal] = useState<string>(user.body_composition_goal || 'BULK');
+  const [weightKg, setWeightKg] = useState<number>(user?.weight_kg || 70);
+  const [heightCm, setHeightCm] = useState<number>(user?.height_cm || 175);
+  const [age, setAge] = useState<number>(user?.age || 25);
+  const [gender, setSex] = useState<'male' | 'female'>(user?.gender === 'female' ? 'female' : 'male');
+  const [activityLevel, setActivityLevel] = useState<string>(user?.activity_level || 'ACTIVE');
+  const [bodyCompositionGoal, setBodyCompositionGoal] = useState<string>(user?.body_composition_goal || 'BULK');
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+
+  if (!user) return null;
 
   const handleCalculateAndSave = async (e: React.FormEvent) => {
     e.preventDefault();

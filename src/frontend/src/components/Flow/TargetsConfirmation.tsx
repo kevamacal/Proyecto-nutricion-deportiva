@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import type { CalculatedTargetsData } from '../../types/flow';
-import { ArrowRight, Flame, Zap } from 'lucide-react';
+import { ArrowRight, Flame } from 'lucide-react';
 
 interface TargetsConfirmationProps {
   targets: CalculatedTargetsData;

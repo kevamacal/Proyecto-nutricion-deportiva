@@ -28,11 +28,6 @@ const TODAY_DATE = '2026-09-15';
 const MainSPAContent: React.FC = () => {
   const { user, isAuthenticated, isDemoMode, logout, updateProfile, setTargets } = useAuth();
 
-  // If unauthenticated or no user, render AuthScreen
-  if (!isAuthenticated || !user) {
-    return <AuthScreen />;
-  }
-
   // Canonical State Machine State
   const [appState, setAppState] = useState<CanonicalAppState>('ONBOARDING_PROFILE');
   const [pendingTargets, setPendingTargets] = useState<CalculatedTargetsData | null>(null);
@@ -193,6 +188,11 @@ const MainSPAContent: React.FC = () => {
     setTriggerQuery(queryText);
     setActiveTab('CHAT');
   };
+
+  // If unauthenticated or no user, render AuthScreen
+  if (!isAuthenticated || !user) {
+    return <AuthScreen />;
+  }
 
   // State Machine Screen Renderers for Onboarding Flows (Clean, dedicated views without zeroed header above)
   if (appState === 'ONBOARDING_PROFILE') {

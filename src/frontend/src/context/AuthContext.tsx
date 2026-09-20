@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { type TargetCalculationResponse } from '../services/api';
-import { saveUserProfile, fetchUserProfile, ensureUserProfileExists, updateUserProfile } from '../services/supabaseApi';
+import { fetchUserProfile, ensureUserProfileExists, updateUserProfile } from '../services/supabaseApi';
 
 export interface UserProfile {
   id: string;
@@ -52,6 +52,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     const goalVal = remoteProfile?.body_composition_goal || 'BULK';
+    const genderVal: 'male' | 'female' = remoteProfile?.gender === 'female' ? 'female' : 'male';
 
     return {
       id: userId,
@@ -61,14 +62,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       weight_kg: remoteProfile?.weight_kg || 0,
       height_cm: remoteProfile?.height_cm || 0,
       age: remoteProfile?.age || 0,
-      gender: remoteProfile?.gender || 'male',
+      gender: genderVal,
       activity_level: remoteProfile?.activity_level || 'ACTIVE',
       body_composition_goal: goalVal,
       targets: remoteProfile?.daily_calories_target
         ? {
           user_id: userId,
-          bmr_kcal: remoteProfile.bmr_kcal || 0,
-          base_tdee_kcal: remoteProfile.base_tdee_kcal || 0,
+          bmr_kcal: 0,
+          base_tdee_kcal: 0,
           calories_target_kcal: remoteProfile.daily_calories_target,
           protein_target_g: remoteProfile.daily_protein_g_target,
           carbs_target_g: remoteProfile.daily_carbs_g_target,

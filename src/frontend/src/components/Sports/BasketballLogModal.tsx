@@ -31,10 +31,10 @@ export const BasketballLogModal: React.FC<BasketballLogModalProps> = ({
 
     try {
       const result = await logActivity({
-        user_id: user.id,
+        user_id: user?.id || 'demo-user-id',
         sport_type: 'BASKETBALL',
         duration_minutes: durationMinutes,
-        weight_kg: user.weight_kg || 75.0,
+        weight_kg: user?.weight_kg || 75.0,
         intensity: intensity.toLowerCase(),
       });
 

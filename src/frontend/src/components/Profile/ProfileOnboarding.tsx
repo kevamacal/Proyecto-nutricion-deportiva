@@ -8,7 +8,7 @@ export const ProfileOnboarding: React.FC<{ onComplete?: () => void }> = ({ onCom
   const [weightKg, setWeightKg] = useState<number>(user.weight_kg);
   const [heightCm, setHeightCm] = useState<number>(user.height_cm);
   const [age, setAge] = useState<number>(user.age);
-  const [sex, setSex] = useState<'male' | 'female'>(user.sex);
+  const [gender, setSex] = useState<'male' | 'female'>(user.gender);
   const [activityLevel, setActivityLevel] = useState<string>(user.activity_level);
   const [bodyCompositionGoal, setBodyCompositionGoal] = useState<string>(user.body_composition_goal || 'BULK');
   const [loading, setLoading] = useState<boolean>(false);
@@ -26,7 +26,7 @@ export const ProfileOnboarding: React.FC<{ onComplete?: () => void }> = ({ onCom
         weight_kg: weightKg,
         height_cm: heightCm,
         age,
-        sex,
+        gender,
         activity_level: activityLevel,
         body_composition_goal: bodyCompositionGoal
       });
@@ -35,7 +35,7 @@ export const ProfileOnboarding: React.FC<{ onComplete?: () => void }> = ({ onCom
         weight_kg: weightKg,
         height_cm: heightCm,
         age,
-        sex,
+        gender,
         activity_level: activityLevel,
         body_composition_goal: bodyCompositionGoal,
       });
@@ -142,10 +142,10 @@ export const ProfileOnboarding: React.FC<{ onComplete?: () => void }> = ({ onCom
 
             <div>
               <label style={{ display: 'block', fontSize: '0.75rem', textTransform: 'uppercase', marginBottom: '0.25rem', color: '#B3B0A6' }}>
-                Sexo Biológo
+                Sexo Biológico
               </label>
               <select
-                value={sex}
+                value={gender}
                 onChange={(e) => setSex(e.target.value as 'male' | 'female')}
                 style={{
                   width: '100%',

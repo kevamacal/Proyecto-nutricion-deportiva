@@ -11,7 +11,7 @@ Never render the full dashboard as the default view. Always derive the current v
 
 Canonical application states
 State	Condition (backend data)	What the user must see
-ONBOARDING_PROFILE	No profile record exists for the user	Single-step-at-a-time profile wizard (age, sex, weight, height, activity level, goal). No dashboard chrome visible yet.
+ONBOARDING_PROFILE	No profile record exists for the user	Single-step-at-a-time profile wizard (age, gender, weight, height, activity level, goal). No dashboard chrome visible yet.
 ONBOARDING_TARGETS	Profile exists, but targets (BMR/TDEE/macros) haven't been calculated/confirmed	A single confirmation screen showing the calculated targets (from the deterministic backend engine) with an explicit "Confirmar objetivos" action — not buried inside a wider dashboard.
 PANTRY_EMPTY_GUIDED	Profile + targets confirmed, but pantry has zero items	Dashboard chrome may appear, but the primary panel is a guided "añade tus primeros alimentos" flow (receipt OCR upload or manual quick-add), not an empty ledger card with a placeholder message.
 ACTIVE_NO_LOGS_TODAY	Pantry has items, but no meals/sessions logged today	Full dashboard, but calorie/macro ledger explicitly reads as "not started today" (e.g. full-width empty gauge with a clear call to action), distinguished visually from a day in progress — not the same bar at 0%.

@@ -44,7 +44,7 @@ export const ProfileWizard: React.FC<ProfileWizardProps> = ({ onComplete }) => {
       case 1:
         return typeof formData.age === 'number' && formData.age > 0;
       case 2:
-        return !!formData.sex;
+        return !!formData.gender;
       case 3:
         return typeof formData.weight_kg === 'number' && formData.weight_kg > 0;
       case 4:
@@ -223,16 +223,16 @@ export const ProfileWizard: React.FC<ProfileWizardProps> = ({ onComplete }) => {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                   <button
                     type="button"
-                    onClick={() => setFormData({ ...formData, sex: 'male' })}
-                    className={`btn-action-pill ${formData.sex === 'male' ? 'primary' : ''}`}
+                    onClick={() => setFormData({ ...formData, gender: 'male' })}
+                    className={`btn-action-pill ${formData.gender === 'male' ? 'primary' : ''}`}
                     style={{ padding: '1.5rem', justifyContent: 'center', fontSize: '1.1rem' }}
                   >
                     ♂ Masculino
                   </button>
                   <button
                     type="button"
-                    onClick={() => setFormData({ ...formData, sex: 'female' })}
-                    className={`btn-action-pill ${formData.sex === 'female' ? 'primary' : ''}`}
+                    onClick={() => setFormData({ ...formData, gender: 'female' })}
+                    className={`btn-action-pill ${formData.gender === 'female' ? 'primary' : ''}`}
                     style={{ padding: '1.5rem', justifyContent: 'center', fontSize: '1.1rem' }}
                   >
                     ♀ Femenino

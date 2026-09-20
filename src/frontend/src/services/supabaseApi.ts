@@ -31,7 +31,7 @@ export interface SupabaseUserProfile {
   weight_kg: number;
   height_cm: number;
   age: number;
-  sex?: string;
+  gender?: string;
   activity_level?: string;
   body_composition_goal?: string;
   nutritional_goal?: string;

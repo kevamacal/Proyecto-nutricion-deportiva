@@ -10,7 +10,7 @@ export interface UserProfile {
   weight_kg: number;
   height_cm: number;
   age: number;
-  sex: 'male' | 'female';
+  gender: 'male' | 'female';
   activity_level: string;
   body_composition_goal: string;
   primary_sport?: string;
@@ -61,7 +61,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       weight_kg: remoteProfile?.weight_kg || 0,
       height_cm: remoteProfile?.height_cm || 0,
       age: remoteProfile?.age || 0,
-      sex: remoteProfile?.sex || 'male',
+      gender: remoteProfile?.gender || 'male',
       activity_level: remoteProfile?.activity_level || 'ACTIVE',
       body_composition_goal: goalVal,
       targets: remoteProfile?.daily_calories_target
@@ -122,7 +122,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           weight_kg: updatedFields.weight_kg,
           height_cm: updatedFields.height_cm,
           age: updatedFields.age,
-          sex: updatedFields.sex,
+          gender: updatedFields.gender,
           activity_level: updatedFields.activity_level,
           body_composition_goal: targetGoal,
         }).catch((err) => console.error('Error updating profile in Supabase:', err));
@@ -188,7 +188,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       weight_kg: 75,
       height_cm: 180,
       age: 25,
-      sex: 'male',
+      gender: 'male',
       activity_level: 'ACTIVE',
       body_composition_goal: 'BULK',
       primary_sport: 'BASKETBALL',

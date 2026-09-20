@@ -19,7 +19,7 @@ class NutritionService:
         self, payload: TargetCalculationRequest
     ) -> TargetCalculationResponse:
         """Calculate BMR, TDEE, and macronutrient target distribution deterministically."""
-        s_clean = payload.sex.lower()
+        s_clean = payload.gender.lower()
         is_male = s_clean in ["male", "hombre", "m"]
 
         act_str = payload.activity_level.lower()

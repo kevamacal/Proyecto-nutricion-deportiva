@@ -8,7 +8,7 @@ export type CanonicalAppState =
 export interface UserProfileStateData {
   user_id: string;
   age?: number;
-  sex?: 'male' | 'female';
+  gender?: 'male' | 'female';
   weight_kg?: number;
   height_cm?: number;
   activity_level?: string;

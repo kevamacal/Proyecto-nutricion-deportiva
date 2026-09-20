@@ -17,7 +17,7 @@ class TargetCalculationRequest(BaseModel):
     weight_kg: float = Field(..., gt=0, le=300)
     height_cm: float = Field(..., gt=0, le=300)
     age: int = Field(..., gt=0, le=120)
-    sex: str = Field(..., pattern="^(male|female|hombre|mujer|M|F)$")
+    gender: str = Field(..., pattern="^(male|female|hombre|mujer|M|F)$")
     activity_level: str = Field(..., min_length=1)
     body_composition_goal: str = Field(..., min_length=1)
 

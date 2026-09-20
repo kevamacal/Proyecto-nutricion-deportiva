@@ -95,7 +95,7 @@ const MainSPAContent: React.FC = () => {
           weight_kg: user.weight_kg,
           height_cm: user.height_cm,
           age: user.age,
-          sex: user.sex || 'male',
+          gender: user.gender || 'male',
           activity_level: user.activity_level || 'ACTIVE',
           body_composition_goal: user.body_composition_goal || 'BULK',
         });

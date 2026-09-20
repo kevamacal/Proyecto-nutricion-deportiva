@@ -21,16 +21,17 @@ import {
   fetchPantryInventory,
   deletePantryItem,
 } from './services/supabaseApi';
-import { User, Bot, ShoppingBag, Trophy, LogOut } from 'lucide-react';
+import { User, Bot, ShoppingBag, Trophy, LogOut, Activity } from 'lucide-react';
 
 const TODAY_DATE = '2026-09-15';
 
 const MainSPAContent: React.FC = () => {
-  const { user, isAuthenticated, isDemoMode, logout, updateProfile, setTargets } = useAuth();
+  const { user, isAuthenticated, isLoading, isDemoMode, logout, updateProfile, setTargets } = useAuth();
 
   // Canonical State Machine State
   const [appState, setAppState] = useState<CanonicalAppState>('ONBOARDING_PROFILE');
   const [pendingTargets, setPendingTargets] = useState<CalculatedTargetsData | null>(null);
+  const [isEvaluating, setIsEvaluating] = useState<boolean>(true);
 
   const [activeTab, setActiveTab] = useState<'SCOREBOARD' | 'PANTRY' | 'PROFILE' | 'CHAT'>('SCOREBOARD');
 
@@ -75,7 +76,11 @@ const MainSPAContent: React.FC = () => {
 
   // Evaluate state machine based on real data
   const evaluateAppState = async () => {
-    if (!user) return;
+    if (!user) {
+      setIsEvaluating(false);
+      return;
+    }
+    setIsEvaluating(true);
     try {
       // Check profile metrics
       if (!user.weight_kg || !user.height_cm || !user.age) {
@@ -136,6 +141,8 @@ const MainSPAContent: React.FC = () => {
       }
     } catch (err) {
       console.error('Error evaluating app state:', err);
+    } finally {
+      setIsEvaluating(false);
     }
   };
 
@@ -188,6 +195,49 @@ const MainSPAContent: React.FC = () => {
     setTriggerQuery(queryText);
     setActiveTab('CHAT');
   };
+
+  // Loading screen while AuthContext initializes or state machine evaluates profile/inventory
+  if (isLoading || (isAuthenticated && isEvaluating)) {
+    return (
+      <div
+        style={{
+          minHeight: '100vh',
+          background: 'var(--bg-court)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: 'var(--ink-chalk)',
+          padding: '2rem',
+        }}
+      >
+        <motion.div
+          animate={{ scale: [0.96, 1.04, 0.96], opacity: [0.75, 1, 0.75] }}
+          transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut' }}
+          style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.25rem' }}
+        >
+          <Activity size={52} style={{ color: 'var(--accent-ember)' }} />
+          <div style={{ textAlign: 'center' }}>
+            <h2
+              style={{
+                fontFamily: 'var(--font-display)',
+                fontSize: '1.8rem',
+                fontWeight: 800,
+                textTransform: 'uppercase',
+                letterSpacing: '1px',
+                marginBottom: '0.4rem',
+              }}
+            >
+              Sincronizando Perfil Fisiológico
+            </h2>
+            <p style={{ color: 'var(--ink-muted)', fontSize: '0.9rem', maxWidth: '360px' }}>
+              Cargando biometría, inventario de despensa y métricas nutricionales...
+            </p>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
 
   // If unauthenticated or no user, render AuthScreen
   if (!isAuthenticated || !user) {

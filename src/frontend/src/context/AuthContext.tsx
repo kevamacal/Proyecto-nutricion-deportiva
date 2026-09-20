@@ -51,7 +51,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.warn('Could not sync profile from Supabase:', err);
     }
 
-    const goalVal = remoteProfile?.body_composition_goal || remoteProfile?.goal || 'BULK';
+    const goalVal = remoteProfile?.body_composition_goal || 'BULK';
 
     return {
       id: userId,

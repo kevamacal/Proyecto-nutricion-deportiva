@@ -10,7 +10,7 @@ export const ProfileOnboarding: React.FC<{ onComplete?: () => void }> = ({ onCom
   const [age, setAge] = useState<number>(user.age);
   const [sex, setSex] = useState<'male' | 'female'>(user.sex);
   const [activityLevel, setActivityLevel] = useState<string>(user.activity_level);
-  const [goal, setGoal] = useState<string>(user.body_composition_goal || user.goal || 'BULK');
+  const [bodyCompositionGoal, setBodyCompositionGoal] = useState<string>(user.body_composition_goal || 'BULK');
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -28,7 +28,7 @@ export const ProfileOnboarding: React.FC<{ onComplete?: () => void }> = ({ onCom
         age,
         sex,
         activity_level: activityLevel,
-        goal,
+        body_composition_goal: bodyCompositionGoal
       });
 
       updateProfile({
@@ -37,8 +37,7 @@ export const ProfileOnboarding: React.FC<{ onComplete?: () => void }> = ({ onCom
         age,
         sex,
         activity_level: activityLevel,
-        body_composition_goal: goal,
-        goal,
+        body_composition_goal: bodyCompositionGoal,
       });
 
       setTargets(targets);
@@ -191,8 +190,8 @@ export const ProfileOnboarding: React.FC<{ onComplete?: () => void }> = ({ onCom
               Objetivo Corporal / Deporte
             </label>
             <select
-              value={goal}
-              onChange={(e) => setGoal(e.target.value)}
+              value={bodyCompositionGoal}
+              onChange={(e) => setBodyCompositionGoal(e.target.value)}
               style={{
                 width: '100%',
                 padding: '0.5rem',

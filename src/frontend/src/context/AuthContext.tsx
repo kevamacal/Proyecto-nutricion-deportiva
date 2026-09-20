@@ -139,8 +139,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (!isDemoMode && nextUser.id) {
         updateUserProfile(nextUser.id, {
-          bmr_kcal: targets.bmr_kcal,
-          base_tdee_kcal: targets.base_tdee_kcal,
           daily_calories_target: targets.calories_target_kcal,
           daily_protein_g_target: targets.protein_target_g,
           daily_carbs_g_target: targets.carbs_target_g,

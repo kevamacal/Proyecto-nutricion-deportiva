@@ -39,8 +39,6 @@ export interface SupabaseUserProfile {
   daily_protein_g_target: number;
   daily_carbs_g_target: number;
   daily_fat_g_target: number;
-  bmr_kcal?: number;
-  base_tdee_kcal?: number;
   updated_at?: string;
 }
 

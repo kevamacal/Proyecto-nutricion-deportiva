@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 import { Activity, Flame, Droplet, ShieldCheck } from 'lucide-react';
 import type { RemainingBalance, MacroBalance } from '../types';
 
@@ -36,35 +37,45 @@ export const HeaderScoreboard: React.FC<HeaderScoreboardProps> = ({
           <Activity className="w-7 h-7 text-[#C1622B]" />
           Sports Nutrition & Recovery Engine
         </h1>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
           <span className="brand-badge">React + Vite PWA • Multi-Agent</span>
-          <span
+          <motion.span
+            animate={{ scale: [1, 1.03, 1] }}
+            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
             style={{
               fontSize: '0.75rem',
               fontWeight: 700,
-              padding: '0.2rem 0.6rem',
-              borderRadius: '999px',
-              backgroundColor: statusFlag === 'DEFICIT' ? 'rgba(193, 98, 43, 0.2)' : 'rgba(46, 117, 89, 0.2)',
+              padding: '0.25rem 0.75rem',
+              backgroundColor: statusFlag === 'DEFICIT' ? 'rgba(193, 98, 43, 0.2)' : 'rgba(87, 184, 148, 0.2)',
               color: statusFlag === 'DEFICIT' ? '#E88D53' : '#57B894',
               border: `1px solid ${statusFlag === 'DEFICIT' ? 'var(--accent-ember)' : 'var(--accent-moss)'}`,
               textTransform: 'uppercase',
               letterSpacing: '0.05em',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.4rem',
             }}
           >
             {statusFlag === 'DEFICIT' ? '⚡ Requisito Nutricional Pendiente' : '✓ Nutrición Balanceada'}
-          </span>
+          </motion.span>
         </div>
       </div>
 
       <div className="scoreboard-ledger">
         <div className="score-stat">
-          <span className="score-label" style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+          <span className="score-label" style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
             <Flame className="w-4 h-4 text-[#C1622B]" /> Calorías Restantes
           </span>
-          <div className="score-value">
+          <motion.div
+            key={remainingBalance.remaining_calories_kcal}
+            initial={{ opacity: 0.7, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            className="score-value"
+          >
             {Math.round(remainingBalance.remaining_calories_kcal).toLocaleString()}
             <span className="score-unit">kcal</span>
-          </div>
+          </motion.div>
           <span style={{ fontSize: '0.8rem', color: 'var(--ink-muted)' }}>
             Consumidas: {Math.round(consumed.calories_kcal)} / Meta: {Math.round(dailyTargets.calories_kcal)} kcal
           </span>
@@ -79,7 +90,12 @@ export const HeaderScoreboard: React.FC<HeaderScoreboardProps> = ({
                 <span>{eatenProt}g / {targetProt}g</span>
               </div>
               <div className="macro-bar-track">
-                <div className="macro-bar-fill prot" style={{ width: `${protPct}%` }}></div>
+                <motion.div
+                  className="macro-bar-fill prot"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${protPct}%` }}
+                  transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] as const }}
+                />
               </div>
             </div>
 
@@ -89,7 +105,12 @@ export const HeaderScoreboard: React.FC<HeaderScoreboardProps> = ({
                 <span>{eatenCarb}g / {targetCarb}g</span>
               </div>
               <div className="macro-bar-track">
-                <div className="macro-bar-fill carb" style={{ width: `${carbPct}%` }}></div>
+                <motion.div
+                  className="macro-bar-fill carb"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${carbPct}%` }}
+                  transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] as const }}
+                />
               </div>
             </div>
 
@@ -99,20 +120,31 @@ export const HeaderScoreboard: React.FC<HeaderScoreboardProps> = ({
                 <span>{eatenFat}g / {targetFat}g</span>
               </div>
               <div className="macro-bar-track">
-                <div className="macro-bar-fill fat" style={{ width: `${fatPct}%` }}></div>
+                <motion.div
+                  className="macro-bar-fill fat"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${fatPct}%` }}
+                  transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] as const }}
+                />
               </div>
             </div>
           </div>
         </div>
 
         <div className="score-stat">
-          <span className="score-label" style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-            <Droplet className="w-4 h-4 text-[#4A7C9D]" /> Hidratación Recomendada
+          <span className="score-label" style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+            <Droplet className="w-4 h-4 text-[#3E6E64]" /> Hidratación Recomendada
           </span>
-          <div className="score-value lake">
+          <motion.div
+            key={hydrationDemandMl}
+            initial={{ opacity: 0.7, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            className="score-value lake"
+          >
             {Math.round(hydrationDemandMl).toLocaleString()}
             <span className="score-unit">ml</span>
-          </div>
+          </motion.div>
           <span style={{ fontSize: '0.8rem', color: 'var(--ink-muted)' }}>
             <ShieldCheck className="w-3.5 h-3.5 inline mr-1" /> Basado en sudoración & METs
           </span>

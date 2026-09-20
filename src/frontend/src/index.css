@@ -1,5 +1,6 @@
 /* Sports Nutrition Platform CSS Design System
    Conforms strictly to skills/sports_nutrition_ui_direction/SKILL.MD
+   Enhanced with Framer Motion, micro-interactions, and accessibility standards
 */
 
 @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,600;0,700;0,800;1,700&family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
@@ -9,17 +10,38 @@
   --bg-court: #171511;
   --surface-hardwood: #2A2118;
   --surface-card: #221B14;
+  --surface-glass: rgba(42, 33, 24, 0.85);
+  --surface-glass-card: rgba(34, 27, 20, 0.9);
+  
   --ink-chalk: #F2EFE6;
   --ink-muted: #A39D90;
+  
   --accent-ember: #C1622B;
+  --accent-ember-hover: #D97034;
+  --accent-ember-glow: rgba(193, 98, 43, 0.3);
+  
   --accent-lake: #3E6E64;
+  --accent-lake-hover: #4D877B;
+  --accent-lake-glow: rgba(62, 110, 100, 0.3);
+  
   --accent-flag: #B23A48;
+  --accent-moss: #57B894;
+  --accent-gold: #D9A05B;
+  
   --line-graphite: #4A473F;
   --line-heavy: #6E685C;
+  --line-scoreboard: #8C8474;
 
   /* Typography Tokens */
   --font-display: 'Barlow Condensed', sans-serif;
   --font-body: 'Public Sans', sans-serif;
+
+  /* Easing and Animation Tokens */
+  --ease-out-court: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out-court: cubic-bezier(0.65, 0, 0.35, 1);
+  --transition-fast: 0.18s var(--ease-out-court);
+  --transition-normal: 0.28s var(--ease-out-court);
+  --transition-slow: 0.4s var(--ease-out-court);
 }
 
 * {
@@ -37,6 +59,8 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 #root {
@@ -45,11 +69,37 @@ body {
   min-height: 100vh;
 }
 
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-court);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--line-graphite);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--line-heavy);
+}
+
+/* Accessibility Focus States */
+:focus-visible {
+  outline: 2px solid var(--accent-ember);
+  outline-offset: 2px;
+}
+
 /* Header & Scoreboard Banner */
 .app-header {
   background-color: var(--surface-hardwood);
   border-bottom: 2px solid var(--line-heavy);
   padding: 1.25rem 2rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
 }
 
 .brand-bar {
@@ -61,14 +111,14 @@ body {
 
 .brand-title {
   font-family: var(--font-display);
-  font-size: 2rem;
+  font-size: 2.1rem;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 1px;
   color: var(--ink-chalk);
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.6rem;
 }
 
 .brand-badge {
@@ -80,6 +130,7 @@ body {
   padding: 0.25rem 0.65rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  box-shadow: 0 0 10px var(--accent-ember-glow);
 }
 
 /* Scoreboard Ledger Header */
@@ -89,7 +140,9 @@ body {
   gap: 1.5rem;
   background-color: var(--surface-card);
   border: 1px solid var(--line-graphite);
+  border-top: 3px solid var(--line-heavy);
   padding: 1.25rem 1.5rem;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 .score-stat {
@@ -113,10 +166,12 @@ body {
   line-height: 1;
   color: var(--accent-ember);
   font-feature-settings: "tnum" 1, "lnum" 1;
+  text-shadow: 0 0 12px var(--accent-ember-glow);
 }
 
 .score-value.lake {
   color: var(--accent-lake);
+  text-shadow: 0 0 12px var(--accent-lake-glow);
 }
 
 .score-unit {
@@ -151,6 +206,7 @@ body {
   height: 8px;
   background-color: var(--line-graphite);
   overflow: hidden;
+  position: relative;
 }
 
 .macro-bar-fill {
@@ -160,14 +216,17 @@ body {
 
 .macro-bar-fill.prot {
   background-color: var(--accent-ember);
+  box-shadow: 0 0 8px var(--accent-ember-glow);
 }
 
 .macro-bar-fill.carb {
-  background-color: #D9A05B;
+  background-color: var(--accent-gold);
+  box-shadow: 0 0 8px rgba(217, 160, 91, 0.3);
 }
 
 .macro-bar-fill.fat {
   background-color: var(--accent-lake);
+  box-shadow: 0 0 8px var(--accent-lake-glow);
 }
 
 /* Main Layout Grid */
@@ -193,6 +252,12 @@ body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  transition: border-color var(--transition-fast);
+}
+
+.panel-card:hover {
+  border-color: var(--line-heavy);
 }
 
 .panel-header {
@@ -224,6 +289,93 @@ body {
   gap: 1.25rem;
 }
 
+/* Navigation Buttons & Action Pills */
+.btn-action-pill {
+  background-color: var(--surface-card);
+  color: var(--ink-chalk);
+  border: 1px solid var(--line-graphite);
+  padding: 0.55rem 1rem;
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all var(--transition-fast);
+}
+
+.btn-action-pill:hover {
+  border-color: var(--accent-ember);
+  color: var(--ink-chalk);
+  transform: translateY(-1px);
+}
+
+.btn-action-pill.primary {
+  background-color: var(--accent-ember);
+  border-color: var(--accent-ember);
+  color: var(--ink-chalk);
+  box-shadow: 0 0 12px var(--accent-ember-glow);
+}
+
+.btn-action-pill.primary:hover {
+  background-color: var(--accent-ember-hover);
+  border-color: var(--accent-ember-hover);
+}
+
+.btn-scoreboard {
+  background-color: var(--accent-ember);
+  color: var(--ink-chalk);
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border: none;
+  padding: 0.75rem 1.25rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all var(--transition-fast);
+  box-shadow: 0 4px 12px var(--accent-ember-glow);
+}
+
+.btn-scoreboard:hover {
+  background-color: var(--accent-ember-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px var(--accent-ember-glow);
+}
+
+.btn-scoreboard:active {
+  transform: translateY(0);
+}
+
+.btn-scoreboard.lake {
+  background-color: var(--accent-lake);
+  box-shadow: 0 4px 12px var(--accent-lake-glow);
+}
+
+.btn-scoreboard.lake:hover {
+  background-color: var(--accent-lake-hover);
+  box-shadow: 0 6px 16px var(--accent-lake-glow);
+}
+
+.btn-scoreboard.secondary {
+  background-color: transparent;
+  border: 1px solid var(--line-heavy);
+  color: var(--ink-chalk);
+  box-shadow: none;
+}
+
+.btn-scoreboard.secondary:hover {
+  border-color: var(--ink-chalk);
+  background-color: rgba(242, 239, 230, 0.05);
+}
+
 /* Chat Assistant Panel */
 .chat-messages {
   flex: 1;
@@ -248,6 +400,7 @@ body {
   background-color: var(--surface-card);
   border: 1px solid var(--line-heavy);
   padding: 0.85rem 1.1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .chat-message.agent {
@@ -282,13 +435,17 @@ body {
   background-color: var(--surface-card);
   border: 1px solid var(--line-heavy);
   color: var(--ink-chalk);
-  padding: 0.15rem 0.5rem;
+  padding: 0.2rem 0.6rem;
   text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all var(--transition-fast);
 }
 
 .node-badge.active {
   background-color: var(--accent-lake);
   border-color: var(--accent-lake);
+  color: #FFF;
+  box-shadow: 0 0 10px var(--accent-lake-glow);
 }
 
 /* Chat Input Form */
@@ -306,41 +463,12 @@ body {
   font-family: var(--font-body);
   font-size: 0.95rem;
   padding: 0.75rem 1rem;
+  transition: border-color var(--transition-fast);
 }
 
 .chat-input:focus {
   outline: none;
   border-color: var(--accent-ember);
-}
-
-.btn-scoreboard {
-  background-color: var(--accent-ember);
-  color: var(--ink-chalk);
-  font-family: var(--font-display);
-  font-size: 1.05rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  border: none;
-  padding: 0.75rem 1.25rem;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  transition: background-color 0.2s ease;
-}
-
-.btn-scoreboard:hover {
-  background-color: #a85222;
-}
-
-.btn-scoreboard.lake {
-  background-color: var(--accent-lake);
-}
-
-.btn-scoreboard.lake:hover {
-  background-color: #315850;
 }
 
 /* Index-Card Pantry Manager */
@@ -353,11 +481,19 @@ body {
 .pantry-card {
   background-color: var(--surface-card);
   border: 1px solid var(--line-graphite);
-  padding: 1rem;
+  padding: 1.1rem;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: 0.6rem;
+  gap: 0.75rem;
+  transition: all var(--transition-fast);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+}
+
+.pantry-card:hover {
+  border-color: var(--line-heavy);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
 }
 
 .pantry-name {
@@ -374,27 +510,58 @@ body {
   padding: 0.15rem 0.5rem;
   background-color: var(--line-graphite);
   color: var(--ink-chalk);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .pantry-tag.PROTEIN_DENSE {
   background-color: var(--accent-ember);
+  box-shadow: 0 0 6px var(--accent-ember-glow);
 }
 
 .pantry-tag.CARB_DENSE {
-  background-color: #D9A05B;
+  background-color: var(--accent-gold);
   color: #171511;
+  box-shadow: 0 0 6px rgba(217, 160, 91, 0.3);
 }
 
 .pantry-tag.FAT_DENSE {
   background-color: var(--accent-lake);
+  box-shadow: 0 0 6px var(--accent-lake-glow);
 }
 
 .pantry-quantity {
   font-family: var(--font-display);
-  font-size: 1.5rem;
+  font-size: 1.6rem;
   font-weight: 800;
   color: var(--ink-chalk);
   font-feature-settings: "tnum" 1;
+}
+
+/* Modals Overlay & Card */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(10, 8, 6, 0.75);
+  backdrop-filter: blur(8px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.modal-content {
+  background-color: var(--surface-hardwood);
+  border: 1px solid var(--line-heavy);
+  border-top: 3px solid var(--accent-ember);
+  width: 100%;
+  max-width: 580px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  display: flex;
+  flex-direction: column;
 }
 
 /* PWA Installation Alert Banner */
@@ -406,4 +573,16 @@ body {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1rem;
+}
+
+/* Reduced Motion Override per accessibility requirements */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

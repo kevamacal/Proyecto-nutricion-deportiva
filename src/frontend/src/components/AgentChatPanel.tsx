@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Send, Bot, Sparkles, ChefHat, Clock } from 'lucide-react';
 import type { AgentQueryResult, RecipeOutput } from '../types';
 
@@ -115,110 +116,124 @@ export const AgentChatPanel: React.FC<AgentChatPanelProps> = ({
           <Bot className="w-5 h-5 text-[#C1622B]" />
           Asistente Orquestador Multi-Agente
         </h2>
-        <span style={{ fontSize: '0.85rem', color: 'var(--accent-lake)' }}>
-          Estado: Conectado (LangGraph Engine)
+        <span style={{ fontSize: '0.85rem', color: 'var(--accent-lake)', fontWeight: 700, textTransform: 'uppercase' }}>
+          ● LangGraph Multi-Agent Runtime
         </span>
       </div>
 
       <div className="panel-body">
         <div className="chat-messages">
-          {messages.map((msg) => (
-            <div key={msg.id} className={`chat-message ${msg.sender}`}>
-              <span className="message-author">
-                {msg.sender === 'user'
-                  ? 'Atleta'
-                  : `Agente Maestro ${msg.intent ? `[Nodo: ${msg.intent}]` : ''}`}
-              </span>
+          <AnimatePresence initial={false}>
+            {messages.map((msg) => (
+              <motion.div
+                key={msg.id}
+                initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ duration: 0.25, ease: 'easeOut' }}
+                className={`chat-message ${msg.sender}`}
+              >
+                <span className="message-author">
+                  {msg.sender === 'user'
+                    ? 'Atleta'
+                    : `Agente Maestro ${msg.intent ? `[Nodo: ${msg.intent}]` : ''}`}
+                </span>
 
-              {msg.executionPath && (
-                <div className="execution-path-bar" style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap', margin: '0.4rem 0' }}>
-                  {msg.executionPath.map((node, idx) => (
-                    <span
-                      key={idx}
-                      className="node-badge active"
-                      style={{
-                        fontSize: '0.7rem',
-                        padding: '0.15rem 0.4rem',
-                        borderRadius: '4px',
-                        background: 'var(--surface-court)',
-                        border: '1px solid var(--line-graphite)',
-                        color: 'var(--accent-ember)',
-                      }}
-                    >
-                      {idx > 0 ? '→ ' : ''}{node}
-                    </span>
-                  ))}
-                </div>
-              )}
+                {msg.executionPath && (
+                  <div className="execution-path-bar" style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap', margin: '0.4rem 0' }}>
+                    {msg.executionPath.map((node, idx) => (
+                      <span key={idx} className="node-badge active">
+                        {idx > 0 ? '→ ' : ''}{node}
+                      </span>
+                    ))}
+                  </div>
+                )}
 
-              <div
-                style={{ fontSize: '0.95rem', lineHeight: '1.5' }}
-                dangerouslySetInnerHTML={{
-                  __html: msg.text.replace(/\n/g, '<br />'),
-                }}
-              />
-
-              {/* Recipe Card Component if agent generated a recipe */}
-              {msg.recipeOutput && (
                 <div
-                  style={{
-                    marginTop: '0.85rem',
-                    padding: '1rem',
-                    borderRadius: '8px',
-                    backgroundColor: 'rgba(23, 21, 17, 0.6)',
-                    border: '1px solid var(--accent-ember)',
+                  style={{ fontSize: '0.95rem', lineHeight: '1.5' }}
+                  dangerouslySetInnerHTML={{
+                    __html: msg.text.replace(/\n/g, '<br />'),
                   }}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                    <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#E88D53', margin: 0, fontSize: '1.1rem' }}>
-                      <ChefHat className="w-5 h-5 text-[#C1622B]" />
-                      {msg.recipeOutput.recipe_name}
-                    </h4>
-                    <span style={{ fontSize: '0.8rem', padding: '0.2rem 0.5rem', background: 'var(--surface-court)', borderRadius: '4px' }}>
-                      Fit Score: {msg.recipeOutput.nutritional_fit_score}%
-                    </span>
-                  </div>
+                />
 
-                  <div style={{ display: 'flex', gap: '1rem', fontSize: '0.85rem', color: 'var(--ink-muted)', marginBottom: '0.75rem' }}>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                      <Clock className="w-3.5 h-3.5 text-[#C1622B]" /> Preparación: {msg.recipeOutput.prep_time_minutes}m | Cocción: {msg.recipeOutput.cook_time_minutes}m
-                    </span>
-                  </div>
+                {/* Recipe Card Component if agent generated a recipe */}
+                {msg.recipeOutput && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    style={{
+                      marginTop: '0.85rem',
+                      padding: '1.1rem',
+                      backgroundColor: 'var(--surface-card)',
+                      border: '1px solid var(--accent-ember)',
+                      borderLeft: '4px solid var(--accent-ember)',
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                      <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--accent-ember)', margin: 0, fontSize: '1.1rem', fontFamily: 'var(--font-display)', textTransform: 'uppercase' }}>
+                        <ChefHat className="w-5 h-5 text-[#C1622B]" />
+                        {msg.recipeOutput.recipe_name}
+                      </h4>
+                      <span className="brand-badge" style={{ fontSize: '0.75rem' }}>
+                        Fit Score: {msg.recipeOutput.nutritional_fit_score}%
+                      </span>
+                    </div>
 
-                  <div style={{ marginBottom: '0.75rem' }}>
-                    <strong style={{ fontSize: '0.85rem', color: 'var(--ink-primary)' }}>Ingredientes de la Despensa:</strong>
-                    <ul style={{ margin: '0.25rem 0', paddingLeft: '1.25rem', fontSize: '0.85rem' }}>
-                      {msg.recipeOutput.ingredients_used.map((ing, i) => (
-                        <li key={i} style={{ color: ing.is_from_inventory ? '#57B894' : 'var(--ink-primary)' }}>
-                          {ing.quantity_used} {ing.unit} - <strong>{ing.name}</strong> {ing.is_from_inventory ? ' (✓ En Despensa)' : ''}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+                    <div style={{ display: 'flex', gap: '1rem', fontSize: '0.85rem', color: 'var(--ink-muted)', marginBottom: '0.75rem' }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                        <Clock className="w-3.5 h-3.5 text-[#C1622B]" /> Preparación: {msg.recipeOutput.prep_time_minutes}m | Cocción: {msg.recipeOutput.cook_time_minutes}m
+                      </span>
+                    </div>
 
-                  <div>
-                    <strong style={{ fontSize: '0.85rem', color: 'var(--ink-primary)' }}>Pasos de Preparación:</strong>
-                    <ol style={{ margin: '0.25rem 0', paddingLeft: '1.25rem', fontSize: '0.85rem' }}>
-                      {msg.recipeOutput.preparation_steps.map((step) => (
-                        <li key={step.step_number} style={{ marginBottom: '0.2rem' }}>
-                          {step.instruction}
-                        </li>
-                      ))}
-                    </ol>
-                  </div>
-                </div>
-              )}
-            </div>
-          ))}
+                    <div style={{ marginBottom: '0.75rem' }}>
+                      <strong style={{ fontSize: '0.85rem', color: 'var(--ink-chalk)', textTransform: 'uppercase', fontFamily: 'var(--font-display)' }}>Ingredientes de la Despensa:</strong>
+                      <ul style={{ margin: '0.25rem 0', paddingLeft: '1.25rem', fontSize: '0.85rem' }}>
+                        {msg.recipeOutput.ingredients_used.map((ing, i) => (
+                          <li key={i} style={{ color: ing.is_from_inventory ? 'var(--accent-moss)' : 'var(--ink-chalk)' }}>
+                            {ing.quantity_used} {ing.unit} - <strong>{ing.name}</strong> {ing.is_from_inventory ? ' (✓ En Despensa)' : ''}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    <div>
+                      <strong style={{ fontSize: '0.85rem', color: 'var(--ink-chalk)', textTransform: 'uppercase', fontFamily: 'var(--font-display)' }}>Pasos de Preparación:</strong>
+                      <ol style={{ margin: '0.25rem 0', paddingLeft: '1.25rem', fontSize: '0.85rem' }}>
+                        {msg.recipeOutput.preparation_steps.map((step) => (
+                          <li key={step.step_number} style={{ marginBottom: '0.2rem' }}>
+                            {step.instruction}
+                          </li>
+                        ))}
+                      </ol>
+                    </div>
+                  </motion.div>
+                )}
+              </motion.div>
+            ))}
+          </AnimatePresence>
 
           {loading && (
-            <div className="chat-message agent">
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="chat-message agent"
+            >
               <span className="message-author">Sistema Orquestador Multi-Agente</span>
-              <p style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0.4rem 0' }}>
-                <Sparkles className="w-4 h-4 animate-spin text-[#C1622B]" />
-                Procesando nodos: Basketball/Strength → Nutrition → Inventory → Recipe Node...
-              </p>
-            </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0.4rem 0' }}>
+                <Sparkles className="w-4 h-4 text-[#C1622B]" />
+                <div style={{ display: 'flex', gap: '0.35rem' }}>
+                  {['router_node', 'sports_node', 'nutrition_node', 'inventory_node', 'recipe_node'].map((node, i) => (
+                    <motion.span
+                      key={node}
+                      animate={{ opacity: [0.3, 1, 0.3] }}
+                      transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.2 }}
+                      className="node-badge active"
+                    >
+                      {node}
+                    </motion.span>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
           )}
 
           <div ref={messagesEndRef} />
@@ -232,10 +247,16 @@ export const AgentChatPanel: React.FC<AgentChatPanelProps> = ({
             onChange={(e) => setInputValue(e.target.value)}
             placeholder="Pregunta al agente sobre tu nutrición o deporte..."
           />
-          <button type="submit" className="btn-scoreboard" disabled={loading}>
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            type="submit"
+            className="btn-scoreboard"
+            disabled={loading}
+          >
             <Send className="w-4 h-4" />
             Enviar
-          </button>
+          </motion.button>
         </form>
       </div>
     </section>

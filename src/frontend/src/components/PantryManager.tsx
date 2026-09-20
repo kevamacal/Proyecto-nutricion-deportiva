@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Package, Dumbbell, Trophy, Plus, Trash2, Utensils, X } from 'lucide-react';
 import type { PantryItem } from '../types';
-import { fetchFoodCatalog, addPantryItem, type CatalogFoodItem } from '../services/api';
+import { fetchFoodCatalog, addPantryItem, logMeal, type CatalogFoodItem } from '../services/supabaseApi';
 
 interface PantryManagerProps {
   items: PantryItem[];
@@ -45,7 +46,7 @@ export const PantryManager: React.FC<PantryManagerProps> = ({
         const cat = await fetchFoodCatalog();
         setCatalog(cat);
         if (cat.length > 0) {
-          setSelectedFoodId(cat[0].id);
+          setSelectedFoodId(cat[0].food_item_id);
         }
       } catch (err) {
         console.error('Error loading catalog:', err);
@@ -63,7 +64,7 @@ export const PantryManager: React.FC<PantryManagerProps> = ({
         const cat = await fetchFoodCatalog();
         setCatalog(cat);
         if (cat.length > 0) {
-          setMealFoodId(cat[0].id);
+          setMealFoodId(cat[0].food_item_id);
         }
       } catch (err) {
         console.error('Error loading catalog:', err);
@@ -71,7 +72,7 @@ export const PantryManager: React.FC<PantryManagerProps> = ({
         setLoadingCatalog(false);
       }
     } else if (!mealFoodId && catalog.length > 0) {
-      setMealFoodId(catalog[0].id);
+      setMealFoodId(catalog[0].food_item_id);
     }
   };
 
@@ -98,23 +99,25 @@ export const PantryManager: React.FC<PantryManagerProps> = ({
     if (!mealFoodId) return;
 
     try {
-      const res = await fetch('/rest/v1/meals', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          user_id: userId,
-          meal_type: mealType,
-          items: [
-            {
-              food_item_id: mealFoodId,
-              quantity: Number(mealQuantity),
-              unit: 'g',
-            },
-          ],
-        }),
+      await logMeal({
+        user_id: userId,
+        meal_type: mealType,
+        total_calories_kcal: 0,
+        total_protein_g: 0,
+        total_carbs_g: 0,
+        total_fat_g: 0,
+        items: [
+          {
+            food_item_id: mealFoodId,
+            quantity: Number(mealQuantity),
+            unit: 'g',
+            calories_kcal: 0,
+            protein_g: 0,
+            carbohydrates_g: 0,
+            fat_g: 0,
+          },
+        ],
       });
-
-      if (!res.ok) throw new Error('Error logging meal');
 
       setShowMealModal(false);
       onMealLogged();
@@ -132,23 +135,27 @@ export const PantryManager: React.FC<PantryManagerProps> = ({
           Despensa e Inventario Disponible
         </h2>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <span style={{ fontSize: '0.85rem', color: 'var(--ink-muted)' }}>
+          <span style={{ fontSize: '0.85rem', color: 'var(--ink-muted)', fontWeight: 600 }}>
             {items.length} Alimentos Registrados
           </span>
-          <button
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
             className="btn-scoreboard"
             style={{ padding: '0.35rem 0.75rem', fontSize: '0.8rem' }}
             onClick={handleOpenAddModal}
           >
             <Plus className="w-3.5 h-3.5" /> Añadir
-          </button>
-          <button
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
             className="btn-scoreboard lake"
             style={{ padding: '0.35rem 0.75rem', fontSize: '0.8rem' }}
             onClick={handleOpenMealModal}
           >
             <Utensils className="w-3.5 h-3.5" /> Registrar Comida
-          </button>
+          </motion.button>
         </div>
       </div>
 
@@ -159,39 +166,49 @@ export const PantryManager: React.FC<PantryManagerProps> = ({
           </div>
         ) : (
           <div className="pantry-grid">
-            {items.map((item) => (
-              <div key={item.inventory_item_id} className="pantry-card">
-                <div style={{ flex: 1 }}>
-                  <div className="pantry-name">{item.name}</div>
-                  <div style={{ display: 'flex', gap: '0.4rem', marginTop: '0.2rem' }}>
-                    <span className={`pantry-tag ${item.density_class}`}>
-                      {item.density_class}
-                    </span>
-                    <span className="pantry-tag" style={{ background: 'var(--surface-court)', color: 'var(--ink-muted)' }}>
-                      {item.category}
-                    </span>
+            <AnimatePresence mode="popLayout">
+              {items.map((item) => (
+                <motion.div
+                  key={item.inventory_item_id}
+                  layout
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  transition={{ duration: 0.25, ease: 'easeOut' }}
+                  className="pantry-card"
+                >
+                  <div style={{ flex: 1 }}>
+                    <div className="pantry-name">{item.name}</div>
+                    <div style={{ display: 'flex', gap: '0.4rem', marginTop: '0.3rem' }}>
+                      <span className={`pantry-tag ${item.density_class}`}>
+                        {item.density_class}
+                      </span>
+                      <span className="pantry-tag" style={{ background: 'var(--line-graphite)', color: 'var(--ink-muted)' }}>
+                        {item.category}
+                      </span>
+                    </div>
                   </div>
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.25rem' }}>
-                  <div className="pantry-quantity">
-                    {item.available_quantity} {item.unit}
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.25rem' }}>
+                    <div className="pantry-quantity">
+                      {item.available_quantity} {item.unit}
+                    </div>
+                    <button
+                      onClick={() => onDeleteItem(item.inventory_item_id)}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: 'var(--ink-muted)',
+                        cursor: 'pointer',
+                        padding: '0.2rem',
+                      }}
+                      title="Eliminar de la despensa"
+                    >
+                      <Trash2 className="w-3.5 h-3.5 text-[#B23A48]" />
+                    </button>
                   </div>
-                  <button
-                    onClick={() => onDeleteItem(item.inventory_item_id)}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      color: 'var(--ink-muted)',
-                      cursor: 'pointer',
-                      padding: '0.2rem',
-                    }}
-                    title="Eliminar de la despensa"
-                  >
-                    <Trash2 className="w-3.5 h-3.5 hover:text-red-400" />
-                  </button>
-                </div>
-              </div>
-            ))}
+                </motion.div>
+              ))}
+            </AnimatePresence>
           </div>
         )}
 
@@ -200,127 +217,220 @@ export const PantryManager: React.FC<PantryManagerProps> = ({
             ⚡ Registro Rápido de Sesiones Deportivas
           </h3>
           <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-            <button className="btn-scoreboard" onClick={onQuickBasketball}>
+            <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="btn-scoreboard" onClick={onQuickBasketball}>
               <Trophy className="w-4 h-4" />
               🏀 Partidazo (90 min Baloncesto)
-            </button>
-            <button className="btn-scoreboard lake" onClick={onQuickGym}>
+            </motion.button>
+            <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="btn-scoreboard lake" onClick={onQuickGym}>
               <Dumbbell className="w-4 h-4" />
               🏋️ Entreno Pesas (60 min Fuerza)
-            </button>
+            </motion.button>
           </div>
         </div>
       </div>
 
       {/* Modal Añadir Alimento */}
-      {showAddModal && (
-        <div className="modal-backdrop">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h3>Añadir Alimento a la Despensa</h3>
-              <button onClick={() => setShowAddModal(false)}><X className="w-4 h-4" /></button>
-            </div>
-            <form onSubmit={handleAddSubmit} className="modal-form">
-              <label>Seleccionar Alimento del Catálogo:</label>
-              {loadingCatalog ? (
-                <p>Cargando catálogo...</p>
-              ) : (
+      <AnimatePresence>
+        {showAddModal && (
+          <div className="modal-overlay">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              transition={{ duration: 0.2 }}
+              className="modal-content"
+            >
+              <div className="panel-header">
+                <h3 className="panel-title" style={{ fontSize: '1.2rem' }}>Añadir Alimento a la Despensa</h3>
+                <button
+                  onClick={() => setShowAddModal(false)}
+                  style={{ background: 'none', border: 'none', color: 'var(--ink-muted)', cursor: 'pointer' }}
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <form onSubmit={handleAddSubmit} className="panel-body">
+                <label style={{ fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--ink-muted)' }}>
+                  Seleccionar Alimento del Catálogo:
+                </label>
+                {loadingCatalog ? (
+                  <p style={{ color: 'var(--ink-muted)' }}>Cargando catálogo...</p>
+                ) : (
+                  <select
+                    value={selectedFoodId}
+                    onChange={(e) => setSelectedFoodId(e.target.value)}
+                    style={{
+                      width: '100%',
+                      background: 'var(--bg-court)',
+                      border: '1px solid var(--line-heavy)',
+                      color: 'var(--ink-chalk)',
+                      padding: '0.85rem',
+                      fontFamily: 'var(--font-body)',
+                    }}
+                  >
+                    {catalog.map((c) => (
+                      <option key={c.food_item_id} value={c.food_item_id}>
+                        {c.name} ({c.category})
+                      </option>
+                    ))}
+                  </select>
+                )}
+
+                <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
+                  <div style={{ flex: 1 }}>
+                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: '0.35rem' }}>
+                      Cantidad:
+                    </label>
+                    <input
+                      type="number"
+                      value={addQuantity}
+                      onChange={(e) => setAddQuantity(Number(e.target.value))}
+                      min="1"
+                      style={{
+                        width: '100%',
+                        background: 'var(--bg-court)',
+                        border: '1px solid var(--line-heavy)',
+                        color: 'var(--ink-chalk)',
+                        padding: '0.85rem',
+                        fontFamily: 'var(--font-display)',
+                        fontSize: '1.2rem',
+                        fontWeight: 700,
+                      }}
+                    />
+                  </div>
+                  <div style={{ width: '120px' }}>
+                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: '0.35rem' }}>
+                      Unidad:
+                    </label>
+                    <input
+                      type="text"
+                      value={addUnit}
+                      onChange={(e) => setAddUnit(e.target.value)}
+                      style={{
+                        width: '100%',
+                        background: 'var(--bg-court)',
+                        border: '1px solid var(--line-heavy)',
+                        color: 'var(--ink-chalk)',
+                        padding: '0.85rem',
+                        fontFamily: 'var(--font-body)',
+                      }}
+                    />
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1rem' }}>
+                  <button type="button" className="btn-scoreboard secondary" onClick={() => setShowAddModal(false)}>
+                    Cancelar
+                  </button>
+                  <button type="submit" className="btn-scoreboard">
+                    Guardar en Despensa
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Modal Registrar Comida */}
+      <AnimatePresence>
+        {showMealModal && (
+          <div className="modal-overlay">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              transition={{ duration: 0.2 }}
+              className="modal-content"
+            >
+              <div className="panel-header">
+                <h3 className="panel-title" style={{ fontSize: '1.2rem' }}>Registrar Comida Consumida</h3>
+                <button
+                  onClick={() => setShowMealModal(false)}
+                  style={{ background: 'none', border: 'none', color: 'var(--ink-muted)', cursor: 'pointer' }}
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <form onSubmit={handleMealSubmit} className="panel-body">
+                <label style={{ fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--ink-muted)' }}>
+                  Tipo de Comida:
+                </label>
                 <select
-                  value={selectedFoodId}
-                  onChange={(e) => setSelectedFoodId(e.target.value)}
+                  value={mealType}
+                  onChange={(e) => setMealType(e.target.value)}
+                  style={{
+                    width: '100%',
+                    background: 'var(--bg-court)',
+                    border: '1px solid var(--line-heavy)',
+                    color: 'var(--ink-chalk)',
+                    padding: '0.85rem',
+                    fontFamily: 'var(--font-body)',
+                  }}
+                >
+                  <option value="Desayuno">Desayuno</option>
+                  <option value="Almuerzo">Almuerzo</option>
+                  <option value="Comida">Comida</option>
+                  <option value="Merienda">Merienda</option>
+                  <option value="Cena">Cena</option>
+                  <option value="Post-Entreno">Post-Entreno</option>
+                </select>
+
+                <label style={{ fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--ink-muted)', marginTop: '0.5rem' }}>
+                  Alimento Consumido:
+                </label>
+                <select
+                  value={mealFoodId}
+                  onChange={(e) => setMealFoodId(e.target.value)}
+                  style={{
+                    width: '100%',
+                    background: 'var(--bg-court)',
+                    border: '1px solid var(--line-heavy)',
+                    color: 'var(--ink-chalk)',
+                    padding: '0.85rem',
+                    fontFamily: 'var(--font-body)',
+                  }}
                 >
                   {catalog.map((c) => (
-                    <option key={c.id} value={c.id}>
+                    <option key={c.food_item_id} value={c.food_item_id}>
                       {c.name} ({c.category})
                     </option>
                   ))}
                 </select>
-              )}
 
-              <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
-                <div style={{ flex: 1 }}>
-                  <label>Cantidad:</label>
-                  <input
-                    type="number"
-                    value={addQuantity}
-                    onChange={(e) => setAddQuantity(Number(e.target.value))}
-                    min="1"
-                  />
+                <label style={{ fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--ink-muted)', marginTop: '0.5rem' }}>
+                  Cantidad Gramos/Porción:
+                </label>
+                <input
+                  type="number"
+                  value={mealQuantity}
+                  onChange={(e) => setMealQuantity(Number(e.target.value))}
+                  min="1"
+                  style={{
+                    width: '100%',
+                    background: 'var(--bg-court)',
+                    border: '1px solid var(--line-heavy)',
+                    color: 'var(--ink-chalk)',
+                    padding: '0.85rem',
+                    fontFamily: 'var(--font-display)',
+                    fontSize: '1.2rem',
+                    fontWeight: 700,
+                  }}
+                />
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1rem' }}>
+                  <button type="button" className="btn-scoreboard secondary" onClick={() => setShowMealModal(false)}>
+                    Cancelar
+                  </button>
+                  <button type="submit" className="btn-scoreboard lake">
+                    Registrar Comida
+                  </button>
                 </div>
-                <div style={{ width: '100px' }}>
-                  <label>Unidad:</label>
-                  <input
-                    type="text"
-                    value={addUnit}
-                    onChange={(e) => setAddUnit(e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div className="modal-actions">
-                <button type="button" className="btn-secondary" onClick={() => setShowAddModal(false)}>
-                  Cancelar
-                </button>
-                <button type="submit" className="btn-scoreboard">
-                  Guardar en Despensa
-                </button>
-              </div>
-            </form>
+              </form>
+            </motion.div>
           </div>
-        </div>
-      )}
-
-      {/* Modal Registrar Comida */}
-      {showMealModal && (
-        <div className="modal-backdrop">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h3>Registrar Comida Consumida</h3>
-              <button onClick={() => setShowMealModal(false)}><X className="w-4 h-4" /></button>
-            </div>
-            <form onSubmit={handleMealSubmit} className="modal-form">
-              <label>Tipo de Comida:</label>
-              <select value={mealType} onChange={(e) => setMealType(e.target.value)}>
-                <option value="Desayuno">Desayuno</option>
-                <option value="Almuerzo">Almuerzo</option>
-                <option value="Comida">Comida</option>
-                <option value="Merienda">Merienda</option>
-                <option value="Cena">Cena</option>
-                <option value="Post-Entreno">Post-Entreno</option>
-              </select>
-
-              <label style={{ marginTop: '0.5rem' }}>Alimento Consumido:</label>
-              <select
-                value={mealFoodId}
-                onChange={(e) => setMealFoodId(e.target.value)}
-              >
-                {catalog.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name} ({c.category})
-                  </option>
-                ))}
-              </select>
-
-              <label style={{ marginTop: '0.5rem' }}>Cantidad Gramos/Porción:</label>
-              <input
-                type="number"
-                value={mealQuantity}
-                onChange={(e) => setMealQuantity(Number(e.target.value))}
-                min="1"
-              />
-
-              <div className="modal-actions">
-                <button type="button" className="btn-secondary" onClick={() => setShowMealModal(false)}>
-                  Cancelar
-                </button>
-                <button type="submit" className="btn-scoreboard lake">
-                  Registrar Comida
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
     </section>
   );
 };

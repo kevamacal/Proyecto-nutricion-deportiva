@@ -4,7 +4,8 @@ import { Utensils, X, Flame } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { fetchFoodCatalog, logMeal } from '../../services/supabaseApi';
 import type { CatalogFoodItem } from '../../services/supabaseApi';
-import { FoodSelectorModal, getFoodMeta } from '../Food/FoodSelectorModal';
+import { FoodSelectorModal } from '../Food/FoodSelectorModal';
+import { getFoodMeta } from '../Food/foodMeta';
 
 interface MealLoggingModalProps {
   isOpen: boolean;

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Search, X, Flame, Sparkles, Filter, Check } from 'lucide-react';
 import type { CatalogFoodItem } from '../../services/supabaseApi';
+import { getFoodMeta } from './foodMeta';
 
 interface FoodSelectorModalProps {
   isOpen: boolean;
@@ -8,102 +9,6 @@ interface FoodSelectorModalProps {
   catalog: CatalogFoodItem[];
   onSelect: (food: CatalogFoodItem) => void;
   selectedFoodId?: string;
-}
-
-// Visual Mapping Helper for Food Images, Emojis, and Macro Density
-export function getFoodMeta(foodName: string, category: string) {
-  const name = foodName.toLowerCase();
-  const cat = category.toLowerCase();
-
-  if (name.includes('pollo') || name.includes('pavo') || name.includes('ternera') || name.includes('carne') || name.includes('pechuga')) {
-    return {
-      emoji: '🍗',
-      badge: 'PROTEÍNA ALTA',
-      color: '#00E676',
-      image: 'https://images.unsplash.com/photo-1604503468506-a8da13d82791?auto=format&fit=crop&w=400&q=80',
-    };
-  }
-  if (name.includes('atún') || name.includes('salmón') || name.includes('pescado') || name.includes('merluza')) {
-    return {
-      emoji: '🐟',
-      badge: 'PROTEÍNA Y OMEGA-3',
-      color: '#00E5FF',
-      image: 'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?auto=format&fit=crop&w=400&q=80',
-    };
-  }
-  if (name.includes('huevo')) {
-    return {
-      emoji: '🥚',
-      badge: 'PROTEÍNA / GRASA',
-      color: '#00E676',
-      image: 'https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?auto=format&fit=crop&w=400&q=80',
-    };
-  }
-  if (name.includes('arroz') || name.includes('pasta') || name.includes('pan') || name.includes('quinoa') || name.includes('patata') || name.includes('batata')) {
-    return {
-      emoji: name.includes('arroz') ? '🍚' : name.includes('patata') ? '🥔' : '🍝',
-      badge: 'CARBOHIDRATOS',
-      color: '#FF6B35',
-      image: name.includes('arroz')
-        ? 'https://images.unsplash.com/photo-1516684732162-798a0062be99?auto=format&fit=crop&w=400&q=80'
-        : 'https://images.unsplash.com/photo-1518977676601-b53f82aba655?auto=format&fit=crop&w=400&q=80',
-    };
-  }
-  if (name.includes('avena') || name.includes('cereales') || name.includes('copos')) {
-    return {
-      emoji: '🌾',
-      badge: 'CARBO DE ASIMILACIÓN LENTA',
-      color: '#FF8C00',
-      image: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=400&q=80',
-    };
-  }
-  if (name.includes('aceite') || name.includes('aguacate') || name.includes('almendras') || name.includes('nueces') || name.includes('cacahuete')) {
-    return {
-      emoji: name.includes('aceite') ? '🫒' : name.includes('aguacate') ? '🥑' : '🥜',
-      badge: 'GRASAS SALUDABLES',
-      color: '#A855F7',
-      image: name.includes('aguacate')
-        ? 'https://images.unsplash.com/photo-1523049673857-eb18f1d7b578?auto=format&fit=crop&w=400&q=80'
-        : 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&w=400&q=80',
-    };
-  }
-  if (name.includes('plátano') || name.includes('manzana') || name.includes('fruta') || name.includes('arándanos') || name.includes('fresa')) {
-    return {
-      emoji: name.includes('plátano') ? '🍌' : '🍎',
-      badge: 'FRUTA / GLICEMIA',
-      color: '#FFD700',
-      image: 'https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?auto=format&fit=crop&w=400&q=80',
-    };
-  }
-  if (name.includes('leche') || name.includes('yogur') || name.includes('queso') || name.includes('lacteo')) {
-    return {
-      emoji: '🥛',
-      badge: 'LÁCTEO / CAS EÍNA',
-      color: '#00E5FF',
-      image: 'https://images.unsplash.com/photo-1488477181946-6428a0291777?auto=format&fit=crop&w=400&q=80',
-    };
-  }
-  if (name.includes('proteína') || name.includes('whey') || name.includes('suplemento')) {
-    return {
-      emoji: '🥤',
-      badge: 'SUPLEMENTACIÓN WHEY',
-      color: '#00E676',
-      image: 'https://images.unsplash.com/photo-1593095948071-474c5cc2989d?auto=format&fit=crop&w=400&q=80',
-    };
-  }
-
-  // Fallback by category
-  if (cat.includes('prote') || cat.includes('carne') || cat.includes('pescado')) {
-    return { emoji: '🥩', badge: 'PROTEÍNAS', color: '#00E676', image: 'https://images.unsplash.com/photo-1604503468506-a8da13d82791?auto=format&fit=crop&w=400&q=80' };
-  }
-  if (cat.includes('carb') || cat.includes('grano')) {
-    return { emoji: '🌾', badge: 'CARBOHIDRATOS', color: '#FF6B35', image: 'https://images.unsplash.com/photo-1516684732162-798a0062be99?auto=format&fit=crop&w=400&q=80' };
-  }
-  if (cat.includes('grasa') || cat.includes('fruto')) {
-    return { emoji: '🥑', badge: 'GRASAS SALUDABLES', color: '#A855F7', image: 'https://images.unsplash.com/photo-1523049673857-eb18f1d7b578?auto=format&fit=crop&w=400&q=80' };
-  }
-
-  return { emoji: '🥗', badge: 'ALIMENTO NUTRICIONAL', color: '#00E676', image: 'https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=400&q=80' };
 }
 
 export const FoodSelectorModal: React.FC<FoodSelectorModalProps> = ({
@@ -137,13 +42,11 @@ export const FoodSelectorModal: React.FC<FoodSelectorModalProps> = ({
   return (
     <div
       className="modal-overlay"
-      role="button"
-      tabIndex={0}
       onClick={onClose}
-      onKeyDown={(e) => {
-        if (e.key === 'Escape') onClose();
-      }}
       style={{ zIndex: 1200 }}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="food-selector-modal-title"
     >
       <div
         className="modal-content"
@@ -160,7 +63,7 @@ export const FoodSelectorModal: React.FC<FoodSelectorModalProps> = ({
         {/* Modal Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
           <div>
-            <h3 className="glass-card-title" style={{ margin: 0, fontSize: '1.4rem' }}>
+            <h3 id="food-selector-modal-title" className="glass-card-title" style={{ margin: 0, fontSize: '1.4rem' }}>
               <Sparkles className="w-5 h-5 text-[#FF6B35]" /> Catálogo de Alimentos e Ingredientes
             </h3>
             <p style={{ color: 'var(--ink-muted)', fontSize: '0.85rem', margin: '0.2rem 0 0 0' }}>
@@ -168,7 +71,9 @@ export const FoodSelectorModal: React.FC<FoodSelectorModalProps> = ({
             </p>
           </div>
           <button
+            type="button"
             onClick={onClose}
+            aria-label="Cerrar selector de alimentos"
             style={{ background: 'none', border: 'none', color: 'var(--ink-muted)', cursor: 'pointer' }}
           >
             <X className="w-5 h-5" />
@@ -183,7 +88,6 @@ export const FoodSelectorModal: React.FC<FoodSelectorModalProps> = ({
             placeholder="Buscar por nombre de alimento o ingrediente (ej: pechuga, arroz, atún)..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            aria-label="Buscar por nombre de alimento o ingrediente"
             style={{
               width: '100%',
               background: '#121620',
@@ -207,6 +111,7 @@ export const FoodSelectorModal: React.FC<FoodSelectorModalProps> = ({
           }}
         >
           <button
+            type="button"
             onClick={() => setSelectedCategory('ALL')}
             className={`btn-action-pill ${selectedCategory === 'ALL' ? 'primary' : ''}`}
             style={{
@@ -222,6 +127,7 @@ export const FoodSelectorModal: React.FC<FoodSelectorModalProps> = ({
 
           {categories.map((cat) => (
             <button
+              type="button"
               key={cat}
               onClick={() => setSelectedCategory(cat)}
               className={`btn-action-pill ${selectedCategory.toLowerCase() === cat.toLowerCase() ? 'primary' : ''}`}
@@ -260,12 +166,20 @@ export const FoodSelectorModal: React.FC<FoodSelectorModalProps> = ({
               const isSelected = food.id === selectedFoodId;
 
               return (
-                <button
-                  type="button"
+                <div
                   key={food.id}
+                  role="button"
+                  tabIndex={0}
                   onClick={() => {
                     onSelect(food);
                     onClose();
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      onSelect(food);
+                      onClose();
+                    }
                   }}
                   style={{
                     background: isSelected ? 'rgba(0, 230, 118, 0.12)' : 'rgba(18, 22, 32, 0.7)',
@@ -277,9 +191,6 @@ export const FoodSelectorModal: React.FC<FoodSelectorModalProps> = ({
                     display: 'flex',
                     flexDirection: 'column',
                     position: 'relative',
-                    textAlign: 'left',
-                    fontFamily: 'inherit',
-                    padding: 0,
                   }}
                   onMouseEnter={(e) => {
                     if (!isSelected) {
@@ -379,7 +290,7 @@ export const FoodSelectorModal: React.FC<FoodSelectorModalProps> = ({
                       </div>
                     )}
                   </div>
-                </button>
+                </div>
               );
             })
           )}

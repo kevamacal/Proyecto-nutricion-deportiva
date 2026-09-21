@@ -98,7 +98,7 @@ body {
 .app-header {
   background-color: var(--surface-hardwood);
   border-bottom: 2px solid var(--line-heavy);
-  padding: 1.25rem 2rem;
+  padding: 1rem 1.25rem;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
 }
 
@@ -106,143 +106,113 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.25rem;
 }
 
 .brand-title {
   font-family: var(--font-display);
-  font-size: 2.1rem;
+  font-size: 1.6rem;
   font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
   color: var(--ink-chalk);
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.5rem;
 }
 
 .brand-badge {
   background-color: var(--accent-ember);
   color: var(--ink-chalk);
   font-family: var(--font-display);
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 700;
-  padding: 0.25rem 0.65rem;
+  padding: 0.25rem 0.6rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   box-shadow: 0 0 10px var(--accent-ember-glow);
 }
 
-/* Scoreboard Ledger Header */
-.scoreboard-ledger {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 1.5rem;
-  background-color: var(--surface-card);
-  border: 1px solid var(--line-graphite);
-  border-top: 3px solid var(--line-heavy);
-  padding: 1.25rem 1.5rem;
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.5);
-}
-
-.score-stat {
+/* Main Layout Grid & Mobile Container */
+.app-main-wrapper {
   display: flex;
   flex-direction: column;
+  min-height: 100vh;
+  background-color: var(--bg-court);
+  padding-bottom: 80px; /* Space for bottom navigation */
 }
 
-.score-label {
-  font-size: 0.8rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: var(--ink-muted);
-  margin-bottom: 0.35rem;
-}
-
-.score-value {
-  font-family: var(--font-display);
-  font-size: 2.8rem;
-  font-weight: 800;
-  line-height: 1;
-  color: var(--accent-ember);
-  font-feature-settings: "tnum" 1, "lnum" 1;
-  text-shadow: 0 0 12px var(--accent-ember-glow);
-}
-
-.score-value.lake {
-  color: var(--accent-lake);
-  text-shadow: 0 0 12px var(--accent-lake-glow);
-}
-
-.score-unit {
-  font-size: 1rem;
-  font-weight: 600;
-  margin-left: 0.25rem;
-  color: var(--ink-muted);
-}
-
-/* Fuel Gauge Macro Bars */
-.macro-gauge-container {
+.app-container {
+  width: 100%;
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 1.25rem 1rem;
   display: flex;
   flex-direction: column;
-  gap: 0.55rem;
-  margin-top: 0.2rem;
+  gap: 1.25rem;
+  flex: 1;
 }
 
-.macro-row {
+@media (max-width: 480px) {
+  .app-container {
+    padding: 1rem 0.85rem;
+  }
+}
+
+/* Mobile Bottom Navigation Bar */
+.mobile-bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 68px;
+  background-color: var(--surface-hardwood);
+  border-top: 2px solid var(--line-heavy);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  z-index: 1000;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
+}
+
+.nav-item {
   display: flex;
   flex-direction: column;
+  align-items: center;
+  justify-content: center;
   gap: 0.25rem;
-}
-
-.macro-info {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.85rem;
-  font-weight: 600;
-}
-
-.macro-bar-track {
-  height: 8px;
-  background-color: var(--line-graphite);
-  overflow: hidden;
-  position: relative;
-}
-
-.macro-bar-fill {
+  flex: 1;
   height: 100%;
-  transition: width 0.4s ease;
+  background: none;
+  border: none;
+  color: var(--ink-muted);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  position: relative;
+  padding: 0.4rem 0;
 }
 
-.macro-bar-fill.prot {
+.nav-item.active {
+  color: var(--accent-ember);
+}
+
+.nav-item.active::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 25%;
+  right: 25%;
+  height: 3px;
   background-color: var(--accent-ember);
   box-shadow: 0 0 8px var(--accent-ember-glow);
 }
 
-.macro-bar-fill.carb {
-  background-color: var(--accent-gold);
-  box-shadow: 0 0 8px rgba(217, 160, 91, 0.3);
-}
-
-.macro-bar-fill.fat {
-  background-color: var(--accent-lake);
-  box-shadow: 0 0 8px var(--accent-lake-glow);
-}
-
-/* Main Layout Grid */
-.app-container {
-  display: grid;
-  grid-template-columns: 1fr 1.1fr;
-  gap: 1.5rem;
-  padding: 2rem;
-  flex: 1;
-}
-
-@media (max-width: 960px) {
-  .app-container {
-    grid-template-columns: 1fr;
-    padding: 1rem;
-  }
+.nav-label {
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 /* Panel Containers */

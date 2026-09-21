@@ -1,7 +1,8 @@
 """Application settings and environment configuration management."""
 
 import os
-    
+
+
 class BaseSettings:
     """Base application settings model reading from environment variables."""
 

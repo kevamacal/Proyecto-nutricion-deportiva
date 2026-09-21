@@ -110,14 +110,14 @@ export const AgentChatPanel: React.FC<AgentChatPanelProps> = ({
   };
 
   return (
-    <section className="panel-card">
+    <section className="panel-card" style={{ borderTop: '3px solid var(--accent-ember)' }}>
       <div className="panel-header">
         <h2 className="panel-title">
-          <Bot className="w-5 h-5 text-[#C1622B]" />
-          Asistente Orquestador Multi-Agente
+          <Bot size={20} style={{ color: 'var(--accent-ember)' }} />
+          Asistente de Nutrición Deportiva
         </h2>
-        <span style={{ fontSize: '0.85rem', color: 'var(--accent-lake)', fontWeight: 700, textTransform: 'uppercase' }}>
-          ● LangGraph Multi-Agent Runtime
+        <span style={{ fontSize: '0.78rem', color: 'var(--accent-lake)', fontWeight: 700, textTransform: 'uppercase' }}>
+          ● En Línea
         </span>
       </div>
 
@@ -217,21 +217,10 @@ export const AgentChatPanel: React.FC<AgentChatPanelProps> = ({
               animate={{ opacity: 1, y: 0 }}
               className="chat-message agent"
             >
-              <span className="message-author">Sistema Orquestador Multi-Agente</span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0.4rem 0' }}>
-                <Sparkles className="w-4 h-4 text-[#C1622B]" />
-                <div style={{ display: 'flex', gap: '0.35rem' }}>
-                  {['router_node', 'sports_node', 'nutrition_node', 'inventory_node', 'recipe_node'].map((node, i) => (
-                    <motion.span
-                      key={node}
-                      animate={{ opacity: [0.3, 1, 0.3] }}
-                      transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.2 }}
-                      className="node-badge active"
-                    >
-                      {node}
-                    </motion.span>
-                  ))}
-                </div>
+              <span className="message-author">Asistente Nutricional</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0.4rem 0', color: 'var(--ink-muted)', fontSize: '0.85rem' }}>
+                <Sparkles size={16} style={{ color: 'var(--accent-ember)' }} />
+                <span>Analizando tus requerimientos e inventario...</span>
               </div>
             </motion.div>
           )}

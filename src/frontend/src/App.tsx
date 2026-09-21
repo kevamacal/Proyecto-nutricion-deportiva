@@ -21,12 +21,12 @@ import {
   fetchPantryInventory,
   deletePantryItem,
 } from './services/supabaseApi';
-import { User, Bot, ShoppingBag, Trophy, LogOut, Activity } from 'lucide-react';
+import { User, Bot, ShoppingBag, Trophy, Activity } from 'lucide-react';
 
 const TODAY_DATE = '2026-09-15';
 
 const MainSPAContent: React.FC = () => {
-  const { user, isAuthenticated, isLoading, isDemoMode, logout, updateProfile, setTargets } = useAuth();
+  const { user, isAuthenticated, isLoading, updateProfile, setTargets } = useAuth();
 
   // Canonical State Machine State
   const [appState, setAppState] = useState<CanonicalAppState>('ONBOARDING_PROFILE');
@@ -71,7 +71,6 @@ const MainSPAContent: React.FC = () => {
 
   const [hydrationDemandMl, setHydrationDemandMl] = useState<number>(0);
   const [pantryItems, setPantryItems] = useState<PantryItem[]>([]);
-  const [statusFlag, setStatusFlag] = useState<string>('DEFICIT');
   const [triggerQuery, setTriggerQuery] = useState<string | null>(null);
 
   // Evaluate state machine based on real data
@@ -174,7 +173,6 @@ const MainSPAContent: React.FC = () => {
     if (result.nutrition_output) {
       setRemainingBalance(result.nutrition_output.remaining_balance);
       setConsumed(result.nutrition_output.consumed);
-      setStatusFlag(result.nutrition_output.nutritional_status_flag);
     }
 
     if (result.inventory_output?.inventory_items) {
@@ -228,10 +226,10 @@ const MainSPAContent: React.FC = () => {
                 marginBottom: '0.4rem',
               }}
             >
-              Sincronizando Perfil Fisiológico
+              Cargando tus Datos
             </h2>
             <p style={{ color: 'var(--ink-muted)', fontSize: '0.9rem', maxWidth: '360px' }}>
-              Cargando biometría, inventario de despensa y métricas nutricionales...
+              Preparando tus objetivos nutricionales y tu despensa...
             </p>
           </div>
         </motion.div>
@@ -244,7 +242,7 @@ const MainSPAContent: React.FC = () => {
     return <AuthScreen />;
   }
 
-  // State Machine Screen Renderers for Onboarding Flows (Clean, dedicated views without zeroed header above)
+  // State Machine Screen Renderers for Onboarding Flows
   if (appState === 'ONBOARDING_PROFILE') {
     return <ProfileWizard onComplete={handleProfileWizardComplete} />;
   }
@@ -267,94 +265,13 @@ const MainSPAContent: React.FC = () => {
     );
   }
 
-  // Active Main SPA View (Dashboard, Pantry, Chat, Profile)
+  // Active Main SPA View (Mobile-First Layout)
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-      <HeaderScoreboard
-        remainingBalance={remainingBalance}
-        hydrationDemandMl={hydrationDemandMl}
-        dailyTargets={dailyTargets}
-        consumed={consumed}
-        statusFlag={statusFlag}
-      />
+    <div className="app-main-wrapper">
+      <HeaderScoreboard />
 
-      {/* Navigation Tab Bar */}
-      <nav
-        style={{
-          backgroundColor: 'var(--surface-hardwood)',
-          borderBottom: '1px solid var(--line-heavy)',
-          padding: '0.75rem 2rem',
-          display: 'flex',
-          gap: '1rem',
-          alignItems: 'center',
-        }}
-      >
-        <button
-          onClick={() => setActiveTab('SCOREBOARD')}
-          className={`btn-action-pill ${activeTab === 'SCOREBOARD' ? 'primary' : ''}`}
-          style={{ gap: '0.5rem' }}
-        >
-          <Trophy size={16} /> Tablero Principal
-        </button>
-        <button
-          onClick={() => setActiveTab('PANTRY')}
-          className={`btn-action-pill ${activeTab === 'PANTRY' ? 'primary' : ''}`}
-          style={{ gap: '0.5rem' }}
-        >
-          <ShoppingBag size={16} /> Despensa ({pantryItems.length})
-        </button>
-        <button
-          onClick={() => setActiveTab('CHAT')}
-          className={`btn-action-pill ${activeTab === 'CHAT' ? 'primary' : ''}`}
-          style={{ gap: '0.5rem' }}
-        >
-          <Bot size={16} /> Asistente IA
-        </button>
-        <button
-          onClick={() => setActiveTab('PROFILE')}
-          className={`btn-action-pill ${activeTab === 'PROFILE' ? 'primary' : ''}`}
-          style={{ gap: '0.5rem' }}
-        >
-          <User size={16} /> Mi Perfil Antropométrico
-        </button>
-
-        {/* User Identity & Logout Button */}
-        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'flex-end',
-              fontSize: '0.78rem',
-              lineHeight: 1.2,
-            }}
-          >
-            <span style={{ fontWeight: 700, color: 'var(--ink-primary)' }}>
-              {user.name || user.email || 'Atleta Autenticado'}
-            </span>
-            <span style={{ fontSize: '0.7rem', color: isDemoMode ? '#00E676' : 'var(--ink-muted)' }}>
-              {isDemoMode ? '⚡ Modo Demo' : user.email || 'Supabase Auth'}
-            </span>
-          </div>
-          <button
-            onClick={() => logout()}
-            title="Cerrar Sesión"
-            className="btn-action-pill"
-            style={{
-              padding: '0.45rem 0.75rem',
-              background: 'rgba(255, 51, 102, 0.1)',
-              border: '1px solid rgba(255, 51, 102, 0.3)',
-              color: '#FF3366',
-              gap: '0.35rem',
-              fontSize: '0.8rem',
-            }}
-          >
-            <LogOut size={15} /> Salir
-          </button>
-        </div>
-      </nav>
-
-      <main className="app-container" style={{ flex: 1, padding: '2rem' }}>
+      {/* Main Content Area */}
+      <main className="app-container">
         <AnimatePresence mode="wait">
           {activeTab === 'SCOREBOARD' && (
             <motion.div
@@ -371,7 +288,6 @@ const MainSPAContent: React.FC = () => {
                 dailyTargets={dailyTargets}
                 hydrationDemandMl={hydrationDemandMl}
                 pantryItems={pantryItems}
-                statusFlag={statusFlag}
                 onOpenBasketball={() => setIsBasketballOpen(true)}
                 onOpenStrength={() => setIsStrengthOpen(true)}
                 onOpenMeal={() => setIsMealOpen(true)}
@@ -461,6 +377,38 @@ const MainSPAContent: React.FC = () => {
         onClose={() => setIsMealOpen(false)}
         onSuccess={evaluateAppState}
       />
+
+      {/* Mobile Fixed Bottom Navigation Bar */}
+      <nav className="mobile-bottom-nav">
+        <button
+          onClick={() => setActiveTab('SCOREBOARD')}
+          className={`nav-item ${activeTab === 'SCOREBOARD' ? 'active' : ''}`}
+        >
+          <Trophy size={20} />
+          <span className="nav-label">Tablero</span>
+        </button>
+        <button
+          onClick={() => setActiveTab('PANTRY')}
+          className={`nav-item ${activeTab === 'PANTRY' ? 'active' : ''}`}
+        >
+          <ShoppingBag size={20} />
+          <span className="nav-label">Despensa</span>
+        </button>
+        <button
+          onClick={() => setActiveTab('CHAT')}
+          className={`nav-item ${activeTab === 'CHAT' ? 'active' : ''}`}
+        >
+          <Bot size={20} />
+          <span className="nav-label">Asistente</span>
+        </button>
+        <button
+          onClick={() => setActiveTab('PROFILE')}
+          className={`nav-item ${activeTab === 'PROFILE' ? 'active' : ''}`}
+        >
+          <User size={20} />
+          <span className="nav-label">Perfil</span>
+        </button>
+      </nav>
     </div>
   );
 };

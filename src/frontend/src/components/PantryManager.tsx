@@ -128,7 +128,7 @@ export const PantryManager: React.FC<PantryManagerProps> = ({
   };
 
   return (
-    <section className="panel-card">
+    <section className="panel-card" style={{ borderTop: '3px solid var(--accent-ember)' }}>
       <div className="panel-header" style={{ flexWrap: 'wrap', gap: '0.5rem' }}>
         <h2 className="panel-title">
           <Package className="w-5 h-5 text-[#C1622B]" />

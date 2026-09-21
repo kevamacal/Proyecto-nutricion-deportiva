@@ -1,0 +1,41 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug Frontend (Brave Browser)",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:5173",
+      "webRoot": "${workspaceFolder}/src/frontend/src",
+      "runtimeExecutable": "/usr/bin/brave",
+      "runtimeArgs": [
+        "--remote-debugging-port=9222",
+        "--user-data-dir=/tmp/brave-dev-profile"
+      ],
+      "sourceMapPathOverrides": {
+        "webpack:///src/*": "${webRoot}/*"
+      }
+    },
+    {
+      "type": "chrome",
+      "request": "attach",
+      "name": "Attach to Brave (Port 9222)",
+      "port": 9222,
+      "webRoot": "${workspaceFolder}/src/frontend/src"
+    },
+    {
+      "name": "Debug FastAPI Backend",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "uvicorn",
+      "args": [
+        "src.backend.main:app",
+        "--reload",
+        "--port",
+        "8001"
+      ],
+      "jinja": true,
+      "justMyCode": true
+    }
+  ]
+}

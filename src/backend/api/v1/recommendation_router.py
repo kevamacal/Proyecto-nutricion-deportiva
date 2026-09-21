@@ -6,12 +6,12 @@ from src.backend.api.v1.schemas import (
     RecommendationRequest,
     RecommendationResponse,
 )
-from src.backend.services.recommendation_service import recommendation_service
+from src.backend.core.recommendation.engine import generate_deterministic_recommendation
 
 router = APIRouter(prefix="/api/v1/nutrition", tags=["Recommendations"])
 
 
 @router.post("/recommendations")
 def get_recommendation(payload: RecommendationRequest) -> RecommendationResponse:
-    """Generate deterministic meal and ingredient recommendations from available pantry stock."""
-    return recommendation_service.generate_recommendation(payload)
+    """Generate deterministic meal recommendations from pantry items sent by the frontend."""
+    return generate_deterministic_recommendation(payload)

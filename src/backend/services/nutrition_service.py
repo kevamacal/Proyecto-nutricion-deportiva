@@ -19,7 +19,7 @@ class NutritionService:
         self, payload: TargetCalculationRequest
     ) -> TargetCalculationResponse:
         """Calculate BMR, TDEE, and macronutrient target distribution deterministically."""
-        s_clean = payload.sex.lower()
+        s_clean = payload.gender.lower()
         is_male = s_clean in ["male", "hombre", "m"]
 
         act_str = payload.activity_level.lower()
@@ -32,7 +32,7 @@ class NutritionService:
         else:
             act_enum = ActivityLevel.SEDENTARY
 
-        goal_str = payload.goal.lower()
+        goal_str = payload.body_composition_goal.lower()
         if "bulk" in goal_str or "gain" in goal_str or "volumen" in goal_str:
             comp_goal = BodyCompositionGoal.BULK
             nutr_goal = NutritionalGoal.HYPERTROPHY

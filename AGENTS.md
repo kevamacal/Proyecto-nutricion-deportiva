@@ -68,7 +68,20 @@ During the development lifecycle, AI coding tasks are handled through specialize
 
 ### 2.4. Frontend & UI Specialist Agent
 - **Responsibilities**: Builds dynamic, responsive, and visually appealing web interfaces for meal tracking, inventory management, and athletic performance dashboards.
-- **Guidelines**: Use modern color palettes, clean layouts, dynamic micro-interactions, and accessible UI components.
+- **Guidelines**: Use modern color palettes, clean layouts, dynamic micro-interactions, and accessible UI components. Visual tokens and layout concepts are defined in `skills/sports_nutrition_ui_direction/SKILL.MD`.
+
+- **MANDATORY APPLICATION FLOW RULE**:
+  > **The UI is a state machine derived from backend data, not a static screen that always renders everything at once.** Before rendering any dashboard view, the Frontend & UI Specialist Agent MUST determine which application state the current user is in (see `skills/sports_nutrition_flow_direction/SKILL.md` for the canonical state list and transition map) and render the view that corresponds to that state — never the fully-populated dashboard by default. A user with zero registered records MUST see a guided onboarding/registration flow, not a dashboard showing empty metrics (`0g / 175g`, `0 alimentos registrados`, etc.).
+
+- **MANDATORY FLOW-STATE TEST RULE**:
+  > Every new dashboard or screen PR MUST include a test (unit or e2e) asserting that the empty-state and populated-state renders are distinct components/branches, not the same component with zero values. Reviewers (Code Review Agent, section 2.6) MUST reject PRs where an empty state is simulated only by passing zeroed data into the fully-populated view.
+
+- **Context Hierarchy for UI work**: Before building or modifying any screen, the agent MUST read, in this order:
+  1. `skills/sports_nutrition_flow_direction/SKILL.md` — defines *what* flow/step the user is in and *when* to transition.
+  2. `skills/sports_nutrition_ui_direction/SKILL.MD` — defines *how* that step should look (tokens, layout).
+  3. `.agents/skills/frontend-design/SKILL.md` — defines general design process, accessibility floor, and copy voice.
+
+  These three are complementary, not redundant: flow direction governs structure and state, UI direction governs the project's specific visual identity, and `frontend-design` governs general craft and restraint. A screen that only follows #2 and #3 without #1 is considered incomplete even if visually polished.
 
 ### 2.5. QA & Testing Specialist Agent
 - **Responsibilities**: Writes comprehensive unit tests (`pytest`), enforces static type safety (`mypy`), and ensures linting compliance (`ruff`).

@@ -6,15 +6,17 @@ from uuid import uuid4
 
 from fastapi.testclient import TestClient
 
-from src.backend.api.v1.schemas import InventoryItemCreate, RecommendationRequest
+from src.backend.api.v1.schemas import (
+    PantryItemInput,
+    PantryItemNutritionInput,
+    RecommendationRequest,
+)
 from src.backend.core.recommendation.engine import (
     calculate_remaining_demands,
+    generate_deterministic_recommendation,
     identify_dominant_deficit,
 )
-from src.backend.db.repository import food_repository
 from src.backend.main import app
-from src.backend.services.inventory_service import inventory_service
-from src.backend.services.recommendation_service import recommendation_service
 
 client = TestClient(app)
 
@@ -63,23 +65,23 @@ def test_identify_dominant_deficit() -> None:
     )
 
 
-def test_recommendation_service_with_pantry_items() -> None:
-    """Test recommendation service matching available pantry ingredients."""
+def test_recommendation_engine_with_pantry_items() -> None:
+    """Test recommendation engine matching available pantry ingredients sent in payload."""
     user_id = uuid4()
 
-    # Get seeded food item (Pechuga de pollo)
-    foods = food_repository.list_items(query="Pechuga")
-    assert len(foods) > 0
-    chicken = foods[0]
-
-    # Add 500g Pechuga de pollo to user pantry
-    inventory_service.add_inventory_item(
-        InventoryItemCreate(
-            user_id=user_id,
-            food_item_id=chicken.id,
-            quantity=500.0,
-            unit="g",
-        )
+    chicken = PantryItemInput(
+        food_item_id=uuid4(),
+        name="Pechuga de pollo",
+        category="Meat",
+        available_quantity=500.0,
+        unit="g",
+        nutrition=PantryItemNutritionInput(
+            serving_size=100.0,
+            calories_kcal=165.0,
+            protein_g=31.0,
+            carbohydrates_g=0.0,
+            fat_g=3.6,
+        ),
     )
 
     req = RecommendationRequest(
@@ -92,9 +94,10 @@ def test_recommendation_service_with_pantry_items() -> None:
         consumed_protein_g=60.0,  # Deficit 100g protein
         consumed_carbohydrates_g=150.0,
         consumed_fat_g=40.0,
+        pantry_items=[chicken],
     )
 
-    resp = recommendation_service.generate_recommendation(req)
+    resp = generate_deterministic_recommendation(req)
     assert resp.user_id == user_id
     assert resp.dominant_deficit_macronutrient == "PROTEIN"
     assert len(resp.recommended_ingredients) > 0
@@ -105,6 +108,7 @@ def test_recommendation_service_with_pantry_items() -> None:
 def test_recommendation_endpoint() -> None:
     """Test POST /api/v1/nutrition/recommendations API endpoint."""
     user_id = str(uuid4())
+    food_id = str(uuid4())
     payload = {
         "user_id": user_id,
         "target_calories_kcal": 2200.0,
@@ -115,6 +119,22 @@ def test_recommendation_endpoint() -> None:
         "consumed_protein_g": 100.0,
         "consumed_carbohydrates_g": 180.0,
         "consumed_fat_g": 50.0,
+        "pantry_items": [
+            {
+                "food_item_id": food_id,
+                "name": "Pechuga de pollo",
+                "category": "Carnes",
+                "available_quantity": 400.0,
+                "unit": "g",
+                "nutrition": {
+                    "serving_size": 100.0,
+                    "calories_kcal": 165.0,
+                    "protein_g": 31.0,
+                    "carbohydrates_g": 0.0,
+                    "fat_g": 3.6,
+                },
+            }
+        ],
     }
     response = client.post("/api/v1/nutrition/recommendations", json=payload)
     assert response.status_code == 200
@@ -122,6 +142,7 @@ def test_recommendation_endpoint() -> None:
     assert data["user_id"] == user_id
     assert "remaining_calories_kcal" in data
     assert "dominant_deficit_macronutrient" in data
+    assert len(data["recommended_ingredients"]) == 1
 
 
 def test_recommendation_engine_ast_zero_llm_boundary() -> None:

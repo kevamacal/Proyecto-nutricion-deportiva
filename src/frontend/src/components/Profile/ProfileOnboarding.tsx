@@ -8,7 +8,7 @@ export const ProfileOnboarding: React.FC<{ onComplete?: () => void }> = ({ onCom
   const [weightKg, setWeightKg] = useState<number>(user?.weight_kg || 70);
   const [heightCm, setHeightCm] = useState<number>(user?.height_cm || 175);
   const [age, setAge] = useState<number>(user?.age || 25);
-  const [gender, setSex] = useState<'male' | 'female'>(user?.gender === 'female' ? 'female' : 'male');
+  const [gender, setGender] = useState<'male' | 'female'>(user?.gender === 'female' ? 'female' : 'male');
   const [activityLevel, setActivityLevel] = useState<string>(user?.activity_level || 'ACTIVE');
   const [bodyCompositionGoal, setBodyCompositionGoal] = useState<string>(user?.body_composition_goal || 'BULK');
   const [loading, setLoading] = useState<boolean>(false);
@@ -152,7 +152,7 @@ export const ProfileOnboarding: React.FC<{ onComplete?: () => void }> = ({ onCom
               <select
                 id="profile-gender-select"
                 value={gender}
-                onChange={(e) => setSex(e.target.value as 'male' | 'female')}
+                onChange={(e) => setGender(e.target.value as 'male' | 'female')}
                 style={{
                   width: '100%',
                   padding: '0.5rem',

@@ -90,6 +90,7 @@ export const PantryManager: React.FC<PantryManagerProps> = ({
       setShowAddModal(false);
       onRefresh();
     } catch (err) {
+      console.error('Error adding item to pantry:', err);
       alert('Error al añadir alimento a la despensa');
     }
   };
@@ -123,6 +124,7 @@ export const PantryManager: React.FC<PantryManagerProps> = ({
       onMealLogged();
       onRefresh();
     } catch (err) {
+      console.error('Error logging meal item:', err);
       alert('Error al registrar la comida consumida');
     }
   };

@@ -133,15 +133,13 @@ export const AgentChatPanel: React.FC<AgentChatPanelProps> = ({
                 className={`chat-message ${msg.sender}`}
               >
                 <span className="message-author">
-                  {msg.sender === 'user'
-                    ? 'Atleta'
-                    : `Agente Maestro ${msg.intent ? `[Nodo: ${msg.intent}]` : ''}`}
+                  {msg.sender === 'user' ? 'Atleta' : `Agente Maestro${msg.intent ? ` [Nodo: ${msg.intent}]` : ''}`}
                 </span>
 
                 {msg.executionPath && (
                   <div className="execution-path-bar" style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap', margin: '0.4rem 0' }}>
                     {msg.executionPath.map((node, idx) => (
-                      <span key={idx} className="node-badge active">
+                      <span key={`${msg.id}-node-${node}-${idx}`} className="node-badge active">
                         {idx > 0 ? '→ ' : ''}{node}
                       </span>
                     ))}
@@ -185,7 +183,7 @@ export const AgentChatPanel: React.FC<AgentChatPanelProps> = ({
                       <strong style={{ fontSize: '0.85rem', color: 'var(--ink-chalk)', textTransform: 'uppercase', fontFamily: 'var(--font-display)' }}>Ingredientes de la Despensa:</strong>
                       <ul style={{ margin: '0.25rem 0', paddingLeft: '1.25rem', fontSize: '0.85rem' }}>
                         {msg.recipeOutput.ingredients_used.map((ing, i) => (
-                          <li key={i} style={{ color: ing.is_from_inventory ? 'var(--accent-moss)' : 'var(--ink-chalk)' }}>
+                          <li key={`${msg.id}-ing-${ing.name}-${i}`} style={{ color: ing.is_from_inventory ? 'var(--accent-moss)' : 'var(--ink-chalk)' }}>
                             {ing.quantity_used} {ing.unit} - <strong>{ing.name}</strong> {ing.is_from_inventory ? ' (✓ En Despensa)' : ''}
                           </li>
                         ))}

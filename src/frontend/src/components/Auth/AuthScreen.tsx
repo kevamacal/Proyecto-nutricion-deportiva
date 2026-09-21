@@ -300,20 +300,28 @@ export const AuthScreen: React.FC = () => {
             </div>
           )}
 
-          <button
-            type="submit"
-            className="btn-action-pill primary"
-            disabled={loading}
-            style={{
-              width: '100%',
-              padding: '0.9rem',
-              justifyContent: 'center',
-              marginTop: '0.5rem',
-              fontSize: '1rem',
-            }}
-          >
-            {loading ? 'Conectando a Supabase Auth...' : mode === 'LOGIN' ? 'Entrar a la Plataforma' : 'Crear mi Cuenta de Atleta'} <ArrowRight size={18} />
-          </button>
+          {(() => {
+            let submitLabel = 'Crear mi Cuenta de Atleta';
+            if (loading) submitLabel = 'Conectando a Supabase Auth...';
+            else if (mode === 'LOGIN') submitLabel = 'Entrar a la Plataforma';
+
+            return (
+              <button
+                type="submit"
+                className="btn-action-pill primary"
+                disabled={loading}
+                style={{
+                  width: '100%',
+                  padding: '0.9rem',
+                  justifyContent: 'center',
+                  marginTop: '0.5rem',
+                  fontSize: '1rem',
+                }}
+              >
+                {submitLabel} <ArrowRight size={18} />
+              </button>
+            );
+          })()}
         </form>
 
         {/* Demo Fast Access Button */}

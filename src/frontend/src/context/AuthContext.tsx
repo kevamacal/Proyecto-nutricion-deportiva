@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
 import { type TargetCalculationResponse } from '../services/api';
 import { fetchUserProfile, ensureUserProfileExists, updateUserProfile } from '../services/supabaseApi';
@@ -206,21 +206,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const contextValue = useMemo(
+    () => ({
+      user,
+      isAuthenticated: Boolean(user),
+      isDemoMode,
+      isLoading,
+      updateProfile,
+      setTargets,
+      login,
+      register,
+      loginDemo,
+      logout,
+    }),
+    [user, isDemoMode, isLoading, updateProfile, setTargets]
+  );
+
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        isAuthenticated: Boolean(user),
-        isDemoMode,
-        isLoading,
-        updateProfile,
-        setTargets,
-        login,
-        register,
-        loginDemo,
-        logout,
-      }}
-    >
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );

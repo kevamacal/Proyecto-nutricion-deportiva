@@ -189,16 +189,17 @@ export const ProfileWizard: React.FC<ProfileWizardProps> = ({ onComplete }) => {
                   Calcula determinísticamente la tasa metabólica basal (BMR) con la ecuación de Mifflin-St Jeor.
                 </p>
                 <input
+                  id="wizard-age-input"
                   type="number"
                   min="14"
                   max="99"
                   value={formData.age ?? ''}
                   placeholder="Ej: 25"
+                  aria-label="Edad"
                   onChange={(e) => {
-                    const val = parseInt(e.target.value, 10);
-                    setFormData({ ...formData, age: isNaN(val) ? undefined : val });
+                    const val = Number.parseInt(e.target.value, 10);
+                    setFormData({ ...formData, age: Number.isNaN(val) ? undefined : val });
                   }}
-                  autoFocus
                   style={{
                     width: '100%',
                     padding: '1.2rem',
@@ -254,15 +255,16 @@ export const ProfileWizard: React.FC<ProfileWizardProps> = ({ onComplete }) => {
                   Base para la distribución de macronutrientes g/kg de masa corporal.
                 </p>
                 <input
+                  id="wizard-weight-input"
                   type="number"
                   step="0.1"
                   value={formData.weight_kg ?? ''}
                   placeholder="Ej: 75.0"
+                  aria-label="Peso en kilogramos"
                   onChange={(e) => {
-                    const val = parseFloat(e.target.value);
-                    setFormData({ ...formData, weight_kg: isNaN(val) ? undefined : val });
+                    const val = Number.parseFloat(e.target.value);
+                    setFormData({ ...formData, weight_kg: Number.isNaN(val) ? undefined : val });
                   }}
-                  autoFocus
                   style={{
                     width: '100%',
                     padding: '1.2rem',
@@ -288,15 +290,16 @@ export const ProfileWizard: React.FC<ProfileWizardProps> = ({ onComplete }) => {
                   Completa la estimación de gasto energético basal.
                 </p>
                 <input
+                  id="wizard-height-input"
                   type="number"
                   step="0.5"
                   value={formData.height_cm ?? ''}
                   placeholder="Ej: 180"
+                  aria-label="Estatura en centímetros"
                   onChange={(e) => {
-                    const val = parseFloat(e.target.value);
-                    setFormData({ ...formData, height_cm: isNaN(val) ? undefined : val });
+                    const val = Number.parseFloat(e.target.value);
+                    setFormData({ ...formData, height_cm: Number.isNaN(val) ? undefined : val });
                   }}
-                  autoFocus
                   style={{
                     width: '100%',
                     padding: '1.2rem',

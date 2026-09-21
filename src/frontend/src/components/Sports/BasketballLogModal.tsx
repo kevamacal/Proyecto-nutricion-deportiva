@@ -52,7 +52,15 @@ export const BasketballLogModal: React.FC<BasketballLogModalProps> = ({
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="modal-overlay" onClick={onClose}>
+        <div
+          className="modal-overlay"
+          role="button"
+          tabIndex={0}
+          onClick={onClose}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') onClose();
+          }}
+        >
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 15 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -79,9 +87,9 @@ export const BasketballLogModal: React.FC<BasketballLogModalProps> = ({
               )}
 
               <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: '0.35rem' }}>
+                <span style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: '0.35rem' }}>
                   Tipo de Sesión:
-                </label>
+                </span>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
                   <button
                     type="button"
@@ -103,26 +111,28 @@ export const BasketballLogModal: React.FC<BasketballLogModalProps> = ({
               </div>
 
               <div>
-                <label style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: '0.35rem' }}>
+                <label htmlFor="bball-duration-range" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: '0.35rem' }}>
                   <span>Duración de la Sesión:</span>
                   <span style={{ color: 'var(--accent-ember)', fontFamily: 'var(--font-display)', fontSize: '1.1rem', fontWeight: 800 }}>{durationMinutes} min</span>
                 </label>
                 <input
+                  id="bball-duration-range"
                   type="range"
                   min="15"
                   max="180"
                   step="5"
                   value={durationMinutes}
-                  onChange={(e) => setDurationMinutes(parseInt(e.target.value, 10))}
+                  onChange={(e) => setDurationMinutes(Number.parseInt(e.target.value, 10))}
                   style={{ width: '100%', accentColor: 'var(--accent-ember)' }}
                 />
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: '0.35rem' }}>
+                <label htmlFor="bball-intensity-select" style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: '0.35rem' }}>
                   Intensidad del Partido/Entreno:
                 </label>
                 <select
+                  id="bball-intensity-select"
                   value={intensity}
                   onChange={(e) => setIntensity(e.target.value as any)}
                   style={{

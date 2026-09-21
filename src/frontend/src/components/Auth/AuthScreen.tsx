@@ -196,12 +196,13 @@ export const AuthScreen: React.FC = () => {
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.1rem' }}>
           {mode === 'REGISTER' && (
             <div>
-              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: 'var(--ink-secondary)', marginBottom: '0.35rem' }}>
+              <label htmlFor="auth-name-input" style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: 'var(--ink-secondary)', marginBottom: '0.35rem' }}>
                 Nombre Completo del Atleta:
               </label>
               <div style={{ position: 'relative' }}>
                 <User className="w-4 h-4" style={{ position: 'absolute', left: '0.85rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--ink-muted)' }} />
                 <input
+                  id="auth-name-input"
                   type="text"
                   placeholder="ej. Alex Rivera"
                   value={name}
@@ -221,12 +222,13 @@ export const AuthScreen: React.FC = () => {
           )}
 
           <div>
-            <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: 'var(--ink-secondary)', marginBottom: '0.35rem' }}>
+            <label htmlFor="auth-email-input" style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: 'var(--ink-secondary)', marginBottom: '0.35rem' }}>
               Correo Electrónico:
             </label>
             <div style={{ position: 'relative' }}>
               <Mail className="w-4 h-4" style={{ position: 'absolute', left: '0.85rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--ink-muted)' }} />
               <input
+                id="auth-email-input"
                 type="email"
                 placeholder="atleta@deporte.com"
                 value={email}
@@ -246,12 +248,13 @@ export const AuthScreen: React.FC = () => {
           </div>
 
           <div>
-            <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: 'var(--ink-secondary)', marginBottom: '0.35rem' }}>
+            <label htmlFor="auth-password-input" style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: 'var(--ink-secondary)', marginBottom: '0.35rem' }}>
               Contraseña de Acceso:
             </label>
             <div style={{ position: 'relative' }}>
               <Lock className="w-4 h-4" style={{ position: 'absolute', left: '0.85rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--ink-muted)' }} />
               <input
+                id="auth-password-input"
                 type="password"
                 placeholder="••••••••"
                 value={password}
@@ -273,10 +276,11 @@ export const AuthScreen: React.FC = () => {
 
           {mode === 'REGISTER' && (
             <div>
-              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: 'var(--ink-secondary)', marginBottom: '0.35rem' }}>
+              <label htmlFor="auth-sport-select" style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: 'var(--ink-secondary)', marginBottom: '0.35rem' }}>
                 Especialidad Deportiva Principal:
               </label>
               <select
+                id="auth-sport-select"
                 value={primarySport}
                 onChange={(e) => setPrimarySport(e.target.value)}
                 style={{

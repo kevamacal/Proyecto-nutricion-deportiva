@@ -85,10 +85,11 @@ export const GuidedPantrySetup: React.FC<GuidedPantrySetupProps> = ({ userId, on
 
         <form onSubmit={handleAdd} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
           <div>
-            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--ink-muted)', marginBottom: '0.35rem' }}>
+            <label htmlFor="guided-food-select" style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--ink-muted)', marginBottom: '0.35rem' }}>
               Selecciona un Alimento del Catálogo:
             </label>
             <select
+              id="guided-food-select"
               value={selectedFoodId}
               onChange={(e) => setSelectedFoodId(e.target.value)}
               style={{
@@ -111,14 +112,15 @@ export const GuidedPantrySetup: React.FC<GuidedPantrySetupProps> = ({ userId, on
 
           <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1rem' }}>
             <div>
-              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--ink-muted)', marginBottom: '0.35rem' }}>
+              <label htmlFor="guided-food-qty" style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--ink-muted)', marginBottom: '0.35rem' }}>
                 Cantidad en Stock:
               </label>
               <input
+                id="guided-food-qty"
                 type="number"
                 min="1"
                 value={quantity}
-                onChange={(e) => setQuantity(parseFloat(e.target.value) || 0)}
+                onChange={(e) => setQuantity(Number.parseFloat(e.target.value) || 0)}
                 required
                 style={{
                   width: '100%',
@@ -134,10 +136,11 @@ export const GuidedPantrySetup: React.FC<GuidedPantrySetupProps> = ({ userId, on
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--ink-muted)', marginBottom: '0.35rem' }}>
+              <label htmlFor="guided-food-unit" style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--ink-muted)', marginBottom: '0.35rem' }}>
                 Unidad:
               </label>
               <input
+                id="guided-food-unit"
                 type="text"
                 value={unit}
                 onChange={(e) => setUnit(e.target.value)}

@@ -55,7 +55,15 @@ export const StrengthLogModal: React.FC<StrengthLogModalProps> = ({
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="modal-overlay" onClick={onClose}>
+        <div
+          className="modal-overlay"
+          role="button"
+          tabIndex={0}
+          onClick={onClose}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') onClose();
+          }}
+        >
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 15 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -82,10 +90,11 @@ export const StrengthLogModal: React.FC<StrengthLogModalProps> = ({
               )}
 
               <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: '0.35rem' }}>
+                <label htmlFor="strength-type-select" style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: '0.35rem' }}>
                   Enfoque del Entrenamiento:
                 </label>
                 <select
+                  id="strength-type-select"
                   value={trainingType}
                   onChange={(e) => setTrainingType(e.target.value as any)}
                   style={{
@@ -106,13 +115,14 @@ export const StrengthLogModal: React.FC<StrengthLogModalProps> = ({
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: '0.35rem' }}>
+                  <label htmlFor="strength-duration-input" style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: '0.35rem' }}>
                     Duración (minutos):
                   </label>
                   <input
+                    id="strength-duration-input"
                     type="number"
                     value={durationMinutes}
-                    onChange={(e) => setDurationMinutes(parseInt(e.target.value, 10) || 0)}
+                    onChange={(e) => setDurationMinutes(Number.parseInt(e.target.value, 10) || 0)}
                     required
                     style={{
                       width: '100%',
@@ -128,10 +138,11 @@ export const StrengthLogModal: React.FC<StrengthLogModalProps> = ({
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: '0.35rem' }}>
+                  <label htmlFor="strength-intensity-select" style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: '0.35rem' }}>
                     Intensidad (RPE):
                   </label>
                   <select
+                    id="strength-intensity-select"
                     value={intensity}
                     onChange={(e) => setIntensity(e.target.value as any)}
                     style={{
@@ -152,10 +163,11 @@ export const StrengthLogModal: React.FC<StrengthLogModalProps> = ({
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: '0.35rem' }}>
+                <label htmlFor="strength-muscles-input" style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: '0.35rem' }}>
                   Grupos Musculares Trabajados:
                 </label>
                 <input
+                  id="strength-muscles-input"
                   type="text"
                   value={muscles}
                   onChange={(e) => setMuscles(e.target.value)}
@@ -173,11 +185,12 @@ export const StrengthLogModal: React.FC<StrengthLogModalProps> = ({
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: '0.25rem' }}>Series</label>
+                  <label htmlFor="strength-sets-input" style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: '0.25rem' }}>Series</label>
                   <input
+                    id="strength-sets-input"
                     type="number"
                     value={sets}
-                    onChange={(e) => setSets(parseInt(e.target.value, 10) || 0)}
+                    onChange={(e) => setSets(Number.parseInt(e.target.value, 10) || 0)}
                     style={{
                       width: '100%',
                       background: 'var(--bg-court)',
@@ -192,11 +205,12 @@ export const StrengthLogModal: React.FC<StrengthLogModalProps> = ({
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: '0.25rem' }}>Reps Totales</label>
+                  <label htmlFor="strength-reps-input" style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: '0.25rem' }}>Reps Totales</label>
                   <input
+                    id="strength-reps-input"
                     type="number"
                     value={reps}
-                    onChange={(e) => setReps(parseInt(e.target.value, 10) || 0)}
+                    onChange={(e) => setReps(Number.parseInt(e.target.value, 10) || 0)}
                     style={{
                       width: '100%',
                       background: 'var(--bg-court)',
@@ -211,11 +225,12 @@ export const StrengthLogModal: React.FC<StrengthLogModalProps> = ({
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: '0.25rem' }}>Volumen (kg)</label>
+                  <label htmlFor="strength-volume-input" style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: '0.25rem' }}>Volumen (kg)</label>
                   <input
+                    id="strength-volume-input"
                     type="number"
                     value={volumeKg}
-                    onChange={(e) => setVolumeKg(parseFloat(e.target.value) || 0)}
+                    onChange={(e) => setVolumeKg(Number.parseFloat(e.target.value) || 0)}
                     style={{
                       width: '100%',
                       background: 'var(--bg-court)',

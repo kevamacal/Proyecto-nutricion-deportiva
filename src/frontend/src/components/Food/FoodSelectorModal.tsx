@@ -135,7 +135,16 @@ export const FoodSelectorModal: React.FC<FoodSelectorModalProps> = ({
   });
 
   return (
-    <div className="modal-overlay" onClick={onClose} style={{ zIndex: 1200 }}>
+    <div
+      className="modal-overlay"
+      role="button"
+      tabIndex={0}
+      onClick={onClose}
+      onKeyDown={(e) => {
+        if (e.key === 'Escape') onClose();
+      }}
+      style={{ zIndex: 1200 }}
+    >
       <div
         className="modal-content"
         onClick={(e) => e.stopPropagation()}
@@ -174,6 +183,7 @@ export const FoodSelectorModal: React.FC<FoodSelectorModalProps> = ({
             placeholder="Buscar por nombre de alimento o ingrediente (ej: pechuga, arroz, atún)..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            aria-label="Buscar por nombre de alimento o ingrediente"
             style={{
               width: '100%',
               background: '#121620',
@@ -250,7 +260,8 @@ export const FoodSelectorModal: React.FC<FoodSelectorModalProps> = ({
               const isSelected = food.id === selectedFoodId;
 
               return (
-                <div
+                <button
+                  type="button"
                   key={food.id}
                   onClick={() => {
                     onSelect(food);
@@ -266,6 +277,9 @@ export const FoodSelectorModal: React.FC<FoodSelectorModalProps> = ({
                     display: 'flex',
                     flexDirection: 'column',
                     position: 'relative',
+                    textAlign: 'left',
+                    fontFamily: 'inherit',
+                    padding: 0,
                   }}
                   onMouseEnter={(e) => {
                     if (!isSelected) {
@@ -365,7 +379,7 @@ export const FoodSelectorModal: React.FC<FoodSelectorModalProps> = ({
                       </div>
                     )}
                   </div>
-                </div>
+                </button>
               );
             })
           )}

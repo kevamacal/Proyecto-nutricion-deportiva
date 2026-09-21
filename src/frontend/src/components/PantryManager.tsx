@@ -250,13 +250,14 @@ export const PantryManager: React.FC<PantryManagerProps> = ({
                 </button>
               </div>
               <form onSubmit={handleAddSubmit} className="panel-body">
-                <label style={{ fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--ink-muted)' }}>
+                <label htmlFor="pantry-add-select" style={{ fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--ink-muted)' }}>
                   Seleccionar Alimento del Catálogo:
                 </label>
                 {loadingCatalog ? (
                   <p style={{ color: 'var(--ink-muted)' }}>Cargando catálogo...</p>
                 ) : (
                   <select
+                    id="pantry-add-select"
                     value={selectedFoodId}
                     onChange={(e) => setSelectedFoodId(e.target.value)}
                     style={{
@@ -278,10 +279,11 @@ export const PantryManager: React.FC<PantryManagerProps> = ({
 
                 <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
                   <div style={{ flex: 1 }}>
-                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: '0.35rem' }}>
+                    <label htmlFor="pantry-add-qty" style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: '0.35rem' }}>
                       Cantidad:
                     </label>
                     <input
+                      id="pantry-add-qty"
                       type="number"
                       value={addQuantity}
                       onChange={(e) => setAddQuantity(Number(e.target.value))}
@@ -299,10 +301,11 @@ export const PantryManager: React.FC<PantryManagerProps> = ({
                     />
                   </div>
                   <div style={{ width: '120px' }}>
-                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: '0.35rem' }}>
+                    <label htmlFor="pantry-add-unit" style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: '0.35rem' }}>
                       Unidad:
                     </label>
                     <input
+                      id="pantry-add-unit"
                       type="text"
                       value={addUnit}
                       onChange={(e) => setAddUnit(e.target.value)}
@@ -353,10 +356,11 @@ export const PantryManager: React.FC<PantryManagerProps> = ({
                 </button>
               </div>
               <form onSubmit={handleMealSubmit} className="panel-body">
-                <label style={{ fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--ink-muted)' }}>
+                <label htmlFor="pantry-meal-type" style={{ fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--ink-muted)' }}>
                   Tipo de Comida:
                 </label>
                 <select
+                  id="pantry-meal-type"
                   value={mealType}
                   onChange={(e) => setMealType(e.target.value)}
                   style={{
@@ -376,10 +380,11 @@ export const PantryManager: React.FC<PantryManagerProps> = ({
                   <option value="Post-Entreno">Post-Entreno</option>
                 </select>
 
-                <label style={{ fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--ink-muted)', marginTop: '0.5rem' }}>
+                <label htmlFor="pantry-meal-food" style={{ fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--ink-muted)', marginTop: '0.5rem' }}>
                   Alimento Consumido:
                 </label>
                 <select
+                  id="pantry-meal-food"
                   value={mealFoodId}
                   onChange={(e) => setMealFoodId(e.target.value)}
                   style={{
@@ -398,10 +403,11 @@ export const PantryManager: React.FC<PantryManagerProps> = ({
                   ))}
                 </select>
 
-                <label style={{ fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--ink-muted)', marginTop: '0.5rem' }}>
+                <label htmlFor="pantry-meal-qty" style={{ fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--ink-muted)', marginTop: '0.5rem' }}>
                   Cantidad Gramos/Porción:
                 </label>
                 <input
+                  id="pantry-meal-qty"
                   type="number"
                   value={mealQuantity}
                   onChange={(e) => setMealQuantity(Number(e.target.value))}

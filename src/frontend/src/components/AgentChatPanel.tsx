@@ -148,12 +148,9 @@ export const AgentChatPanel: React.FC<AgentChatPanelProps> = ({
                   </div>
                 )}
 
-                <div
-                  style={{ fontSize: '0.95rem', lineHeight: '1.5' }}
-                  dangerouslySetInnerHTML={{
-                    __html: msg.text.replace(/\n/g, '<br />'),
-                  }}
-                />
+                <div style={{ fontSize: '0.95rem', lineHeight: '1.5', whiteSpace: 'pre-wrap' }}>
+                  {msg.text}
+                </div>
 
                 {/* Recipe Card Component if agent generated a recipe */}
                 {msg.recipeOutput && (

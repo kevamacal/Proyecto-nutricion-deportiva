@@ -93,7 +93,15 @@ export const MealLoggingModal: React.FC<MealLoggingModalProps> = ({
     <>
       <AnimatePresence>
         {isOpen && (
-          <div className="modal-overlay" onClick={onClose}>
+          <div
+            className="modal-overlay"
+            role="button"
+            tabIndex={0}
+            onClick={onClose}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') onClose();
+            }}
+          >
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 15 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -121,10 +129,11 @@ export const MealLoggingModal: React.FC<MealLoggingModalProps> = ({
                 )}
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: '0.35rem' }}>
+                  <label htmlFor="meal-type-select" style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: '0.35rem' }}>
                     Momento de la Ingesta:
                   </label>
                   <select
+                    id="meal-type-select"
                     value={mealType}
                     onChange={(e) => setMealType(e.target.value)}
                     style={{
@@ -146,10 +155,11 @@ export const MealLoggingModal: React.FC<MealLoggingModalProps> = ({
 
                 {/* Visual Food Selection Button */}
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: '0.35rem' }}>
+                  <label htmlFor="meal-food-btn" style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: '0.35rem' }}>
                     Alimento del Catálogo:
                   </label>
                   <button
+                    id="meal-food-btn"
                     type="button"
                     onClick={() => setIsSelectorOpen(true)}
                     style={{
@@ -184,14 +194,15 @@ export const MealLoggingModal: React.FC<MealLoggingModalProps> = ({
 
                 <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1rem' }}>
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: '0.35rem' }}>
+                    <label htmlFor="meal-quantity-input" style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: '0.35rem' }}>
                       Cantidad Consumida:
                     </label>
                     <input
+                      id="meal-quantity-input"
                       type="number"
                       min="1"
                       value={quantity}
-                      onChange={(e) => setQuantity(parseFloat(e.target.value) || 0)}
+                      onChange={(e) => setQuantity(Number.parseFloat(e.target.value) || 0)}
                       required
                       style={{
                         width: '100%',
@@ -207,10 +218,11 @@ export const MealLoggingModal: React.FC<MealLoggingModalProps> = ({
                   </div>
 
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: '0.35rem' }}>
+                    <label htmlFor="meal-unit-input" style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: '0.35rem' }}>
                       Unidad:
                     </label>
                     <input
+                      id="meal-unit-input"
                       type="text"
                       value={unit}
                       onChange={(e) => setUnit(e.target.value)}

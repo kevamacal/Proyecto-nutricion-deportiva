@@ -79,14 +79,15 @@ export const ProfileOnboarding: React.FC<{ onComplete?: () => void }> = ({ onCom
         <form onSubmit={handleCalculateAndSave} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
             <div>
-              <label style={{ display: 'block', fontSize: '0.75rem', textTransform: 'uppercase', marginBottom: '0.25rem', color: '#B3B0A6' }}>
+              <label htmlFor="profile-weight-input" style={{ display: 'block', fontSize: '0.75rem', textTransform: 'uppercase', marginBottom: '0.25rem', color: '#B3B0A6' }}>
                 Peso (kg)
               </label>
               <input
+                id="profile-weight-input"
                 type="number"
                 step="0.1"
                 value={weightKg}
-                onChange={(e) => setWeightKg(parseFloat(e.target.value) || 0)}
+                onChange={(e) => setWeightKg(Number.parseFloat(e.target.value) || 0)}
                 required
                 style={{
                   width: '100%',
@@ -100,14 +101,15 @@ export const ProfileOnboarding: React.FC<{ onComplete?: () => void }> = ({ onCom
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '0.75rem', textTransform: 'uppercase', marginBottom: '0.25rem', color: '#B3B0A6' }}>
+              <label htmlFor="profile-height-input" style={{ display: 'block', fontSize: '0.75rem', textTransform: 'uppercase', marginBottom: '0.25rem', color: '#B3B0A6' }}>
                 Altura (cm)
               </label>
               <input
+                id="profile-height-input"
                 type="number"
                 step="0.5"
                 value={heightCm}
-                onChange={(e) => setHeightCm(parseFloat(e.target.value) || 0)}
+                onChange={(e) => setHeightCm(Number.parseFloat(e.target.value) || 0)}
                 required
                 style={{
                   width: '100%',
@@ -123,13 +125,14 @@ export const ProfileOnboarding: React.FC<{ onComplete?: () => void }> = ({ onCom
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
             <div>
-              <label style={{ display: 'block', fontSize: '0.75rem', textTransform: 'uppercase', marginBottom: '0.25rem', color: '#B3B0A6' }}>
+              <label htmlFor="profile-age-input" style={{ display: 'block', fontSize: '0.75rem', textTransform: 'uppercase', marginBottom: '0.25rem', color: '#B3B0A6' }}>
                 Edad (años)
               </label>
               <input
+                id="profile-age-input"
                 type="number"
                 value={age}
-                onChange={(e) => setAge(parseInt(e.target.value, 10) || 0)}
+                onChange={(e) => setAge(Number.parseInt(e.target.value, 10) || 0)}
                 required
                 style={{
                   width: '100%',
@@ -143,10 +146,11 @@ export const ProfileOnboarding: React.FC<{ onComplete?: () => void }> = ({ onCom
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '0.75rem', textTransform: 'uppercase', marginBottom: '0.25rem', color: '#B3B0A6' }}>
+              <label htmlFor="profile-gender-select" style={{ display: 'block', fontSize: '0.75rem', textTransform: 'uppercase', marginBottom: '0.25rem', color: '#B3B0A6' }}>
                 Sexo Biológico
               </label>
               <select
+                id="profile-gender-select"
                 value={gender}
                 onChange={(e) => setSex(e.target.value as 'male' | 'female')}
                 style={{
@@ -165,10 +169,11 @@ export const ProfileOnboarding: React.FC<{ onComplete?: () => void }> = ({ onCom
           </div>
 
           <div>
-            <label style={{ display: 'block', fontSize: '0.75rem', textTransform: 'uppercase', marginBottom: '0.25rem', color: '#B3B0A6' }}>
+            <label htmlFor="profile-activity-select" style={{ display: 'block', fontSize: '0.75rem', textTransform: 'uppercase', marginBottom: '0.25rem', color: '#B3B0A6' }}>
               Nivel de Actividad General
             </label>
             <select
+              id="profile-activity-select"
               value={activityLevel}
               onChange={(e) => setActivityLevel(e.target.value)}
               style={{
@@ -188,10 +193,11 @@ export const ProfileOnboarding: React.FC<{ onComplete?: () => void }> = ({ onCom
           </div>
 
           <div>
-            <label style={{ display: 'block', fontSize: '0.75rem', textTransform: 'uppercase', marginBottom: '0.25rem', color: '#B3B0A6' }}>
+            <label htmlFor="profile-goal-select" style={{ display: 'block', fontSize: '0.75rem', textTransform: 'uppercase', marginBottom: '0.25rem', color: '#B3B0A6' }}>
               Objetivo Corporal / Deporte
             </label>
             <select
+              id="profile-goal-select"
               value={bodyCompositionGoal}
               onChange={(e) => setBodyCompositionGoal(e.target.value)}
               style={{

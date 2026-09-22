@@ -42,10 +42,10 @@ def execute_recipe_node(payload: RecipeNodeInput) -> RecipeNodeOutput:
                 )
             )
             # Standard nutritional contribution estimate
-            if "PROTEIN" in ing.density_class:
+            if "PROTEIN" in ing.density_class or "PROTEÍNA" in ing.density_class or "PROTEINA" in ing.density_class:
                 tot_prot += (portion / 100.0) * 25.0
                 tot_cal += (portion / 100.0) * 150.0
-            elif "CARB" in ing.density_class:
+            elif "CARB" in ing.density_class or "CARBOHIDRATO" in ing.density_class:
                 tot_carb += (portion / 100.0) * 25.0
                 tot_cal += (portion / 100.0) * 130.0
             else:

@@ -5,6 +5,7 @@ import type { PantryItem } from '../types';
 import { fetchFoodCatalog, addPantryItemsBatch, logMeal, type CatalogFoodItem } from '../services/supabaseApi';
 import { FoodSelectorModal, type SelectedBatchItem } from './Food/FoodSelectorModal';
 import { getFoodMeta, getCategoryMeta } from './Food/foodMeta';
+import { DENSITY_CLASS_LABELS, MEAL_TYPE_LABELS } from '../utils/enumMappers';
 
 interface PantryManagerProps {
   items: PantryItem[];
@@ -29,8 +30,8 @@ export const PantryManager: React.FC<PantryManagerProps> = ({
   const [showMealModal, setShowMealModal] = useState(false);
   const [catalog, setCatalog] = useState<CatalogFoodItem[]>([]);
 
-  // Form states for Meal
-  const [mealType, setMealType] = useState('Comida');
+  // Form states for Meal (stores exact PostgreSQL Enum values)
+  const [mealType, setMealType] = useState('POST_WORKOUT');
   const [mealFoodId, setMealFoodId] = useState('');
   const [mealQuantity, setMealQuantity] = useState(200);
 
@@ -181,7 +182,7 @@ export const PantryManager: React.FC<PantryManagerProps> = ({
                       </div>
                       <div style={{ display: 'flex', gap: '0.4rem', marginTop: '0.3rem', flexWrap: 'wrap' }}>
                         <span className={`pantry-tag ${item.density_class}`}>
-                          {item.density_class}
+                          {DENSITY_CLASS_LABELS[item.density_class] || item.density_class}
                         </span>
                         <span
                           className="pantry-tag"
@@ -288,12 +289,11 @@ export const PantryManager: React.FC<PantryManagerProps> = ({
                     fontFamily: 'var(--font-body)',
                   }}
                 >
-                  <option value="Desayuno" style={{ background: '#121620', color: '#FFFFFF' }}>Desayuno</option>
-                  <option value="Almuerzo" style={{ background: '#121620', color: '#FFFFFF' }}>Almuerzo</option>
-                  <option value="Comida" style={{ background: '#121620', color: '#FFFFFF' }}>Comida</option>
-                  <option value="Merienda" style={{ background: '#121620', color: '#FFFFFF' }}>Merienda</option>
-                  <option value="Cena" style={{ background: '#121620', color: '#FFFFFF' }}>Cena</option>
-                  <option value="Post-Entreno" style={{ background: '#121620', color: '#FFFFFF' }}>Post-Entreno</option>
+                  {Object.entries(MEAL_TYPE_LABELS).map(([enumValue, label]) => (
+                    <option key={enumValue} value={enumValue} style={{ background: '#121620', color: '#FFFFFF' }}>
+                      {label}
+                    </option>
+                  ))}
                 </select>
 
                 <label htmlFor="pantry-meal-food" style={{ fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--ink-muted)', marginTop: '0.5rem' }}>

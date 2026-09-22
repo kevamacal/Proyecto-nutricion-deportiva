@@ -352,9 +352,11 @@ export async function fetchPantryInventory(userId: string): Promise<PantryItem[]
 
     const protein = nutr?.protein_g || 0;
     const carbs = nutr?.carbohydrates_g || 0;
+    const fat = nutr?.fat_g || 0;
     let densityClass: PantryItem['density_class'] = 'BALANCED';
     if (protein > 15) densityClass = 'PROTEIN_DENSE';
     else if (carbs > 20) densityClass = 'CARB_DENSE';
+    else if (fat > 12) densityClass = 'FAT_DENSE';
 
     return {
       inventory_item_id: row.id,

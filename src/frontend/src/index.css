@@ -504,18 +504,23 @@ body {
   letter-spacing: 0.5px;
 }
 
-.pantry-tag.PROTEIN_DENSE {
+.pantry-tag.PROTEIN_DENSE,
+.pantry-tag.ALTO_EN_PROTEÍNA,
+.pantry-tag.ALTO_EN_PROTEINA {
   background-color: var(--accent-ember);
   box-shadow: 0 0 6px var(--accent-ember-glow);
 }
 
-.pantry-tag.CARB_DENSE {
+.pantry-tag.CARB_DENSE,
+.pantry-tag.ALTO_EN_CARBOHIDRATOS {
   background-color: var(--accent-gold);
   color: #171511;
   box-shadow: 0 0 6px rgba(217, 160, 91, 0.3);
 }
 
-.pantry-tag.FAT_DENSE {
+.pantry-tag.FAT_DENSE,
+.pantry-tag.ALTO_EN_GRASAS,
+.pantry-tag.ALTO_EN_GRASA {
   background-color: var(--accent-lake);
   box-shadow: 0 0 6px var(--accent-lake-glow);
 }

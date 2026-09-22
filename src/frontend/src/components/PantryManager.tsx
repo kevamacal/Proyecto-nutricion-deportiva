@@ -2,7 +2,10 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Package, Dumbbell, Trophy, Plus, Trash2, Utensils, X } from 'lucide-react';
 import type { PantryItem } from '../types';
-import { fetchFoodCatalog, addPantryItem, logMeal, type CatalogFoodItem } from '../services/supabaseApi';
+import { fetchFoodCatalog, addPantryItemsBatch, logMeal, type CatalogFoodItem } from '../services/supabaseApi';
+import { FoodSelectorModal, type SelectedBatchItem } from './Food/FoodSelectorModal';
+import { getFoodMeta, getCategoryMeta } from './Food/foodMeta';
+import { DENSITY_CLASS_LABELS, MEAL_TYPE_LABELS } from '../utils/enumMappers';
 
 interface PantryManagerProps {
   items: PantryItem[];
@@ -23,35 +26,23 @@ export const PantryManager: React.FC<PantryManagerProps> = ({
   onDeleteItem,
   onMealLogged,
 }) => {
-  const [showAddModal, setShowAddModal] = useState(false);
+  const [showBatchAddModal, setShowBatchAddModal] = useState(false);
   const [showMealModal, setShowMealModal] = useState(false);
   const [catalog, setCatalog] = useState<CatalogFoodItem[]>([]);
-  const [loadingCatalog, setLoadingCatalog] = useState(false);
 
-  // Form states for Add Item
-  const [selectedFoodId, setSelectedFoodId] = useState('');
-  const [addQuantity, setAddQuantity] = useState(400);
-  const [addUnit, setAddUnit] = useState('g');
-
-  // Form states for Meal
-  const [mealType, setMealType] = useState('Comida');
+  // Form states for Meal (stores exact PostgreSQL Enum values)
+  const [mealType, setMealType] = useState('POST_WORKOUT');
   const [mealFoodId, setMealFoodId] = useState('');
   const [mealQuantity, setMealQuantity] = useState(200);
 
   const handleOpenAddModal = async () => {
-    setShowAddModal(true);
+    setShowBatchAddModal(true);
     if (catalog.length === 0) {
-      setLoadingCatalog(true);
       try {
         const cat = await fetchFoodCatalog();
         setCatalog(cat);
-        if (cat.length > 0) {
-          setSelectedFoodId(cat[0].food_item_id);
-        }
       } catch (err) {
         console.error('Error loading catalog:', err);
-      } finally {
-        setLoadingCatalog(false);
       }
     }
   };
@@ -59,7 +50,6 @@ export const PantryManager: React.FC<PantryManagerProps> = ({
   const handleOpenMealModal = async () => {
     setShowMealModal(true);
     if (catalog.length === 0) {
-      setLoadingCatalog(true);
       try {
         const cat = await fetchFoodCatalog();
         setCatalog(cat);
@@ -68,30 +58,29 @@ export const PantryManager: React.FC<PantryManagerProps> = ({
         }
       } catch (err) {
         console.error('Error loading catalog:', err);
-      } finally {
-        setLoadingCatalog(false);
       }
     } else if (!mealFoodId && catalog.length > 0) {
       setMealFoodId(catalog[0].food_item_id);
     }
   };
 
-  const handleAddSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedFoodId) return;
+  const handleBatchAddSubmit = async (selectedItems: SelectedBatchItem[]) => {
+    if (selectedItems.length === 0) return;
 
     try {
-      await addPantryItem({
+      const payloads = selectedItems.map((item) => ({
         user_id: userId,
-        food_item_id: selectedFoodId,
-        quantity: Number(addQuantity),
-        unit: addUnit,
-      });
-      setShowAddModal(false);
+        food_item_id: item.food.food_item_id || item.food.id || '',
+        quantity: item.quantity,
+        unit: item.unit,
+      }));
+
+      await addPantryItemsBatch(payloads);
+      setShowBatchAddModal(false);
       onRefresh();
     } catch (err) {
-      console.error('Error adding item to pantry:', err);
-      alert('Error al añadir alimento a la despensa');
+      console.error('Error batch adding items to pantry:', err);
+      alert('Error al añadir los alimentos a la despensa');
     }
   };
 
@@ -144,10 +133,10 @@ export const PantryManager: React.FC<PantryManagerProps> = ({
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             className="btn-scoreboard"
-            style={{ padding: '0.35rem 0.75rem', fontSize: '0.8rem' }}
+            style={{ padding: '0.35rem 0.75rem', fontSize: '0.8rem', color: '#000', fontWeight: 800 }}
             onClick={handleOpenAddModal}
           >
-            <Plus className="w-3.5 h-3.5" /> Añadir
+            <Plus className="w-3.5 h-3.5" /> <span className='hidden sm:inline text-white'>Añadir Alimentos</span>
           </motion.button>
           <motion.button
             whileHover={{ scale: 1.02 }}
@@ -164,52 +153,71 @@ export const PantryManager: React.FC<PantryManagerProps> = ({
       <div className="panel-body">
         {items.length === 0 ? (
           <div style={{ padding: '2rem 1rem', textAlign: 'center', color: 'var(--ink-muted)' }}>
-            No hay alimentos en tu despensa. ¡Haz clic en "+ Añadir" para registrar existencias!
+            No hay alimentos en tu despensa. ¡Haz clic en "+ Añadir Alimentos en Lote" para seleccionar tus ingredientes!
           </div>
         ) : (
           <div className="pantry-grid">
             <AnimatePresence mode="popLayout">
-              {items.map((item) => (
-                <motion.div
-                  key={item.inventory_item_id}
-                  layout
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.8 }}
-                  transition={{ duration: 0.25, ease: 'easeOut' }}
-                  className="pantry-card"
-                >
-                  <div style={{ flex: 1 }}>
-                    <div className="pantry-name">{item.name}</div>
-                    <div style={{ display: 'flex', gap: '0.4rem', marginTop: '0.3rem' }}>
-                      <span className={`pantry-tag ${item.density_class}`}>
-                        {item.density_class}
-                      </span>
-                      <span className="pantry-tag" style={{ background: 'var(--line-graphite)', color: 'var(--ink-muted)' }}>
-                        {item.category}
-                      </span>
+              {items.map((item) => {
+                const foodMeta = getFoodMeta(item.name, item.category);
+                const catMeta = getCategoryMeta(item.category);
+
+                return (
+                  <motion.div
+                    key={item.inventory_item_id}
+                    layout
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    transition={{ duration: 0.25, ease: 'easeOut' }}
+                    className="pantry-card"
+                    style={{
+                      borderLeft: `3px solid ${catMeta.color}`,
+                    }}
+                  >
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div className="pantry-name" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                        <span>{foodMeta.emoji}</span>
+                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name}</span>
+                      </div>
+                      <div style={{ display: 'flex', gap: '0.4rem', marginTop: '0.3rem', flexWrap: 'wrap' }}>
+                        <span className={`pantry-tag ${item.density_class}`}>
+                          {DENSITY_CLASS_LABELS[item.density_class] || item.density_class}
+                        </span>
+                        <span
+                          className="pantry-tag"
+                          style={{
+                            background: catMeta.background,
+                            color: catMeta.color,
+                            borderColor: catMeta.color,
+                            fontWeight: 700,
+                          }}
+                        >
+                          {item.category}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.25rem' }}>
-                    <div className="pantry-quantity">
-                      {item.available_quantity} {item.unit}
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.25rem' }}>
+                      <div className="pantry-quantity" style={{ fontSize: '0.95rem', fontWeight: 800 }}>
+                        {item.available_quantity} {item.unit}
+                      </div>
+                      <button
+                        onClick={() => onDeleteItem(item.inventory_item_id)}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: 'var(--ink-muted)',
+                          cursor: 'pointer',
+                          padding: '0.2rem',
+                        }}
+                        title="Eliminar de la despensa"
+                      >
+                        <Trash2 className="w-3.5 h-3.5 text-[#B23A48]" />
+                      </button>
                     </div>
-                    <button
-                      onClick={() => onDeleteItem(item.inventory_item_id)}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        color: 'var(--ink-muted)',
-                        cursor: 'pointer',
-                        padding: '0.2rem',
-                      }}
-                      title="Eliminar de la despensa"
-                    >
-                      <Trash2 className="w-3.5 h-3.5 text-[#B23A48]" />
-                    </button>
-                  </div>
-                </motion.div>
-              ))}
+                  </motion.div>
+                );
+              })}
             </AnimatePresence>
           </div>
         )}
@@ -231,111 +239,18 @@ export const PantryManager: React.FC<PantryManagerProps> = ({
         </div>
       </div>
 
-      {/* Modal Añadir Alimento */}
-      <AnimatePresence>
-        {showAddModal && (
-          <div className="modal-overlay">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 15 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 15 }}
-              transition={{ duration: 0.2 }}
-              className="modal-content"
-            >
-              <div className="panel-header">
-                <h3 className="panel-title" style={{ fontSize: '1.2rem' }}>Añadir Alimento a la Despensa</h3>
-                <button
-                  onClick={() => setShowAddModal(false)}
-                  style={{ background: 'none', border: 'none', color: 'var(--ink-muted)', cursor: 'pointer' }}
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-              <form onSubmit={handleAddSubmit} className="panel-body">
-                <label htmlFor="pantry-add-select" style={{ fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--ink-muted)' }}>
-                  Seleccionar Alimento del Catálogo:
-                </label>
-                {loadingCatalog ? (
-                  <p style={{ color: 'var(--ink-muted)' }}>Cargando catálogo...</p>
-                ) : (
-                  <select
-                    id="pantry-add-select"
-                    value={selectedFoodId}
-                    onChange={(e) => setSelectedFoodId(e.target.value)}
-                    style={{
-                      width: '100%',
-                      background: 'var(--bg-court)',
-                      border: '1px solid var(--line-heavy)',
-                      color: 'var(--ink-chalk)',
-                      padding: '0.85rem',
-                      fontFamily: 'var(--font-body)',
-                    }}
-                  >
-                    {catalog.map((c) => (
-                      <option key={c.food_item_id} value={c.food_item_id}>
-                        {c.name} ({c.category})
-                      </option>
-                    ))}
-                  </select>
-                )}
-
-                <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
-                  <div style={{ flex: 1 }}>
-                    <label htmlFor="pantry-add-qty" style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: '0.35rem' }}>
-                      Cantidad:
-                    </label>
-                    <input
-                      id="pantry-add-qty"
-                      type="number"
-                      value={addQuantity}
-                      onChange={(e) => setAddQuantity(Number(e.target.value))}
-                      min="1"
-                      style={{
-                        width: '100%',
-                        background: 'var(--bg-court)',
-                        border: '1px solid var(--line-heavy)',
-                        color: 'var(--ink-chalk)',
-                        padding: '0.85rem',
-                        fontFamily: 'var(--font-display)',
-                        fontSize: '1.2rem',
-                        fontWeight: 700,
-                      }}
-                    />
-                  </div>
-                  <div style={{ width: '120px' }}>
-                    <label htmlFor="pantry-add-unit" style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: '0.35rem' }}>
-                      Unidad:
-                    </label>
-                    <input
-                      id="pantry-add-unit"
-                      type="text"
-                      value={addUnit}
-                      onChange={(e) => setAddUnit(e.target.value)}
-                      style={{
-                        width: '100%',
-                        background: 'var(--bg-court)',
-                        border: '1px solid var(--line-heavy)',
-                        color: 'var(--ink-chalk)',
-                        padding: '0.85rem',
-                        fontFamily: 'var(--font-body)',
-                      }}
-                    />
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1rem' }}>
-                  <button type="button" className="btn-scoreboard secondary" onClick={() => setShowAddModal(false)}>
-                    Cancelar
-                  </button>
-                  <button type="submit" className="btn-scoreboard">
-                    Guardar en Despensa
-                  </button>
-                </div>
-              </form>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+      {/* Multi-Item Selector Modal for Batch Adding Pantry Items */}
+      {showBatchAddModal && (
+        <FoodSelectorModal
+          isOpen={showBatchAddModal}
+          onClose={() => setShowBatchAddModal(false)}
+          catalog={catalog}
+          multiSelect={true}
+          userId={userId}
+          onBatchSelect={handleBatchAddSubmit}
+          onCustomFoodCreated={(newFood) => setCatalog((prev) => [...prev, newFood])}
+        />
+      )}
 
       {/* Modal Registrar Comida */}
       <AnimatePresence>
@@ -374,12 +289,11 @@ export const PantryManager: React.FC<PantryManagerProps> = ({
                     fontFamily: 'var(--font-body)',
                   }}
                 >
-                  <option value="Desayuno">Desayuno</option>
-                  <option value="Almuerzo">Almuerzo</option>
-                  <option value="Comida">Comida</option>
-                  <option value="Merienda">Merienda</option>
-                  <option value="Cena">Cena</option>
-                  <option value="Post-Entreno">Post-Entreno</option>
+                  {Object.entries(MEAL_TYPE_LABELS).map(([enumValue, label]) => (
+                    <option key={enumValue} value={enumValue} style={{ background: '#121620', color: '#FFFFFF' }}>
+                      {label}
+                    </option>
+                  ))}
                 </select>
 
                 <label htmlFor="pantry-meal-food" style={{ fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--ink-muted)', marginTop: '0.5rem' }}>
@@ -399,7 +313,7 @@ export const PantryManager: React.FC<PantryManagerProps> = ({
                   }}
                 >
                   {catalog.map((c) => (
-                    <option key={c.food_item_id} value={c.food_item_id}>
+                    <option key={c.food_item_id} value={c.food_item_id} style={{ background: '#121620', color: '#FFFFFF' }}>
                       {c.name} ({c.category})
                     </option>
                   ))}

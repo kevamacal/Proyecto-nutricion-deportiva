@@ -60,20 +60,22 @@ export const BaseModal: React.FC<BaseModalProps> = ({
               width: '95%',
               display: 'flex',
               flexDirection: 'column',
+              padding: '1.25rem 1.5rem',
             }}
           >
             {/* Standardized Header */}
             <div
               style={{
                 display: 'flex',
-                justifyItems: 'space-between',
-                alignItems: 'center',
-                marginBottom: subtitle ? '1.25rem' : '1rem',
+                justifyContent: 'space-between',
+                alignItems: 'flex-start',
+                marginBottom: subtitle ? '1rem' : '0.75rem',
                 borderBottom: '1px solid var(--glass-border)',
                 paddingBottom: '0.85rem',
+                width: '100%',
               }}
             >
-              <div>
+              <div style={{ flex: 1, paddingRight: '0.5rem' }}>
                 <h3
                   className="glass-card-title"
                   style={{
@@ -88,7 +90,7 @@ export const BaseModal: React.FC<BaseModalProps> = ({
                   {title}
                 </h3>
                 {subtitle && (
-                  <p style={{ color: 'var(--ink-muted)', fontSize: '0.85rem', margin: '0.2rem 0 0 0' }}>
+                  <p style={{ color: 'var(--ink-muted)', fontSize: '0.85rem', margin: '0.25rem 0 0 0' }}>
                     {subtitle}
                   </p>
                 )}
@@ -106,6 +108,7 @@ export const BaseModal: React.FC<BaseModalProps> = ({
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
+                  borderRadius: '4px',
                 }}
               >
                 <X className="w-5 h-5" />

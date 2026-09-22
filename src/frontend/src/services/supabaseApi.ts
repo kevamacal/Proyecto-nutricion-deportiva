@@ -23,6 +23,18 @@ export interface CatalogFoodItem {
   };
 }
 
+export interface CreateCustomFoodPayload {
+  user_id?: string;
+  name: string;
+  category: string;
+  default_unit: string;
+  serving_size: number;
+  calories_kcal: number;
+  protein_g: number;
+  carbohydrates_g: number;
+  fat_g: number;
+}
+
 export interface SupabaseUserProfile {
   id?: string;
   user_id: string;
@@ -252,6 +264,67 @@ export async function fetchFoodCatalog(): Promise<CatalogFoodItem[]> {
   });
 }
 
+/**
+  * Create a new custom food item and insert its nutritional information into Supabase.
+  */
+export async function createCustomFoodItem(payload: CreateCustomFoodPayload): Promise<CatalogFoodItem> {
+  const { data: food, error: foodErr } = await supabase
+    .from('food_items')
+    .insert([
+      {
+        name: payload.name,
+        category: payload.category,
+        default_unit: payload.default_unit || 'g',
+        is_custom: true,
+        created_by_user_id: payload.user_id || null,
+      },
+    ])
+    .select()
+    .single();
+
+  if (foodErr) {
+    console.error('Error creating custom food_item in Supabase:', foodErr.message);
+    throw foodErr;
+  }
+
+  const { data: nutr, error: nutrErr } = await supabase
+    .from('nutritional_information')
+    .insert([
+      {
+        food_item_id: food.id,
+        serving_size: payload.serving_size || 100,
+        serving_unit: payload.default_unit || 'g',
+        calories_kcal: payload.calories_kcal || 0,
+        protein_g: payload.protein_g || 0,
+        carbohydrates_g: payload.carbohydrates_g || 0,
+        fat_g: payload.fat_g || 0,
+      },
+    ])
+    .select()
+    .single();
+
+  if (nutrErr) {
+    console.error('Error creating nutritional_information in Supabase:', nutrErr.message);
+    throw nutrErr;
+  }
+
+  return {
+    id: food.id,
+    food_item_id: food.id,
+    name: food.name,
+    category: food.category,
+    default_unit: food.default_unit || 'g',
+    is_custom: true,
+    nutrition: {
+      serving_size: nutr.serving_size || 100,
+      calories_kcal: nutr.calories_kcal || 0,
+      protein_g: nutr.protein_g || 0,
+      carbohydrates_g: nutr.carbohydrates_g || 0,
+      fat_g: nutr.fat_g || 0,
+    },
+  };
+}
+
 // ============================================================================
 // 3. PANTRY INVENTORY MANAGEMENT
 // ============================================================================
@@ -279,9 +352,11 @@ export async function fetchPantryInventory(userId: string): Promise<PantryItem[]
 
     const protein = nutr?.protein_g || 0;
     const carbs = nutr?.carbohydrates_g || 0;
+    const fat = nutr?.fat_g || 0;
     let densityClass: PantryItem['density_class'] = 'BALANCED';
     if (protein > 15) densityClass = 'PROTEIN_DENSE';
     else if (carbs > 20) densityClass = 'CARB_DENSE';
+    else if (fat > 12) densityClass = 'FAT_DENSE';
 
     return {
       inventory_item_id: row.id,
@@ -311,6 +386,32 @@ export async function fetchPantryInventory(userId: string): Promise<PantryItem[]
  * Add a new item to the user's pantry inventory in Supabase.
  */
 export async function addPantryItem(payload: AddPantryItemPayload): Promise<any> {
+  // Check if an entry with the same food_item_id and unit already exists in the user's available pantry stock
+  const { data: existing } = await supabase
+    .from('inventory_items')
+    .select('*')
+    .eq('user_id', payload.user_id)
+    .eq('food_item_id', payload.food_item_id)
+    .eq('unit', payload.unit)
+    .eq('status', 'AVAILABLE')
+    .maybeSingle();
+
+  if (existing) {
+    const newQuantity = Number(existing.quantity) + Number(payload.quantity);
+    const { data, error } = await supabase
+      .from('inventory_items')
+      .update({ quantity: newQuantity })
+      .eq('id', existing.id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error updating existing pantry item quantity in Supabase:', error.message);
+      throw error;
+    }
+    return data;
+  }
+
   const { data, error } = await supabase
     .from('inventory_items')
     .insert([
@@ -331,6 +432,84 @@ export async function addPantryItem(payload: AddPantryItemPayload): Promise<any>
     throw error;
   }
   return data;
+}
+
+/**
+ * Add multiple items to the user's pantry inventory in a single batch operation in Supabase.
+ * Automatically sums quantity for existing food items with the same unit.
+ */
+export async function addPantryItemsBatch(payloads: AddPantryItemPayload[]): Promise<any[]> {
+  if (!payloads || payloads.length === 0) return [];
+
+  const userId = payloads[0].user_id;
+
+  // Fetch all current available items for this user to check for existing stock
+  const { data: existingItems } = await supabase
+    .from('inventory_items')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('status', 'AVAILABLE');
+
+  const existingMap = new Map<string, any>();
+  (existingItems || []).forEach((item: any) => {
+    const key = `${item.food_item_id}_${item.unit}`;
+    existingMap.set(key, item);
+  });
+
+  const itemsToUpdate: Array<{ id: string; quantity: number }> = [];
+  const itemsToInsert: AddPantryItemPayload[] = [];
+
+  for (const payload of payloads) {
+    const key = `${payload.food_item_id}_${payload.unit}`;
+    const existing = existingMap.get(key);
+
+    if (existing) {
+      const newQty = Number(existing.quantity) + Number(payload.quantity);
+      existing.quantity = newQty; // update local map in case duplicates are within the payload batch itself
+      itemsToUpdate.push({ id: existing.id, quantity: newQty });
+    } else {
+      itemsToInsert.push(payload);
+    }
+  }
+
+  const results: any[] = [];
+
+  // 1. Update existing items with summed quantities
+  for (const item of itemsToUpdate) {
+    const { data, error } = await supabase
+      .from('inventory_items')
+      .update({ quantity: item.quantity })
+      .eq('id', item.id)
+      .select()
+      .maybeSingle();
+
+    if (!error && data) results.push(data);
+  }
+
+  // 2. Insert new items for items not currently in pantry
+  if (itemsToInsert.length > 0) {
+    const rows = itemsToInsert.map((payload) => ({
+      user_id: payload.user_id,
+      food_item_id: payload.food_item_id,
+      quantity: payload.quantity,
+      unit: payload.unit,
+      expiration_date: payload.expiration_date || null,
+      status: 'AVAILABLE',
+    }));
+
+    const { data, error } = await supabase
+      .from('inventory_items')
+      .insert(rows)
+      .select();
+
+    if (error) {
+      console.error('Error batch adding pantry items to Supabase:', error.message);
+      throw error;
+    }
+    if (data) results.push(...data);
+  }
+
+  return results;
 }
 
 /**

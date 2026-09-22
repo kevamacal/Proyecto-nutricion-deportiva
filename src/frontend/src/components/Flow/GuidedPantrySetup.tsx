@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { fetchFoodCatalog, addPantryItem, type CatalogFoodItem } from '../../services/supabaseApi';
-import { ShoppingBag, Plus } from 'lucide-react';
+import { fetchFoodCatalog, addPantryItemsBatch, type CatalogFoodItem } from '../../services/supabaseApi';
+import { FoodSelectorModal, type SelectedBatchItem } from '../Food/FoodSelectorModal';
+import { ShoppingBag, Plus, Sparkles } from 'lucide-react';
 
 interface GuidedPantrySetupProps {
   userId: string;
@@ -10,35 +11,55 @@ interface GuidedPantrySetupProps {
 
 export const GuidedPantrySetup: React.FC<GuidedPantrySetupProps> = ({ userId, onItemAdded }) => {
   const [catalog, setCatalog] = useState<CatalogFoodItem[]>([]);
-  const [selectedFoodId, setSelectedFoodId] = useState<string>('');
-  const [quantity, setQuantity] = useState<number>(500);
-  const [unit, setUnit] = useState<string>('g');
+  const [showSelectorModal, setShowSelectorModal] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
     fetchFoodCatalog()
       .then((items) => {
         setCatalog(items);
-        if (items.length > 0) setSelectedFoodId(items[0].food_item_id);
       })
       .catch((err) => console.error('Error fetching catalog:', err));
   }, []);
 
-  const handleAdd = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedFoodId) return;
+  const handleBatchSelect = async (selectedItems: SelectedBatchItem[]) => {
+    if (selectedItems.length === 0) return;
 
     setLoading(true);
     try {
-      await addPantryItem({
+      const payloads = selectedItems.map((item) => ({
         user_id: userId,
-        food_item_id: selectedFoodId,
-        quantity,
-        unit,
-      });
+        food_item_id: item.food.food_item_id || item.food.id || '',
+        quantity: item.quantity,
+        unit: item.unit,
+      }));
+
+      await addPantryItemsBatch(payloads);
       onItemAdded();
     } catch (err) {
-      console.error('Error adding guided pantry item:', err);
+      console.error('Error adding guided batch pantry items:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAddDefaultStaples = async () => {
+    if (catalog.length === 0) return;
+    setLoading(true);
+    try {
+      // Pick up to 3 common staples if available in catalog
+      const staples = catalog.slice(0, 3);
+      const payloads = staples.map((food) => ({
+        user_id: userId,
+        food_item_id: food.food_item_id || food.id || '',
+        quantity: food.default_unit === 'unidades' ? 6 : 500,
+        unit: food.default_unit || 'g',
+      }));
+
+      await addPantryItemsBatch(payloads);
+      onItemAdded();
+    } catch (err) {
+      console.error('Error adding default staples:', err);
     } finally {
       setLoading(false);
     }
@@ -63,7 +84,7 @@ export const GuidedPantrySetup: React.FC<GuidedPantrySetupProps> = ({ userId, on
         transition={{ duration: 0.35, ease: 'easeOut' }}
         className="panel-card"
         style={{
-          maxWidth: '580px',
+          maxWidth: '620px',
           width: '100%',
           padding: '2.5rem',
           border: '1px solid var(--line-heavy)',
@@ -76,104 +97,59 @@ export const GuidedPantrySetup: React.FC<GuidedPantrySetupProps> = ({ userId, on
           <span className="brand-badge">Paso Guiado 03 de 03</span>
         </div>
 
-        <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '2.25rem', fontWeight: 800, textTransform: 'uppercase', marginBottom: '0.5rem', letterSpacing: '0.5px' }}>
-          Añade tus Primeros Alimentos
+        <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '2.1rem', fontWeight: 800, textTransform: 'uppercase', marginBottom: '0.5rem', letterSpacing: '0.5px' }}>
+          Inicializa tu Despensa Deportiva
         </h2>
         <p style={{ color: 'var(--ink-muted)', fontSize: '0.9rem', marginBottom: '2rem' }}>
-          Tu despensa está vacía. Registra al menos un ingrediente para activar el marcador en tiempo real y las recomendaciones del asistente IA.
+          Selecciona varios alimentos en lote o añade tus básicos iniciales para activar el marcador macro en tiempo real y las recomendaciones nutricionales.
         </p>
 
-        <form onSubmit={handleAdd} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-          <div>
-            <label htmlFor="guided-food-select" style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--ink-muted)', marginBottom: '0.35rem' }}>
-              Selecciona un Alimento del Catálogo:
-            </label>
-            <select
-              id="guided-food-select"
-              value={selectedFoodId}
-              onChange={(e) => setSelectedFoodId(e.target.value)}
-              style={{
-                width: '100%',
-                background: 'var(--bg-court)',
-                border: '1px solid var(--line-heavy)',
-                color: 'var(--ink-chalk)',
-                padding: '0.85rem',
-                fontFamily: 'var(--font-body)',
-                fontSize: '0.95rem',
-              }}
-            >
-              {catalog.map((food) => (
-                <option key={food.food_item_id} value={food.food_item_id}>
-                  {food.name} ({food.category})
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1rem' }}>
-            <div>
-              <label htmlFor="guided-food-qty" style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--ink-muted)', marginBottom: '0.35rem' }}>
-                Cantidad en Stock:
-              </label>
-              <input
-                id="guided-food-qty"
-                type="number"
-                min="1"
-                value={quantity}
-                onChange={(e) => setQuantity(Number.parseFloat(e.target.value) || 0)}
-                required
-                style={{
-                  width: '100%',
-                  background: 'var(--bg-court)',
-                  border: '1px solid var(--line-heavy)',
-                  color: 'var(--ink-chalk)',
-                  padding: '0.85rem',
-                  fontFamily: 'var(--font-display)',
-                  fontSize: '1.2rem',
-                  fontWeight: 700,
-                }}
-              />
-            </div>
-
-            <div>
-              <label htmlFor="guided-food-unit" style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--ink-muted)', marginBottom: '0.35rem' }}>
-                Unidad:
-              </label>
-              <input
-                id="guided-food-unit"
-                type="text"
-                value={unit}
-                onChange={(e) => setUnit(e.target.value)}
-                style={{
-                  width: '100%',
-                  background: 'var(--bg-court)',
-                  border: '1px solid var(--line-heavy)',
-                  color: 'var(--ink-chalk)',
-                  padding: '0.85rem',
-                  fontFamily: 'var(--font-body)',
-                  fontSize: '0.95rem',
-                }}
-              />
-            </div>
-          </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <motion.button
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.99 }}
+            type="button"
+            className="btn-scoreboard emerald"
+            style={{
+              padding: '1.1rem 1.5rem',
+              justifyContent: 'center',
+              fontSize: '1.1rem',
+            }}
+            onClick={() => setShowSelectorModal(true)}
+            disabled={loading}
+          >
+            <Sparkles className="w-5 h-5" /> Abrir Selector Lote de Alimentos ({catalog.length} disponibles)
+          </motion.button>
 
           <motion.button
             whileHover={{ scale: 1.01 }}
             whileTap={{ scale: 0.99 }}
-            type="submit"
-            className="btn-scoreboard"
+            type="button"
+            className="btn-scoreboard secondary"
             style={{
-              marginTop: '1rem',
-              padding: '1rem',
+              padding: '0.85rem 1.25rem',
               justifyContent: 'center',
-              fontSize: '1.1rem',
+              fontSize: '0.9rem',
             }}
-            disabled={loading}
+            onClick={handleAddDefaultStaples}
+            disabled={loading || catalog.length === 0}
           >
-            {loading ? 'Añadiendo...' : <>Añadir & Activar Dashboard <Plus size={20} /></>}
+            <Plus className="w-4 h-4" /> Cargar Básicos de Despensa Rápidos (Arroz, Pechuga, Huevos)
           </motion.button>
-        </form>
+        </div>
       </motion.div>
+
+      {showSelectorModal && (
+        <FoodSelectorModal
+          isOpen={showSelectorModal}
+          onClose={() => setShowSelectorModal(false)}
+          catalog={catalog}
+          multiSelect={true}
+          userId={userId}
+          onBatchSelect={handleBatchSelect}
+          onCustomFoodCreated={(newFood) => setCatalog((prev) => [...prev, newFood])}
+        />
+      )}
     </div>
   );
 };

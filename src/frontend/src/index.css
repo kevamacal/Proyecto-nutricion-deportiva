@@ -28,6 +28,13 @@
   --accent-moss: #57B894;
   --accent-gold: #D9A05B;
   
+  --accent-emerald: #00E676;
+  --accent-emerald-hover: #00C853;
+  --accent-emerald-glow: rgba(0, 230, 118, 0.35);
+  
+  --glass-border: rgba(140, 132, 116, 0.25);
+  --glass-border-bright: rgba(140, 132, 116, 0.45);
+  
   --line-graphite: #4A473F;
   --line-heavy: #6E685C;
   --line-scoreboard: #8C8474;
@@ -334,6 +341,19 @@ body {
   box-shadow: 0 6px 16px var(--accent-lake-glow);
 }
 
+.btn-scoreboard.emerald {
+  background-color: var(--accent-emerald);
+  color: #0D111A;
+  font-weight: 800;
+  box-shadow: 0 4px 12px var(--accent-emerald-glow);
+}
+
+.btn-scoreboard.emerald:hover {
+  background-color: var(--accent-emerald-hover);
+  color: #0D111A;
+  box-shadow: 0 6px 16px var(--accent-emerald-glow);
+}
+
 .btn-scoreboard.secondary {
   background-color: transparent;
   border: 1px solid var(--line-heavy);
@@ -484,18 +504,23 @@ body {
   letter-spacing: 0.5px;
 }
 
-.pantry-tag.PROTEIN_DENSE {
+.pantry-tag.PROTEIN_DENSE,
+.pantry-tag.ALTO_EN_PROTEÍNA,
+.pantry-tag.ALTO_EN_PROTEINA {
   background-color: var(--accent-ember);
   box-shadow: 0 0 6px var(--accent-ember-glow);
 }
 
-.pantry-tag.CARB_DENSE {
+.pantry-tag.CARB_DENSE,
+.pantry-tag.ALTO_EN_CARBOHIDRATOS {
   background-color: var(--accent-gold);
   color: #171511;
   box-shadow: 0 0 6px rgba(217, 160, 91, 0.3);
 }
 
-.pantry-tag.FAT_DENSE {
+.pantry-tag.FAT_DENSE,
+.pantry-tag.ALTO_EN_GRASAS,
+.pantry-tag.ALTO_EN_GRASA {
   background-color: var(--accent-lake);
   box-shadow: 0 0 6px var(--accent-lake-glow);
 }

@@ -5,7 +5,7 @@
  */
 
 import { supabase } from '../lib/supabase';
-import type { PantryItem } from '../types';
+import type { PantryItem, RecipeItem, LoggedMealEntry } from '../types';
 
 export interface CatalogFoodItem {
   id?: string;
@@ -65,13 +65,16 @@ export interface AddPantryItemPayload {
 export interface LogMealPayload {
   user_id: string;
   meal_type: string;
+  name?: string;
+  image_url?: string;
   total_calories_kcal: number;
   total_protein_g: number;
   total_carbs_g: number;
   total_fat_g: number;
   notes?: string;
   items?: Array<{
-    food_item_id: string;
+    food_item_id?: string | null;
+    name?: string;
     quantity: number;
     unit: string;
     calories_kcal: number;
@@ -566,22 +569,72 @@ export async function fetchDailySummary(userId: string, dateStr: string) {
 }
 
 /**
+ * Fetch detailed logged meals with items for a specific user and date.
+ */
+export async function fetchLoggedMealsForDate(userId: string, dateStr: string): Promise<LoggedMealEntry[]> {
+  const startOfDay = `${dateStr}T00:00:00.000Z`;
+  const endOfDay = `${dateStr}T23:59:59.999Z`;
+
+  const { data, error } = await supabase
+    .from('meals')
+    .select('*, meal_items(*, food_items(name, category))')
+    .eq('user_id', userId)
+    .gte('logged_at', startOfDay)
+    .lte('logged_at', endOfDay)
+    .order('logged_at', { ascending: true });
+
+  if (error) {
+    console.error('Error fetching logged meals for date from Supabase:', error.message);
+    return [];
+  }
+
+  return (data || []).map((row: any) => ({
+    id: row.id,
+    user_id: row.user_id,
+    meal_type: row.meal_type,
+    name: row.name || undefined,
+    image_url: row.image_url || undefined,
+    logged_at: row.logged_at,
+    total_calories_kcal: row.total_calories_kcal,
+    total_protein_g: row.total_protein_g,
+    total_carbs_g: row.total_carbs_g,
+    total_fat_g: row.total_fat_g,
+    notes: row.notes || undefined,
+    items: (row.meal_items || []).map((mi: any) => ({
+      id: mi.id,
+      meal_id: mi.meal_id,
+      food_item_id: mi.food_item_id,
+      name: mi.food_items?.name || 'Ingrediente',
+      quantity: mi.quantity,
+      unit: mi.unit,
+      calories_kcal: mi.calories_kcal,
+      protein_g: mi.protein_g,
+      carbohydrates_g: mi.carbohydrates_g,
+      fat_g: mi.fat_g,
+    })),
+  }));
+}
+
+/**
  * Log a new meal entry in Supabase.
  */
 export async function logMeal(payload: LogMealPayload): Promise<any> {
+  const insertPayload: Record<string, any> = {
+    user_id: payload.user_id,
+    meal_type: payload.meal_type || 'POST_WORKOUT',
+    total_calories_kcal: payload.total_calories_kcal,
+    total_protein_g: payload.total_protein_g,
+    total_carbs_g: payload.total_carbs_g,
+    total_fat_g: payload.total_fat_g,
+    notes: payload.notes || null,
+  };
+
+  if (payload.name) insertPayload.name = payload.name;
+  if (payload.image_url) insertPayload.image_url = payload.image_url;
+
   const { data: meal, error: mealErr } = await supabase
     .from('meals')
-    .insert([
-      {
-        user_id: payload.user_id,
-        meal_type: payload.meal_type || 'POST_WORKOUT',
-        total_calories_kcal: payload.total_calories_kcal,
-        total_protein_g: payload.total_protein_g,
-        total_carbs_g: payload.total_carbs_g,
-        total_fat_g: payload.total_fat_g,
-        notes: payload.notes || null,
-      },
-    ])
+    .insert([insertPayload])
     .select()
     .single();
 
@@ -591,22 +644,152 @@ export async function logMeal(payload: LogMealPayload): Promise<any> {
   }
 
   if (payload.items && payload.items.length > 0) {
-    const mealItems = payload.items.map((item) => ({
-      meal_id: meal.id,
-      food_item_id: item.food_item_id,
-      quantity: item.quantity,
-      unit: item.unit,
-      calories_kcal: item.calories_kcal,
-      protein_g: item.protein_g,
-      carbohydrates_g: item.carbohydrates_g,
-      fat_g: item.fat_g,
-    }));
+    // Filter items to ensure food_item_id is valid UUID if provided
+    const mealItems = payload.items
+      .filter((item) => item.food_item_id)
+      .map((item) => ({
+        meal_id: meal.id,
+        food_item_id: item.food_item_id,
+        quantity: item.quantity,
+        unit: item.unit,
+        calories_kcal: item.calories_kcal,
+        protein_g: item.protein_g,
+        carbohydrates_g: item.carbohydrates_g,
+        fat_g: item.fat_g,
+      }));
 
-    const { error: itemsErr } = await supabase.from('meal_items').insert(mealItems);
-    if (itemsErr) {
-      console.error('Error logging meal items to Supabase:', itemsErr.message);
+    if (mealItems.length > 0) {
+      const { error: itemsErr } = await supabase.from('meal_items').insert(mealItems);
+      if (itemsErr) {
+        console.error('Error logging meal items to Supabase:', itemsErr.message);
+      }
     }
   }
 
   return meal;
 }
+
+// ============================================================================
+// 5. RECIPES MANAGEMENT
+// ============================================================================
+
+/**
+ * Fetch preset recipes and custom recipes for a user.
+ */
+export async function fetchRecipes(userId?: string): Promise<RecipeItem[]> {
+  try {
+    let query = supabase.from('recipes').select('*, recipe_ingredients(*)');
+
+    if (userId) {
+      query = query.or(`is_preset.eq.true,user_id.eq.${userId}`);
+    } else {
+      query = query.eq('is_preset', true);
+    }
+
+    const { data, error } = await query.order('created_at', { ascending: false });
+
+    if (error) {
+      console.warn('Error fetching recipes from Supabase:', error.message);
+      return [];
+    }
+
+    return (data || []).map((r: any) => ({
+      id: r.id,
+      user_id: r.user_id,
+      name: r.name,
+      description: r.description || undefined,
+      category: r.category || 'General',
+      servings: r.servings || 1,
+      prep_time_minutes: r.prep_time_minutes || 15,
+      total_calories_kcal: r.total_calories_kcal || 0,
+      total_protein_g: r.total_protein_g || 0,
+      total_carbs_g: r.total_carbs_g || 0,
+      total_fat_g: r.total_fat_g || 0,
+      image_url: r.image_url || undefined,
+      is_preset: r.is_preset || false,
+      created_at: r.created_at,
+      ingredients: (r.recipe_ingredients || []).map((ri: any) => ({
+        id: ri.id,
+        recipe_id: ri.recipe_id,
+        food_item_id: ri.food_item_id || undefined,
+        name: ri.name,
+        quantity: ri.quantity,
+        unit: ri.unit,
+        calories_kcal: ri.calories_kcal,
+        protein_g: ri.protein_g,
+        carbohydrates_g: ri.carbohydrates_g,
+        fat_g: ri.fat_g,
+      })),
+    }));
+  } catch (err) {
+    console.error('Error fetching recipes:', err);
+    return [];
+  }
+}
+
+/**
+ * Create a custom recipe in Supabase.
+ */
+export async function saveRecipe(recipe: RecipeItem): Promise<RecipeItem> {
+  const { data: rec, error: recErr } = await supabase
+    .from('recipes')
+    .insert([
+      {
+        user_id: recipe.user_id,
+        name: recipe.name,
+        description: recipe.description || null,
+        category: recipe.category || 'General',
+        servings: recipe.servings || 1,
+        prep_time_minutes: recipe.prep_time_minutes || 15,
+        total_calories_kcal: recipe.total_calories_kcal,
+        total_protein_g: recipe.total_protein_g,
+        total_carbs_g: recipe.total_carbs_g,
+        total_fat_g: recipe.total_fat_g,
+        image_url: recipe.image_url || null,
+        is_preset: false,
+      },
+    ])
+    .select()
+    .single();
+
+  if (recErr) {
+    console.error('Error saving recipe to Supabase:', recErr.message);
+    throw recErr;
+  }
+
+  if (recipe.ingredients && recipe.ingredients.length > 0) {
+    const ingredientsRows = recipe.ingredients.map((ing) => ({
+      recipe_id: rec.id,
+      food_item_id: ing.food_item_id || null,
+      name: ing.name,
+      quantity: ing.quantity,
+      unit: ing.unit,
+      calories_kcal: ing.calories_kcal,
+      protein_g: ing.protein_g,
+      carbohydrates_g: ing.carbohydrates_g,
+      fat_g: ing.fat_g,
+    }));
+
+    const { error: ingErr } = await supabase.from('recipe_ingredients').insert(ingredientsRows);
+    if (ingErr) {
+      console.error('Error saving recipe ingredients to Supabase:', ingErr.message);
+    }
+  }
+
+  return {
+    ...rec,
+    ingredients: recipe.ingredients,
+  };
+}
+
+/**
+ * Delete a user's custom recipe from Supabase.
+ */
+export async function deleteRecipe(recipeId: string): Promise<void> {
+  const { error } = await supabase.from('recipes').delete().eq('id', recipeId);
+  if (error) {
+    console.error('Error deleting recipe from Supabase:', error.message);
+    throw error;
+  }
+}
+

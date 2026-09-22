@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
   Utensils,
@@ -8,10 +8,15 @@ import {
   ChevronRight,
   Droplet,
   Sparkles,
+  Clock,
+  Plus,
 } from 'lucide-react';
-import type { RemainingBalance, MacroBalance, PantryItem } from '../../types';
+import type { RemainingBalance, MacroBalance, PantryItem, LoggedMealEntry } from '../../types';
+import { fetchLoggedMealsForDate } from '../../services/supabaseApi';
+import { FoodImageFallback } from '../Common/FoodImageFallback';
 
 interface DashboardOverviewProps {
+  userId?: string;
   remainingBalance: RemainingBalance;
   consumed: MacroBalance;
   dailyTargets: MacroBalance;
@@ -45,6 +50,7 @@ const itemVariants = {
 };
 
 export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
+  userId,
   remainingBalance,
   consumed,
   dailyTargets,
@@ -56,6 +62,15 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
   onNavigateTab,
   onSendChatQuery,
 }) => {
+  const [loggedMeals, setLoggedMeals] = useState<LoggedMealEntry[]>([]);
+
+  useEffect(() => {
+    if (userId) {
+      fetchLoggedMealsForDate(userId, '2026-09-15')
+        .then((meals) => setLoggedMeals(meals))
+        .catch((err) => console.error('Error fetching today logged meals:', err));
+    }
+  }, [userId, consumed.calories_kcal]);
   const eatenProt = Math.min(
     dailyTargets.protein_g,
     Math.round(consumed.protein_g)
@@ -227,6 +242,105 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
               />
             </div>
           </div>
+        </div>
+      </motion.div>
+
+      {/* 3. DAILY CONSUMPTION TIMELINE CARD */}
+      <motion.div variants={itemVariants} className="panel-card" style={{ borderTop: '3px solid #00E676' }}>
+        <div className="panel-header">
+          <h3 className="panel-title">
+            <Utensils size={20} style={{ color: '#00E676' }} /> Línea de Ingesta Diaria ({loggedMeals.length})
+          </h3>
+          <button
+            type="button"
+            onClick={onOpenMeal}
+            style={{
+              background: 'rgba(0, 230, 118, 0.15)',
+              border: '1px solid #00E676',
+              color: '#00E676',
+              fontSize: '0.78rem',
+              fontWeight: 700,
+              padding: '0.35rem 0.75rem',
+              borderRadius: 'var(--radius-sm)',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.3rem',
+            }}
+          >
+            <Plus size={14} /> Registrar Comida
+          </button>
+        </div>
+
+        <div className="panel-body">
+          {loggedMeals.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '1.5rem 1rem', color: 'var(--ink-muted)', background: 'rgba(18, 22, 32, 0.4)', borderRadius: 'var(--radius-md)' }}>
+              <Utensils size={32} style={{ color: 'var(--ink-muted)', margin: '0 auto 0.5rem auto', opacity: 0.5 }} />
+              <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--ink-chalk)' }}>No has registrado ingestas hoy</div>
+              <div style={{ fontSize: '0.8rem', color: 'var(--ink-muted)', marginTop: '0.2rem' }}>
+                Construye o selecciona tu comida para registrar tus calorías y macronutrientes.
+              </div>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+              {loggedMeals.map((meal) => {
+                const mealTime = meal.logged_at ? new Date(meal.logged_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--';
+                const slotLabelMap: Record<string, string> = {
+                  BREAKFAST: 'Desayuno',
+                  LUNCH: 'Almuerzo / Comida',
+                  DINNER: 'Cena',
+                  SNACK: 'Merienda / Snack',
+                  POST_WORKOUT: 'Post-Entrenamiento',
+                };
+
+                const slotTitle = slotLabelMap[meal.meal_type] || meal.meal_type;
+                const displayName = meal.name || slotTitle;
+
+                return (
+                  <div
+                    key={meal.id}
+                    style={{
+                      background: 'var(--surface-card)',
+                      border: '1px solid var(--line-graphite)',
+                      borderRadius: 'var(--radius-md)',
+                      padding: '0.85rem 1rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: '0.85rem',
+                    }}
+                  >
+                    <FoodImageFallback imageUrl={meal.image_url} foodName={displayName} category={meal.meal_type} size="md" />
+
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                        <span style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--ink-chalk)' }}>
+                          {displayName}
+                        </span>
+                        <span style={{ background: 'rgba(0, 230, 118, 0.15)', color: '#00E676', fontSize: '0.65rem', fontWeight: 800, padding: '0.15rem 0.45rem', borderRadius: '4px' }}>
+                          {slotTitle.toUpperCase()}
+                        </span>
+                      </div>
+
+                      <div style={{ fontSize: '0.78rem', color: 'var(--ink-muted)', marginTop: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.2rem', color: 'var(--ink-muted)' }}>
+                          <Clock size={12} /> {mealTime}
+                        </span>
+                        <span>•</span>
+                        <span style={{ color: 'var(--accent-ember)', fontWeight: 700 }}>+{meal.total_calories_kcal} kcal</span>
+                        <span>•</span>
+                        <span style={{ color: '#00E676', fontWeight: 700 }}>+{meal.total_protein_g}g prot</span>
+                        <span>•</span>
+                        <span style={{ color: '#FF6B35', fontWeight: 700 }}>+{meal.total_carbs_g}g carb</span>
+                        <span>•</span>
+                        <span style={{ color: '#A855F7', fontWeight: 700 }}>+{meal.total_fat_g}g grasa</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </motion.div>
 

@@ -283,6 +283,7 @@ const MainSPAContent: React.FC = () => {
               style={{ width: '100%' }}
             >
               <DashboardOverview
+                userId={user.id}
                 remainingBalance={remainingBalance}
                 consumed={consumed}
                 dailyTargets={dailyTargets}

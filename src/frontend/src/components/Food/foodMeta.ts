@@ -1,10 +1,17 @@
-// Visual Mapping Helper for Food Images, Emojis, and Macro Density
+// Visual Mapping Helper for Food Images, Emojis, Macro Density, and Category Identifiers
 
 export interface FoodMeta {
   emoji: string;
   badge: string;
   color: string;
   image: string;
+}
+
+export interface CategoryMeta {
+  badge: string;
+  color: string;
+  emoji: string;
+  background: string;
 }
 
 interface FoodRule {
@@ -18,6 +25,41 @@ const FATS_IMAGE_AVOCADO = 'https://images.unsplash.com/photo-1523049673857-eb18
 const FATS_IMAGE_NUTS = 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&w=400&q=80';
 const PROTEIN_IMAGE_POULTRY = 'https://images.unsplash.com/photo-1604503468506-a8da13d82791?auto=format&fit=crop&w=400&q=80';
 const DEFAULT_IMAGE_SALAD = 'https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=400&q=80';
+
+export interface CategoryRule {
+  keywords: string[];
+  meta: CategoryMeta;
+}
+const CATEGORY_RULES: CategoryRule[] = [
+  {
+    keywords: ['carne', 'prote'],
+    meta: { badge: 'PROTEÍNAS', color: '#00E676', emoji: '🥩', background: 'rgba(0, 230, 118, 0.15)' },
+  },
+  {
+    keywords: ['pescado', 'marisco'],
+    meta: { badge: 'PESCADO Y MARISCO', color: '#00E5FF', emoji: '🐟', background: 'rgba(0, 229, 255, 0.15)' },
+  },
+  {
+    keywords: ['carb', 'grano', 'cereal', 'pasta', 'arroz', 'tuber', 'tubérculo'],
+    meta: { badge: 'CARBOHIDRATOS', color: '#FF6B35', emoji: '🌾', background: 'rgba(255, 107, 53, 0.15)' },
+  },
+  {
+    keywords: ['grasa', 'aceite', 'fruto seco', 'seed'],
+    meta: { badge: 'GRASAS SALUDABLES', color: '#A855F7', emoji: '🥑', background: 'rgba(168, 85, 247, 0.15)' },
+  },
+  {
+    keywords: ['lacteo', 'lácteo', 'leche', 'yogur', 'queso'],
+    meta: { badge: 'LÁCTEOS', color: '#00E5FF', emoji: '🥛', background: 'rgba(0, 229, 255, 0.15)' },
+  },
+  {
+    keywords: ['fruta', 'verdura', 'vegetal'],
+    meta: { badge: 'FRUTAS Y VERDURAS', color: '#FFD700', emoji: '🍎', background: 'rgba(255, 215, 0, 0.15)' },
+  },
+  {
+    keywords: ['suplement'],
+    meta: { badge: 'SUPLEMENTACIÓN', color: '#38BDF8', emoji: '🥤', background: 'rgba(56, 189, 248, 0.15)' },
+  },
+];
 
 // Declarative Rule Map for Low Cognitive Complexity
 const NAME_RULES: FoodRule[] = [
@@ -83,25 +125,25 @@ const NAME_RULES: FoodRule[] = [
     keywords: ['plátano', 'manzana', 'fruta', 'arándanos', 'fresa'],
     getMeta: (name: string) => ({
       emoji: name.includes('plátano') ? '🍌' : '🍎',
-      badge: 'FRUTA / GLICEMIA',
+      badge: 'FRUTA',
       color: '#FFD700',
       image: 'https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?auto=format&fit=crop&w=400&q=80',
     }),
   },
   {
-    keywords: ['leche', 'yogur', 'queso', 'lacteo'],
+    keywords: ['leche', 'yogur', 'queso', 'lácteo'],
     getMeta: () => ({
       emoji: '🥛',
-      badge: 'LÁCTEO / CASEÍNA',
+      badge: 'LÁCTEO',
       color: '#00E5FF',
       image: 'https://images.unsplash.com/photo-1488477181946-6428a0291777?auto=format&fit=crop&w=400&q=80',
     }),
   },
   {
-    keywords: ['proteína', 'whey', 'suplemento'],
+    keywords: ['proteína', 'whey', 'suplemento', 'creatina'],
     getMeta: () => ({
       emoji: '🥤',
-      badge: 'SUPLEMENTACIÓN WHEY',
+      badge: 'SUPLEMENTACIÓN',
       color: '#00E676',
       image: 'https://images.unsplash.com/photo-1593095948071-474c5cc2989d?auto=format&fit=crop&w=400&q=80',
     }),
@@ -146,3 +188,19 @@ export function getFoodMeta(foodName: string, category: string): FoodMeta {
     image: DEFAULT_IMAGE_SALAD,
   };
 }
+
+export function getCategoryMeta(categoryName: string): CategoryMeta {
+  const cat = (categoryName || '').toLowerCase();
+  const matchedRule = CATEGORY_RULES.find((rule) =>
+    rule.keywords.some((kw) => cat.includes(kw))
+  );
+  return (
+    matchedRule?.meta || {
+      badge: categoryName ? categoryName.toUpperCase() : 'GENERAL',
+      color: '#94A3B8',
+      emoji: '🥗',
+      background: 'rgba(148, 163, 184, 0.15)',
+    }
+  );
+}
+

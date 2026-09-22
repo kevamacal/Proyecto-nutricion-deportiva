@@ -28,6 +28,13 @@
   --accent-moss: #57B894;
   --accent-gold: #D9A05B;
   
+  --accent-emerald: #00E676;
+  --accent-emerald-hover: #00C853;
+  --accent-emerald-glow: rgba(0, 230, 118, 0.35);
+  
+  --glass-border: rgba(140, 132, 116, 0.25);
+  --glass-border-bright: rgba(140, 132, 116, 0.45);
+  
   --line-graphite: #4A473F;
   --line-heavy: #6E685C;
   --line-scoreboard: #8C8474;
@@ -332,6 +339,19 @@ body {
 .btn-scoreboard.lake:hover {
   background-color: var(--accent-lake-hover);
   box-shadow: 0 6px 16px var(--accent-lake-glow);
+}
+
+.btn-scoreboard.emerald {
+  background-color: var(--accent-emerald);
+  color: #0D111A;
+  font-weight: 800;
+  box-shadow: 0 4px 12px var(--accent-emerald-glow);
+}
+
+.btn-scoreboard.emerald:hover {
+  background-color: var(--accent-emerald-hover);
+  color: #0D111A;
+  box-shadow: 0 6px 16px var(--accent-emerald-glow);
 }
 
 .btn-scoreboard.secondary {

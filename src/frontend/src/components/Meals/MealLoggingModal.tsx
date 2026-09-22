@@ -57,6 +57,10 @@ export const MealLoggingModal: React.FC<MealLoggingModalProps> = ({
   useEffect(() => {
     if (isOpen) {
       setError(null);
+      setDraftIngredients([]);
+      setMealName('');
+      setNotes('');
+
       fetchFoodCatalog()
         .then((items) => {
           setCatalog(items);
@@ -67,27 +71,6 @@ export const MealLoggingModal: React.FC<MealLoggingModalProps> = ({
         fetchPantryInventory(user.id)
           .then((pantry) => {
             setPantryItems(pantry);
-            // Default to first available pantry item if draft is empty
-            if (draftIngredients.length === 0 && pantry.length > 0) {
-              const firstPantry = pantry[0];
-              const defaultQty = firstPantry.unit === 'unidades' || firstPantry.unit === 'unidad' ? Math.min(2, firstPantry.available_quantity) : Math.min(150, firstPantry.available_quantity);
-              setDraftIngredients([
-                {
-                  id: `ing_${Date.now()}_1`,
-                  food_item_id: firstPantry.food_item_id,
-                  name: firstPantry.name,
-                  category: firstPantry.category,
-                  quantity: defaultQty,
-                  unit: firstPantry.unit || 'g',
-                  base_serving_size: firstPantry.nutrition?.serving_size || 100,
-                  base_calories_kcal: firstPantry.nutrition?.calories_kcal || 0,
-                  base_protein_g: firstPantry.nutrition?.protein_g || 0,
-                  base_carbs_g: firstPantry.nutrition?.carbohydrates_g || 0,
-                  base_fat_g: firstPantry.nutrition?.fat_g || 0,
-                },
-              ]);
-              setMealName(firstPantry.name);
-            }
           })
           .catch((err) => console.error('Error loading pantry inventory:', err));
 

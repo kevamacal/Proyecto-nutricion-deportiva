@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import type { RemainingBalance, MacroBalance, PantryItem, LoggedMealEntry } from '../../types';
 import { fetchLoggedMealsForDate } from '../../services/supabaseApi';
-import { FoodImageFallback } from '../Common/FoodImageFallback';
+import { FoodCategoryBadge } from '../Common/FoodCategoryBadge';
 
 interface DashboardOverviewProps {
   userId?: string;
@@ -310,7 +310,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
                       gap: '0.85rem',
                     }}
                   >
-                    <FoodImageFallback imageUrl={meal.image_url} foodName={displayName} category={meal.meal_type} size="md" />
+                    <FoodCategoryBadge foodName={displayName} category={meal.meal_type} size="md" />
 
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>

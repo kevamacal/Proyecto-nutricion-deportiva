@@ -93,38 +93,6 @@ export interface AgentQueryResult {
   recipe_output?: RecipeOutput | null;
 }
 
-export interface RecipeIngredientDetail {
-  id?: string;
-  recipe_id?: string;
-  food_item_id?: string;
-  name: string;
-  category?: string;
-  quantity: number;
-  unit: string;
-  calories_kcal: number;
-  protein_g: number;
-  carbohydrates_g: number;
-  fat_g: number;
-}
-
-export interface RecipeItem {
-  id?: string;
-  user_id?: string | null;
-  name: string;
-  description?: string;
-  category: string;
-  servings: number;
-  prep_time_minutes: number;
-  total_calories_kcal: number;
-  total_protein_g: number;
-  total_carbs_g: number;
-  total_fat_g: number;
-  image_url?: string;
-  is_preset: boolean;
-  created_at?: string;
-  ingredients?: RecipeIngredientDetail[];
-}
-
 export interface LoggedMealItem {
   id?: string;
   meal_id?: string;
@@ -143,7 +111,6 @@ export interface LoggedMealEntry {
   user_id: string;
   meal_type: string;
   name?: string;
-  image_url?: string;
   logged_at: string;
   total_calories_kcal: number;
   total_protein_g: number;

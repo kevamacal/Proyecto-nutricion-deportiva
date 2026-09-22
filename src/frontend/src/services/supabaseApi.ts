@@ -5,7 +5,7 @@
  */
 
 import { supabase } from '../lib/supabase';
-import type { PantryItem, RecipeItem, LoggedMealEntry } from '../types';
+import type { PantryItem, LoggedMealEntry } from '../types';
 
 export interface CatalogFoodItem {
   id?: string;
@@ -593,7 +593,6 @@ export async function fetchLoggedMealsForDate(userId: string, dateStr: string): 
     user_id: row.user_id,
     meal_type: row.meal_type,
     name: row.name || undefined,
-    image_url: row.image_url || undefined,
     logged_at: row.logged_at,
     total_calories_kcal: row.total_calories_kcal,
     total_protein_g: row.total_protein_g,
@@ -630,7 +629,6 @@ export async function logMeal(payload: LogMealPayload): Promise<any> {
   };
 
   if (payload.name) insertPayload.name = payload.name;
-  if (payload.image_url) insertPayload.image_url = payload.image_url;
 
   const { data: meal, error: mealErr } = await supabase
     .from('meals')
@@ -667,129 +665,5 @@ export async function logMeal(payload: LogMealPayload): Promise<any> {
   }
 
   return meal;
-}
-
-// ============================================================================
-// 5. RECIPES MANAGEMENT
-// ============================================================================
-
-/**
- * Fetch preset recipes and custom recipes for a user.
- */
-export async function fetchRecipes(userId?: string): Promise<RecipeItem[]> {
-  try {
-    let query = supabase.from('recipes').select('*, recipe_ingredients(*)');
-
-    if (userId) {
-      query = query.or(`is_preset.eq.true,user_id.eq.${userId}`);
-    } else {
-      query = query.eq('is_preset', true);
-    }
-
-    const { data, error } = await query.order('created_at', { ascending: false });
-
-    if (error) {
-      console.warn('Error fetching recipes from Supabase:', error.message);
-      return [];
-    }
-
-    return (data || []).map((r: any) => ({
-      id: r.id,
-      user_id: r.user_id,
-      name: r.name,
-      description: r.description || undefined,
-      category: r.category || 'General',
-      servings: r.servings || 1,
-      prep_time_minutes: r.prep_time_minutes || 15,
-      total_calories_kcal: r.total_calories_kcal || 0,
-      total_protein_g: r.total_protein_g || 0,
-      total_carbs_g: r.total_carbs_g || 0,
-      total_fat_g: r.total_fat_g || 0,
-      image_url: r.image_url || undefined,
-      is_preset: r.is_preset || false,
-      created_at: r.created_at,
-      ingredients: (r.recipe_ingredients || []).map((ri: any) => ({
-        id: ri.id,
-        recipe_id: ri.recipe_id,
-        food_item_id: ri.food_item_id || undefined,
-        name: ri.name,
-        quantity: ri.quantity,
-        unit: ri.unit,
-        calories_kcal: ri.calories_kcal,
-        protein_g: ri.protein_g,
-        carbohydrates_g: ri.carbohydrates_g,
-        fat_g: ri.fat_g,
-      })),
-    }));
-  } catch (err) {
-    console.error('Error fetching recipes:', err);
-    return [];
-  }
-}
-
-/**
- * Create a custom recipe in Supabase.
- */
-export async function saveRecipe(recipe: RecipeItem): Promise<RecipeItem> {
-  const { data: rec, error: recErr } = await supabase
-    .from('recipes')
-    .insert([
-      {
-        user_id: recipe.user_id,
-        name: recipe.name,
-        description: recipe.description || null,
-        category: recipe.category || 'General',
-        servings: recipe.servings || 1,
-        prep_time_minutes: recipe.prep_time_minutes || 15,
-        total_calories_kcal: recipe.total_calories_kcal,
-        total_protein_g: recipe.total_protein_g,
-        total_carbs_g: recipe.total_carbs_g,
-        total_fat_g: recipe.total_fat_g,
-        image_url: recipe.image_url || null,
-        is_preset: false,
-      },
-    ])
-    .select()
-    .single();
-
-  if (recErr) {
-    console.error('Error saving recipe to Supabase:', recErr.message);
-    throw recErr;
-  }
-
-  if (recipe.ingredients && recipe.ingredients.length > 0) {
-    const ingredientsRows = recipe.ingredients.map((ing) => ({
-      recipe_id: rec.id,
-      food_item_id: ing.food_item_id || null,
-      name: ing.name,
-      quantity: ing.quantity,
-      unit: ing.unit,
-      calories_kcal: ing.calories_kcal,
-      protein_g: ing.protein_g,
-      carbohydrates_g: ing.carbohydrates_g,
-      fat_g: ing.fat_g,
-    }));
-
-    const { error: ingErr } = await supabase.from('recipe_ingredients').insert(ingredientsRows);
-    if (ingErr) {
-      console.error('Error saving recipe ingredients to Supabase:', ingErr.message);
-    }
-  }
-
-  return {
-    ...rec,
-    ingredients: recipe.ingredients,
-  };
-}
-
-/**
- * Delete a user's custom recipe from Supabase.
- */
-export async function deleteRecipe(recipeId: string): Promise<void> {
-  const { error } = await supabase.from('recipes').delete().eq('id', recipeId);
-  if (error) {
-    console.error('Error deleting recipe from Supabase:', error.message);
-    throw error;
-  }
 }
 

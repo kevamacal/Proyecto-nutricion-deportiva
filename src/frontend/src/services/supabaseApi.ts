@@ -657,7 +657,52 @@ export async function fetchRecentUserMeals(userId: string): Promise<LoggedMealEn
 }
 
 /**
- * Log a new meal entry in Supabase.
+ * Deduct consumed food quantities from the user's available pantry inventory in Supabase.
+ * If remaining quantity reaches 0, updates status to 'CONSUMED'.
+ */
+export async function deductPantryInventory(
+  userId: string,
+  consumedItems: Array<{ food_item_id?: string | null; quantity: number }>
+): Promise<void> {
+  if (!userId || !consumedItems || consumedItems.length === 0) return;
+
+  try {
+    const { data: availableStock, error } = await supabase
+      .from('inventory_items')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('status', 'AVAILABLE');
+
+    if (error || !availableStock) {
+      console.warn('Could not fetch inventory stock for deduction:', error?.message);
+      return;
+    }
+
+    for (const item of consumedItems) {
+      if (!item.food_item_id || item.quantity <= 0) continue;
+
+      const row = availableStock.find((r) => r.food_item_id === item.food_item_id);
+      if (row) {
+        const currentQty = Number(row.quantity) || 0;
+        const newQty = Math.max(0, currentQty - Number(item.quantity));
+        const newStatus = newQty === 0 ? 'CONSUMED' : 'AVAILABLE';
+
+        await supabase
+          .from('inventory_items')
+          .update({
+            quantity: newQty,
+            status: newStatus,
+          })
+          .eq('id', row.id);
+      }
+    }
+  } catch (err) {
+    console.error('Error deducting pantry inventory:', err);
+  }
+}
+
+/**
+ * Log a new meal entry in Supabase and automatically deduct consumed stock from pantry inventory.
  */
 export async function logMeal(payload: LogMealPayload): Promise<any> {
   const insertPayload: Record<string, any> = {
@@ -704,6 +749,9 @@ export async function logMeal(payload: LogMealPayload): Promise<any> {
         console.error('Error logging meal items to Supabase:', itemsErr.message);
       }
     }
+
+    // Deduct consumed stock from user's available pantry inventory
+    await deductPantryInventory(payload.user_id, payload.items);
   }
 
   return meal;

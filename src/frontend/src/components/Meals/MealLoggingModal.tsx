@@ -3,11 +3,12 @@ import { Utensils, Flame, Plus, Trash2, Check, History, Layers, ArrowRight } fro
 import { useAuth } from '../../context/AuthContext';
 import {
   fetchFoodCatalog,
+  fetchPantryInventory,
   fetchRecentUserMeals,
   logMeal,
   type CatalogFoodItem,
 } from '../../services/supabaseApi';
-import type { LoggedMealEntry } from '../../types';
+import type { LoggedMealEntry, PantryItem } from '../../types';
 import { FoodSelectorModal, type SelectedBatchItem } from '../Food/FoodSelectorModal';
 import { FoodCategoryBadge } from '../Common/FoodCategoryBadge';
 import { BaseModal } from '../Common/BaseModal';
@@ -44,6 +45,7 @@ export const MealLoggingModal: React.FC<MealLoggingModalProps> = ({
   const [notes, setNotes] = useState<string>('');
 
   const [catalog, setCatalog] = useState<CatalogFoodItem[]>([]);
+  const [pantryItems, setPantryItems] = useState<PantryItem[]>([]);
   const [recentMeals, setRecentMeals] = useState<LoggedMealEntry[]>([]);
   const [draftIngredients, setDraftIngredients] = useState<DraftIngredient[]>([]);
 
@@ -58,30 +60,37 @@ export const MealLoggingModal: React.FC<MealLoggingModalProps> = ({
       fetchFoodCatalog()
         .then((items) => {
           setCatalog(items);
-          // Set initial default ingredient if draft is empty
-          if (draftIngredients.length === 0 && items.length > 0) {
-            const first = items[0];
-            setDraftIngredients([
-              {
-                id: `ing_${Date.now()}_1`,
-                food_item_id: first.food_item_id || first.id,
-                name: first.name,
-                category: first.category,
-                quantity: 150,
-                unit: first.default_unit || 'g',
-                base_serving_size: first.nutrition?.serving_size || 100,
-                base_calories_kcal: first.nutrition?.calories_kcal || 0,
-                base_protein_g: first.nutrition?.protein_g || 0,
-                base_carbs_g: first.nutrition?.carbohydrates_g || 0,
-                base_fat_g: first.nutrition?.fat_g || 0,
-              },
-            ]);
-            setMealName(first.name);
-          }
         })
         .catch((err) => console.error('Error loading catalog:', err));
 
       if (user?.id) {
+        fetchPantryInventory(user.id)
+          .then((pantry) => {
+            setPantryItems(pantry);
+            // Default to first available pantry item if draft is empty
+            if (draftIngredients.length === 0 && pantry.length > 0) {
+              const firstPantry = pantry[0];
+              const defaultQty = firstPantry.unit === 'unidades' || firstPantry.unit === 'unidad' ? Math.min(2, firstPantry.available_quantity) : Math.min(150, firstPantry.available_quantity);
+              setDraftIngredients([
+                {
+                  id: `ing_${Date.now()}_1`,
+                  food_item_id: firstPantry.food_item_id,
+                  name: firstPantry.name,
+                  category: firstPantry.category,
+                  quantity: defaultQty,
+                  unit: firstPantry.unit || 'g',
+                  base_serving_size: firstPantry.nutrition?.serving_size || 100,
+                  base_calories_kcal: firstPantry.nutrition?.calories_kcal || 0,
+                  base_protein_g: firstPantry.nutrition?.protein_g || 0,
+                  base_carbs_g: firstPantry.nutrition?.carbohydrates_g || 0,
+                  base_fat_g: firstPantry.nutrition?.fat_g || 0,
+                },
+              ]);
+              setMealName(firstPantry.name);
+            }
+          })
+          .catch((err) => console.error('Error loading pantry inventory:', err));
+
         fetchRecentUserMeals(user.id)
           .then((meals) => setRecentMeals(meals))
           .catch((err) => console.error('Error loading recent meals:', err));
@@ -695,6 +704,7 @@ export const MealLoggingModal: React.FC<MealLoggingModalProps> = ({
         isOpen={isSelectorOpen}
         onClose={() => setIsSelectorOpen(false)}
         catalog={catalog}
+        pantryItems={pantryItems}
         multiSelect={true}
         onBatchSelect={handleBatchSelectIngredients}
         onSelect={handleSingleSelectIngredient}

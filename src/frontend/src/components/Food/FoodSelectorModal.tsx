@@ -4,6 +4,8 @@ import { createCustomFoodItem, type CatalogFoodItem, type CreateCustomFoodPayloa
 import { getFoodMeta, getCategoryMeta } from './foodMeta';
 import { BaseModal } from '../Common/BaseModal';
 
+import type { PantryItem } from '../../types';
+
 export interface SelectedBatchItem {
   food: CatalogFoodItem;
   quantity: number;
@@ -14,6 +16,7 @@ interface FoodSelectorModalProps {
   isOpen: boolean;
   onClose: () => void;
   catalog: CatalogFoodItem[];
+  pantryItems?: PantryItem[];
   onSelect?: (food: CatalogFoodItem) => void;
   onBatchSelect?: (items: SelectedBatchItem[]) => void;
   onCustomFoodCreated?: (newFood: CatalogFoodItem) => void;
@@ -277,10 +280,11 @@ const CustomFoodFormSection: React.FC<CustomFoodFormSectionProps> = ({
 interface FoodItemRowProps {
   food: CatalogFoodItem;
   isSelected: boolean;
+  pantryStock?: { quantity: number; unit: string };
   onToggle: (food: CatalogFoodItem) => void;
 }
 
-const FoodItemRow: React.FC<FoodItemRowProps> = ({ food, isSelected, onToggle }) => {
+const FoodItemRow: React.FC<FoodItemRowProps> = ({ food, isSelected, pantryStock, onToggle }) => {
   const meta = getFoodMeta(food.name, food.category);
   const catMeta = getCategoryMeta(food.category);
 
@@ -327,6 +331,11 @@ const FoodItemRow: React.FC<FoodItemRowProps> = ({ food, isSelected, onToggle })
           <span style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--ink-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {food.name}
           </span>
+          {pantryStock && (
+            <span style={{ background: 'rgba(0, 230, 118, 0.2)', color: '#00E676', fontSize: '0.65rem', fontWeight: 800, padding: '0.1rem 0.4rem', borderRadius: '4px' }}>
+              📦 DISPONIBLE: {pantryStock.quantity} {pantryStock.unit}
+            </span>
+          )}
           {food.is_custom && (
             <span style={{ background: 'rgba(255, 107, 53, 0.2)', color: '#FF6B35', fontSize: '0.62rem', fontWeight: 800, padding: '0.1rem 0.35rem', borderRadius: '4px' }}>
               PERSONALIZADO
@@ -392,6 +401,7 @@ export const FoodSelectorModal: React.FC<FoodSelectorModalProps> = ({
   isOpen,
   onClose,
   catalog,
+  pantryItems,
   onSelect,
   onBatchSelect,
   onCustomFoodCreated,
@@ -402,7 +412,9 @@ export const FoodSelectorModal: React.FC<FoodSelectorModalProps> = ({
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
   const [selectedBatchMap, setSelectedBatchMap] = useState<Record<string, SelectedBatchItem>>({});
-  const [activeTab, setActiveTab] = useState<'catalog' | 'create'>('catalog');
+  const [activeTab, setActiveTab] = useState<'pantry' | 'catalog' | 'create'>(
+    pantryItems && pantryItems.length > 0 ? 'pantry' : 'catalog'
+  );
 
   // Custom Food Form State
   const [customName, setCustomName] = useState<string>('');
@@ -415,9 +427,27 @@ export const FoodSelectorModal: React.FC<FoodSelectorModalProps> = ({
   const [isSubmittingCustom, setIsSubmittingCustom] = useState<boolean>(false);
   const [customError, setCustomError] = useState<string | null>(null);
 
+  // Map of available pantry stock
+  const pantryStockMap = new Map<string, { quantity: number; unit: string }>();
+  (pantryItems || []).forEach((item) => {
+    if (item.food_item_id && item.available_quantity > 0) {
+      pantryStockMap.set(item.food_item_id, {
+        quantity: item.available_quantity,
+        unit: item.unit,
+      });
+    }
+  });
+
   const catalogCategories = Array.from(new Set(catalog.map((f) => f.category))).filter(Boolean);
 
   const filteredCatalog = catalog.filter((food) => {
+    const foodId = food.food_item_id || food.id || '';
+
+    // If on 'pantry' tab, strictly require item to exist in available pantry stock
+    if (activeTab === 'pantry' && !pantryStockMap.has(foodId)) {
+      return false;
+    }
+
     const matchesSearch =
       food.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       food.category.toLowerCase().includes(searchTerm.toLowerCase());
@@ -571,6 +601,30 @@ export const FoodSelectorModal: React.FC<FoodSelectorModalProps> = ({
     >
       {/* Top Header Tabs / Actions */}
       <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+        {pantryItems && pantryItems.length > 0 && (
+          <button
+            type="button"
+            onClick={() => setActiveTab('pantry')}
+            style={{
+              flex: 1,
+              padding: '0.5rem 0.75rem',
+              borderRadius: 'var(--radius-sm)',
+              fontSize: '0.85rem',
+              fontWeight: 700,
+              background: activeTab === 'pantry' ? 'rgba(0, 230, 118, 0.15)' : 'rgba(18, 22, 32, 0.6)',
+              color: activeTab === 'pantry' ? '#00E676' : 'var(--ink-muted)',
+              border: `1px solid ${activeTab === 'pantry' ? '#00E676' : 'var(--glass-border)'}`,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.35rem',
+            }}
+          >
+            <ShoppingBag className="w-4 h-4 text-[#00E676]" /> Mi Almacén ({pantryStockMap.size})
+          </button>
+        )}
+
         <button
           type="button"
           onClick={() => setActiveTab('catalog')}
@@ -580,9 +634,9 @@ export const FoodSelectorModal: React.FC<FoodSelectorModalProps> = ({
             borderRadius: 'var(--radius-sm)',
             fontSize: '0.85rem',
             fontWeight: 700,
-            background: activeTab === 'catalog' ? 'rgba(0, 230, 118, 0.15)' : 'rgba(18, 22, 32, 0.6)',
-            color: activeTab === 'catalog' ? '#00E676' : 'var(--ink-muted)',
-            border: `1px solid ${activeTab === 'catalog' ? '#00E676' : 'var(--glass-border)'}`,
+            background: activeTab === 'catalog' ? 'rgba(56, 189, 248, 0.15)' : 'rgba(18, 22, 32, 0.6)',
+            color: activeTab === 'catalog' ? '#38BDF8' : 'var(--ink-muted)',
+            border: `1px solid ${activeTab === 'catalog' ? '#38BDF8' : 'var(--glass-border)'}`,
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
@@ -590,7 +644,7 @@ export const FoodSelectorModal: React.FC<FoodSelectorModalProps> = ({
             gap: '0.35rem',
           }}
         >
-          <ShoppingBag className="w-4 h-4" /> Catálogo Alimentos
+          <Utensils className="w-4 h-4 text-[#38BDF8]" /> Catálogo Completo
         </button>
 
         <button
@@ -612,7 +666,7 @@ export const FoodSelectorModal: React.FC<FoodSelectorModalProps> = ({
             gap: '0.35rem',
           }}
         >
-          <PlusCircle className="w-4 h-4" /> Crear Personalizado
+          <PlusCircle className="w-4 h-4 text-[#FF6B35]" /> Crear Nuevo
         </button>
       </div>
 
@@ -737,6 +791,7 @@ export const FoodSelectorModal: React.FC<FoodSelectorModalProps> = ({
                     key={foodId}
                     food={food}
                     isSelected={isSelected}
+                    pantryStock={pantryStockMap.get(foodId)}
                     onToggle={handleToggleItem}
                   />
                 );

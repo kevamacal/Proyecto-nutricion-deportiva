@@ -53,6 +53,13 @@ export interface PantryItem {
   days_until_expiration: number | null;
   status: string;
   density_class: 'PROTEIN_DENSE' | 'CARB_DENSE' | 'FAT_DENSE' | 'BALANCED';
+  nutrition?: {
+    serving_size: number;
+    calories_kcal: number;
+    protein_g: number;
+    carbohydrates_g: number;
+    fat_g: number;
+  };
 }
 
 export interface RecipeIngredient {

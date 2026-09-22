@@ -66,7 +66,8 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
 
   useEffect(() => {
     if (userId) {
-      fetchLoggedMealsForDate(userId, '2026-09-15')
+      const todayStr = new Date().toISOString().split('T')[0];
+      fetchLoggedMealsForDate(userId, todayStr)
         .then((meals) => setLoggedMeals(meals))
         .catch((err) => console.error('Error fetching today logged meals:', err));
     }

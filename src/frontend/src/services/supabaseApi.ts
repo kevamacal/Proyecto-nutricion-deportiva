@@ -615,6 +615,48 @@ export async function fetchLoggedMealsForDate(userId: string, dateStr: string): 
 }
 
 /**
+ * Fetch recent logged meals for a user to allow 1-click repetition.
+ */
+export async function fetchRecentUserMeals(userId: string): Promise<LoggedMealEntry[]> {
+  const { data, error } = await supabase
+    .from('meals')
+    .select('*, meal_items(*, food_items(name, category))')
+    .eq('user_id', userId)
+    .order('logged_at', { ascending: false })
+    .limit(10);
+
+  if (error) {
+    console.error('Error fetching recent user meals from Supabase:', error.message);
+    return [];
+  }
+
+  return (data || []).map((row: any) => ({
+    id: row.id,
+    user_id: row.user_id,
+    meal_type: row.meal_type,
+    name: row.name || undefined,
+    logged_at: row.logged_at,
+    total_calories_kcal: row.total_calories_kcal,
+    total_protein_g: row.total_protein_g,
+    total_carbs_g: row.total_carbs_g,
+    total_fat_g: row.total_fat_g,
+    notes: row.notes || undefined,
+    items: (row.meal_items || []).map((mi: any) => ({
+      id: mi.id,
+      meal_id: mi.meal_id,
+      food_item_id: mi.food_item_id,
+      name: mi.food_items?.name || 'Ingrediente',
+      quantity: mi.quantity,
+      unit: mi.unit,
+      calories_kcal: mi.calories_kcal,
+      protein_g: mi.protein_g,
+      carbohydrates_g: mi.carbohydrates_g,
+      fat_g: mi.fat_g,
+    })),
+  }));
+}
+
+/**
  * Log a new meal entry in Supabase.
  */
 export async function logMeal(payload: LogMealPayload): Promise<any> {

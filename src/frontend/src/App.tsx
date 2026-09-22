@@ -23,7 +23,7 @@ import {
 } from './services/supabaseApi';
 import { User, Bot, ShoppingBag, Trophy, Activity } from 'lucide-react';
 
-const TODAY_DATE = '2026-09-15';
+const TODAY_DATE = new Date().toISOString().split('T')[0];
 
 const MainSPAContent: React.FC = () => {
   const { user, isAuthenticated, isLoading, updateProfile, setTargets } = useAuth();

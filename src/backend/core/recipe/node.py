@@ -12,6 +12,73 @@ from src.backend.core.recipe.schemas import (
 )
 
 
+def _build_from_inventory(
+    ingredients: list, needs, meal_type: str
+) -> tuple[str, str, list[IngredientUsedOutput], float, float, float, float]:
+    """Calculate contributions and explanation from available pantry inventory."""
+    ingredients_used: list[IngredientUsedOutput] = []
+    tot_cal, tot_prot, tot_carb, tot_fat = 0.0, 0.0, 0.0, 0.0
+
+    for ing in ingredients[:3]:
+        portion = min(ing.available_quantity, 150.0)
+        ingredients_used.append(
+            IngredientUsedOutput(
+                food_item_id=ing.food_item_id,
+                name=ing.name,
+                quantity_used=portion,
+                unit=ing.unit,
+                is_from_inventory=True,
+            )
+        )
+        if "PROTEIN" in ing.density_class:
+            tot_prot += (portion / 100.0) * 25.0
+            tot_cal += (portion / 100.0) * 150.0
+        elif "CARB" in ing.density_class:
+            tot_carb += (portion / 100.0) * 25.0
+            tot_cal += (portion / 100.0) * 130.0
+        else:
+            tot_prot += (portion / 100.0) * 10.0
+            tot_carb += (portion / 100.0) * 15.0
+            tot_cal += (portion / 100.0) * 120.0
+
+    ing_names = " and ".join(i.name for i in ingredients_used)
+    recipe_name = f"Custom {meal_type.title()} Bowl with {ing_names}"
+    explanation = (
+        f"Recipe prepared using available pantry stock: {ing_names}. "
+        f"Designed for remaining needs ({needs.remaining_protein_g}g P / {needs.remaining_carbs_g}g C)."
+    )
+    return recipe_name, explanation, ingredients_used, tot_cal, tot_prot, tot_carb, tot_fat
+
+
+def _build_empty_fallback(
+    needs, meal_type: str
+) -> tuple[str, str, list[IngredientUsedOutput], float, float, float, float]:
+    """Build default recipe structure when pantry inventory is empty."""
+    ingredients_used = [
+        IngredientUsedOutput(
+            food_item_id=None,
+            name="Chicken Breast",
+            quantity_used=150.0,
+            unit="g",
+            is_from_inventory=False,
+        ),
+        IngredientUsedOutput(
+            food_item_id=None,
+            name="White Rice",
+            quantity_used=150.0,
+            unit="g",
+            is_from_inventory=False,
+        ),
+    ]
+    tot_cal, tot_prot, tot_carb, tot_fat = 420.0, 42.0, 45.0, 4.0
+    recipe_name = f"Quick Post-Workout {meal_type.title()} Bowl"
+    explanation = (
+        "Warning: Pantry empty. Recommendation based on standard store ingredients "
+        f"to meet target ({needs.remaining_protein_g}g protein)."
+    )
+    return recipe_name, explanation, ingredients_used, tot_cal, tot_prot, tot_carb, tot_fat
+
+
 def execute_recipe_node(payload: RecipeNodeInput) -> RecipeNodeOutput:
     """Execute recipe_node transforming structured inputs into a culinary proposal."""
     needs = payload.remaining_needs
@@ -24,65 +91,13 @@ def execute_recipe_node(payload: RecipeNodeInput) -> RecipeNodeOutput:
         constraints.meal_type if constraints and constraints.meal_type else "Meal"
     )
 
-    # Case 1: Inventory available
     if ingredients:
-        ingredients_used: list[IngredientUsedOutput] = []
-        tot_cal, tot_prot, tot_carb, tot_fat = 0.0, 0.0, 0.0, 0.0
-
-        for ing in ingredients[:3]:
-            # Estimate portion used up to available stock
-            portion = min(ing.available_quantity, 150.0)
-            ingredients_used.append(
-                IngredientUsedOutput(
-                    food_item_id=ing.food_item_id,
-                    name=ing.name,
-                    quantity_used=portion,
-                    unit=ing.unit,
-                    is_from_inventory=True,
-                )
-            )
-            # Standard nutritional contribution estimate
-            if "PROTEIN" in ing.density_class:
-                tot_prot += (portion / 100.0) * 25.0
-                tot_cal += (portion / 100.0) * 150.0
-            elif "CARB" in ing.density_class:
-                tot_carb += (portion / 100.0) * 25.0
-                tot_cal += (portion / 100.0) * 130.0
-            else:
-                tot_prot += (portion / 100.0) * 10.0
-                tot_carb += (portion / 100.0) * 15.0
-                tot_cal += (portion / 100.0) * 120.0
-
-        ing_names = " and ".join(i.name for i in ingredients_used)
-        recipe_name = f"Custom {meal_type.title()} Bowl with {ing_names}"
-        explanation = (
-            f"Recipe prepared using available pantry stock: {ing_names}. "
-            f"Designed for remaining needs ({needs.remaining_protein_g}g P / {needs.remaining_carbs_g}g C)."
+        recipe_name, explanation, ingredients_used, tot_cal, tot_prot, tot_carb, tot_fat = (
+            _build_from_inventory(ingredients, needs, meal_type)
         )
-
-    # Case 2: Empty inventory fallback
     else:
-        ingredients_used = [
-            IngredientUsedOutput(
-                food_item_id=None,
-                name="Chicken Breast",
-                quantity_used=150.0,
-                unit="g",
-                is_from_inventory=False,
-            ),
-            IngredientUsedOutput(
-                food_item_id=None,
-                name="White Rice",
-                quantity_used=150.0,
-                unit="g",
-                is_from_inventory=False,
-            ),
-        ]
-        tot_cal, tot_prot, tot_carb, tot_fat = 420.0, 42.0, 45.0, 4.0
-        recipe_name = f"Quick Post-Workout {meal_type.title()} Bowl"
-        explanation = (
-            "Warning: Pantry empty. Recommendation based on standard store ingredients "
-            f"to meet target ({needs.remaining_protein_g}g protein)."
+        recipe_name, explanation, ingredients_used, tot_cal, tot_prot, tot_carb, tot_fat = (
+            _build_empty_fallback(needs, meal_type)
         )
 
     if recovery and recovery.sport:
@@ -121,3 +136,4 @@ def execute_recipe_node(payload: RecipeNodeInput) -> RecipeNodeOutput:
         nutritional_fit_score=90.0,
         explanation=explanation,
     )
+

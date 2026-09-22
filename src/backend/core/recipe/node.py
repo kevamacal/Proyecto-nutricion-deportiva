@@ -47,7 +47,15 @@ def _build_from_inventory(
         f"Recipe prepared using available pantry stock: {ing_names}. "
         f"Designed for remaining needs ({needs.remaining_protein_g}g P / {needs.remaining_carbs_g}g C)."
     )
-    return recipe_name, explanation, ingredients_used, tot_cal, tot_prot, tot_carb, tot_fat
+    return (
+        recipe_name,
+        explanation,
+        ingredients_used,
+        tot_cal,
+        tot_prot,
+        tot_carb,
+        tot_fat,
+    )
 
 
 def _build_empty_fallback(
@@ -76,7 +84,15 @@ def _build_empty_fallback(
         "Warning: Pantry empty. Recommendation based on standard store ingredients "
         f"to meet target ({needs.remaining_protein_g}g protein)."
     )
-    return recipe_name, explanation, ingredients_used, tot_cal, tot_prot, tot_carb, tot_fat
+    return (
+        recipe_name,
+        explanation,
+        ingredients_used,
+        tot_cal,
+        tot_prot,
+        tot_carb,
+        tot_fat,
+    )
 
 
 def execute_recipe_node(payload: RecipeNodeInput) -> RecipeNodeOutput:
@@ -92,13 +108,25 @@ def execute_recipe_node(payload: RecipeNodeInput) -> RecipeNodeOutput:
     )
 
     if ingredients:
-        recipe_name, explanation, ingredients_used, tot_cal, tot_prot, tot_carb, tot_fat = (
-            _build_from_inventory(ingredients, needs, meal_type)
-        )
+        (
+            recipe_name,
+            explanation,
+            ingredients_used,
+            tot_cal,
+            tot_prot,
+            tot_carb,
+            tot_fat,
+        ) = _build_from_inventory(ingredients, needs, meal_type)
     else:
-        recipe_name, explanation, ingredients_used, tot_cal, tot_prot, tot_carb, tot_fat = (
-            _build_empty_fallback(needs, meal_type)
-        )
+        (
+            recipe_name,
+            explanation,
+            ingredients_used,
+            tot_cal,
+            tot_prot,
+            tot_carb,
+            tot_fat,
+        ) = _build_empty_fallback(needs, meal_type)
 
     if recovery and recovery.sport:
         explanation += f" Optimized for {recovery.sport} recovery."
@@ -136,4 +164,3 @@ def execute_recipe_node(payload: RecipeNodeInput) -> RecipeNodeOutput:
         nutritional_fit_score=90.0,
         explanation=explanation,
     )
-

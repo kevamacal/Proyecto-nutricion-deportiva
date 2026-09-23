@@ -387,8 +387,6 @@ const MainSPAContent: React.FC = () => {
         }}
         onSuccess={() => {
           evaluateAppState();
-          setTriggerQuery('Acabo de registrar una sesión de entrenamiento. ¿Qué me recomiendas cenar con mi inventario?');
-          setActiveTab('CHAT');
         }}
       />
 

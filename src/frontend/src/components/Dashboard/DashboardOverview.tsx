@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
   Utensils,
-  Dumbbell,
+  Activity,
   ShoppingBag,
   TrendingUp,
   ChevronRight,
@@ -10,9 +10,10 @@ import {
   Sparkles,
   Plus,
 } from 'lucide-react';
-import type { RemainingBalance, MacroBalance, PantryItem, LoggedMealEntry } from '../../types';
+import type { RemainingBalance, MacroBalance, PantryItem, LoggedMealEntry, LoggedActivityEntry } from '../../types';
 import { fetchLoggedMealsForDate } from '../../services/supabaseApi';
 import { LoggedMealCard } from '../Meals/LoggedMealCard';
+import { LoggedWorkoutsTimeline } from '../Sports/LoggedWorkoutsTimeline';
 
 interface DashboardOverviewProps {
   userId?: string;
@@ -21,9 +22,11 @@ interface DashboardOverviewProps {
   dailyTargets: MacroBalance;
   hydrationDemandMl: number;
   pantryItems: PantryItem[];
-  onOpenBasketball: () => void;
-  onOpenStrength: () => void;
+  loggedActivities: LoggedActivityEntry[];
+  onOpenWorkoutModal: () => void;
   onOpenMeal: () => void;
+  onEditActivity: (activity: LoggedActivityEntry) => void;
+  onDeleteActivity: (activityId: string) => Promise<void>;
   onNavigateTab: (tab: 'SCOREBOARD' | 'PANTRY' | 'PROFILE' | 'CHAT') => void;
   onSendChatQuery: (query: string) => void;
 }
@@ -55,9 +58,11 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
   dailyTargets,
   hydrationDemandMl,
   pantryItems,
-  onOpenBasketball,
-  onOpenStrength,
+  loggedActivities,
+  onOpenWorkoutModal,
   onOpenMeal,
+  onEditActivity,
+  onDeleteActivity,
   onNavigateTab,
   onSendChatQuery,
 }) => {
@@ -71,6 +76,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
         .catch((err) => console.error('Error fetching today logged meals:', err));
     }
   }, [userId, consumed.calories_kcal]);
+
   const eatenProt = Math.min(
     dailyTargets.protein_g,
     Math.round(consumed.protein_g)
@@ -146,39 +152,29 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
           </div>
         </div>
 
-        {/* Action Buttons Grid */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', marginTop: '0.5rem' }}>
+        {/* Action Buttons Grid - Unified Workout & Meal Entry */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.65rem', marginTop: '0.5rem' }}>
           <motion.button
             whileHover={{ scale: 1.01 }}
             whileTap={{ scale: 0.99 }}
-            onClick={onOpenBasketball}
+            onClick={onOpenWorkoutModal}
             className="btn-scoreboard"
-            style={{ width: '100%', padding: '0.9rem', justifyContent: 'center' }}
+            style={{ padding: '0.9rem', justifyContent: 'center', fontSize: '0.9rem', gap: '0.4rem' }}
           >
-            🏀 Registrar Baloncesto
+            <Activity size={18} /> Registrar Entreno
           </motion.button>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.65rem' }}>
-            <motion.button
-              whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.99 }}
-              onClick={onOpenStrength}
-              className="btn-scoreboard lake"
-              style={{ padding: '0.85rem', justifyContent: 'center', fontSize: '0.9rem' }}
-            >
-              <Dumbbell size={16} /> Gimnasio
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.99 }}
-              onClick={onOpenMeal}
-              className="btn-scoreboard secondary"
-              style={{ padding: '0.85rem', justifyContent: 'center', fontSize: '0.9rem' }}
-            >
-              <Utensils size={16} /> Comida
-            </motion.button>
-          </div>
+          <motion.button
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.99 }}
+            onClick={onOpenMeal}
+            className="btn-scoreboard secondary"
+            style={{ padding: '0.9rem', justifyContent: 'center', fontSize: '0.9rem', gap: '0.4rem' }}
+          >
+            <Utensils size={18} /> Registrar Comida
+          </motion.button>
         </div>
       </motion.div>
+
 
       {/* 2. MACRONUTRIENT FUEL GAUGE CARD */}
       <motion.div variants={itemVariants} className="panel-card" style={{ borderTop: '3px solid var(--accent-lake)' }}>
@@ -245,8 +241,19 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
         </div>
       </motion.div>
 
-      {/* 3. DAILY CONSUMPTION TIMELINE CARD */}
+      {/* 3. LOGGED WORKOUTS TIMELINE CARD */}
+      <motion.div variants={itemVariants}>
+        <LoggedWorkoutsTimeline
+          activities={loggedActivities}
+          onOpenModal={onOpenWorkoutModal}
+          onEditActivity={onEditActivity}
+          onDeleteActivity={onDeleteActivity}
+        />
+      </motion.div>
+
+      {/* 4. DAILY CONSUMPTION TIMELINE CARD */}
       <motion.div variants={itemVariants} className="panel-card" style={{ borderTop: '3px solid #00E676' }}>
+
         <div className="panel-header">
           <h3 className="panel-title">
             <Utensils size={20} style={{ color: '#00E676' }} /> Línea de Ingesta Diaria ({loggedMeals.length})

@@ -127,3 +127,59 @@ export interface LoggedMealEntry {
   items?: LoggedMealItem[];
 }
 
+export interface StrengthExerciseSet {
+  id: string;
+  exercise_name: string;
+  reps: number;
+  weight_kg: number;
+  rpe?: number;
+  rest_seconds?: number;
+}
+
+export interface BasketballLogPayload {
+  duration_minutes: number;
+  session_category: 'TRAINING' | 'MATCH';
+  intensity: 'LOW' | 'MEDIUM' | 'HIGH' | 'VERY_HIGH';
+  notes?: string;
+}
+
+export interface StrengthLogPayload {
+  duration_minutes: number;
+  training_type: 'HYPERTROPHY' | 'STRENGTH' | 'POWER' | 'HYBRID' | 'ENDURANCE';
+  intensity: 'LOW' | 'MEDIUM' | 'HIGH' | 'VERY_HIGH';
+  muscle_groups: string[];
+  sets: StrengthExerciseSet[];
+  total_volume_kg: number;
+  total_sets: number;
+  total_reps: number;
+  notes?: string;
+}
+
+export interface LoggedActivityEntry {
+  id: string;
+  user_id: string;
+  sport: 'BASKETBALL' | 'STRENGTH_TRAINING';
+  session_type: string;
+  duration_minutes: number;
+  intensity: 'LOW' | 'MEDIUM' | 'HIGH' | 'VERY_HIGH';
+  date: string;
+  estimated_expenditure_kcal: number;
+  basketball_details?: {
+    id?: string;
+    session_category: 'TRAINING' | 'MATCH';
+    carb_demand_g: number;
+    hydration_demand_ml: number;
+    recovery_priority: string;
+  };
+  strength_details?: {
+    id?: string;
+    training_type: 'HYPERTROPHY' | 'STRENGTH' | 'POWER' | 'HYBRID' | 'ENDURANCE';
+    protein_demand_g: number;
+    targeted_muscle_groups?: string[];
+    total_volume_kg?: number;
+    total_sets?: number;
+    total_reps?: number;
+  };
+}
+
+

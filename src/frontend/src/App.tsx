@@ -10,16 +10,17 @@ import { ProfileWizard } from './components/Flow/ProfileWizard';
 import { TargetsConfirmation } from './components/Flow/TargetsConfirmation';
 import { GuidedPantrySetup } from './components/Flow/GuidedPantrySetup';
 import { AuthScreen } from './components/Auth/AuthScreen';
-import { BasketballLogModal } from './components/Sports/BasketballLogModal';
-import { StrengthLogModal } from './components/Sports/StrengthLogModal';
+import { WorkoutLoggingModal } from './components/Sports/WorkoutLoggingModal';
 import { MealLoggingModal } from './components/Meals/MealLoggingModal';
-import type { RemainingBalance, PantryItem, AgentQueryResult, MacroBalance } from './types';
+import type { RemainingBalance, PantryItem, AgentQueryResult, MacroBalance, LoggedActivityEntry } from './types';
 import type { CanonicalAppState, CalculatedTargetsData } from './types/flow';
 import { calculateTargets } from './services/api';
 import {
   fetchDailySummary,
   fetchPantryInventory,
   deletePantryItem,
+  fetchLoggedActivitiesForDate,
+  deleteActivitySession,
 } from './services/supabaseApi';
 import { User, Bot, ShoppingBag, Trophy, Activity } from 'lucide-react';
 
@@ -36,9 +37,10 @@ const MainSPAContent: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'SCOREBOARD' | 'PANTRY' | 'PROFILE' | 'CHAT'>('SCOREBOARD');
 
   // Modals state
-  const [isBasketballOpen, setIsBasketballOpen] = useState(false);
-  const [isStrengthOpen, setIsStrengthOpen] = useState(false);
+  const [isWorkoutModalOpen, setIsWorkoutModalOpen] = useState(false);
+  const [selectedWorkoutToEdit, setSelectedWorkoutToEdit] = useState<LoggedActivityEntry | null>(null);
   const [isMealOpen, setIsMealOpen] = useState(false);
+  const [loggedActivities, setLoggedActivities] = useState<LoggedActivityEntry[]>([]);
 
   // Targets from Auth Context or fallback
   const dailyTargets: MacroBalance = user?.targets
@@ -107,6 +109,14 @@ const MainSPAContent: React.FC = () => {
       const items = await fetchPantryInventory(user.id);
       setPantryItems(items);
 
+      // Check logged activities for today
+      const activities = await fetchLoggedActivitiesForDate(user.id, TODAY_DATE);
+      setLoggedActivities(activities);
+
+      const activeKcalBurned = activities.reduce((acc, a) => acc + (a.estimated_expenditure_kcal || 0), 0);
+      const totalHydrationDemand = activities.reduce((acc, a) => acc + (a.basketball_details?.hydration_demand_ml || 0), 0);
+      setHydrationDemandMl(totalHydrationDemand);
+
       if (items.length === 0) {
         setAppState('PANTRY_EMPTY_GUIDED');
         return;
@@ -121,7 +131,8 @@ const MainSPAContent: React.FC = () => {
         fat_g: summary.consumed_fat_g,
       });
 
-      const remCal = Math.max(0, dailyTargets.calories_kcal - summary.consumed_calories_kcal);
+      const adjustedCaloriesTarget = dailyTargets.calories_kcal + activeKcalBurned;
+      const remCal = Math.max(0, adjustedCaloriesTarget - summary.consumed_calories_kcal);
       const remProt = Math.max(0, dailyTargets.protein_g - summary.consumed_protein_g);
       const remCarb = Math.max(0, dailyTargets.carbohydrates_g - summary.consumed_carbohydrates_g);
       const remFat = Math.max(0, dailyTargets.fat_g - summary.consumed_fat_g);
@@ -133,7 +144,7 @@ const MainSPAContent: React.FC = () => {
         remaining_fat_g: remFat,
       });
 
-      if (summary.meals_logged_count === 0 && summary.consumed_calories_kcal === 0) {
+      if (summary.meals_logged_count === 0 && summary.consumed_calories_kcal === 0 && activities.length === 0) {
         setAppState('ACTIVE_NO_LOGS_TODAY');
       } else {
         setAppState('ACTIVE_IN_PROGRESS');
@@ -192,6 +203,20 @@ const MainSPAContent: React.FC = () => {
   const handleSendChatQuery = (queryText: string) => {
     setTriggerQuery(queryText);
     setActiveTab('CHAT');
+  };
+
+  const handleOpenWorkoutModal = (activityToEdit?: LoggedActivityEntry | null) => {
+    setSelectedWorkoutToEdit(activityToEdit || null);
+    setIsWorkoutModalOpen(true);
+  };
+
+  const handleDeleteActivitySession = async (activityId: string) => {
+    try {
+      await deleteActivitySession(activityId);
+      await evaluateAppState();
+    } catch (err) {
+      console.error('Error deleting activity session:', err);
+    }
   };
 
   // Loading screen while AuthContext initializes or state machine evaluates profile/inventory
@@ -289,9 +314,11 @@ const MainSPAContent: React.FC = () => {
                 dailyTargets={dailyTargets}
                 hydrationDemandMl={hydrationDemandMl}
                 pantryItems={pantryItems}
-                onOpenBasketball={() => setIsBasketballOpen(true)}
-                onOpenStrength={() => setIsStrengthOpen(true)}
+                loggedActivities={loggedActivities}
+                onOpenWorkoutModal={() => handleOpenWorkoutModal(null)}
                 onOpenMeal={() => setIsMealOpen(true)}
+                onEditActivity={(activity) => handleOpenWorkoutModal(activity)}
+                onDeleteActivity={handleDeleteActivitySession}
                 onNavigateTab={(tab) => setActiveTab(tab)}
                 onSendChatQuery={handleSendChatQuery}
               />
@@ -311,8 +338,7 @@ const MainSPAContent: React.FC = () => {
                 items={pantryItems}
                 userId={user.id}
                 onRefresh={evaluateAppState}
-                onQuickBasketball={() => setIsBasketballOpen(true)}
-                onQuickGym={() => setIsStrengthOpen(true)}
+                onQuickWorkout={() => handleOpenWorkoutModal(null)}
                 onDeleteItem={handleDeleteItem}
                 onMealLogged={evaluateAppState}
               />
@@ -351,24 +377,17 @@ const MainSPAContent: React.FC = () => {
         </AnimatePresence>
       </main>
 
-      {/* Sports & Meal Logging Modals */}
-      <BasketballLogModal
-        isOpen={isBasketballOpen}
-        onClose={() => setIsBasketballOpen(false)}
-        onSuccess={(hydration) => {
-          setHydrationDemandMl(hydration);
-          evaluateAppState();
-          setTriggerQuery('Acabo de jugar al baloncesto. ¿Qué puedo cenar con mi despensa para recuperarme?');
-          setActiveTab('CHAT');
+      {/* Unified Workout & Meal Logging Modals */}
+      <WorkoutLoggingModal
+        isOpen={isWorkoutModalOpen}
+        initialActivity={selectedWorkoutToEdit}
+        onClose={() => {
+          setIsWorkoutModalOpen(false);
+          setSelectedWorkoutToEdit(null);
         }}
-      />
-
-      <StrengthLogModal
-        isOpen={isStrengthOpen}
-        onClose={() => setIsStrengthOpen(false)}
         onSuccess={() => {
           evaluateAppState();
-          setTriggerQuery('Terminé mi entrenamiento de fuerza. ¿Qué comida post-entreno me recomiendas según mi inventario?');
+          setTriggerQuery('Acabo de registrar una sesión de entrenamiento. ¿Qué me recomiendas cenar con mi inventario?');
           setActiveTab('CHAT');
         }}
       />
@@ -378,6 +397,7 @@ const MainSPAContent: React.FC = () => {
         onClose={() => setIsMealOpen(false)}
         onSuccess={evaluateAppState}
       />
+
 
       {/* Mobile Fixed Bottom Navigation Bar */}
       <nav className="mobile-bottom-nav">

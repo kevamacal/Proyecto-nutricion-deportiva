@@ -792,4 +792,137 @@ export async function deleteActivitySession(activityId: string): Promise<void> {
   }
 }
 
+export interface LogActivitySessionPayload {
+  user_id: string;
+  sport: 'BASKETBALL' | 'STRENGTH_TRAINING';
+  session_type: string;
+  duration_minutes: number;
+  intensity: 'LOW' | 'MEDIUM' | 'HIGH' | 'VERY_HIGH';
+  estimated_expenditure_kcal: number;
+  basketball_details?: {
+    session_category: 'TRAINING' | 'MATCH';
+    carb_demand_g: number;
+    hydration_demand_ml: number;
+    recovery_priority: string;
+  };
+  strength_details?: {
+    training_type: 'HYPERTROPHY' | 'STRENGTH' | 'POWER' | 'HYBRID' | 'ENDURANCE';
+    protein_demand_g: number;
+    targeted_muscle_groups: string[];
+    total_volume_kg: number;
+    total_sets: number;
+    total_reps: number;
+  };
+}
+
+/**
+ * Log a new activity session directly into Supabase (activities + specialization table).
+ */
+export async function logActivitySession(payload: LogActivitySessionPayload): Promise<any> {
+  const { data: activity, error: actErr } = await supabase
+    .from('activities')
+    .insert([
+      {
+        user_id: payload.user_id,
+        sport: payload.sport,
+        session_type: payload.session_type,
+        duration_minutes: payload.duration_minutes,
+        intensity: payload.intensity,
+        estimated_expenditure_kcal: payload.estimated_expenditure_kcal,
+      },
+    ])
+    .select()
+    .single();
+
+  if (actErr) {
+    console.error('Error inserting activity to Supabase:', actErr.message);
+    throw actErr;
+  }
+
+  if (payload.sport === 'BASKETBALL' && payload.basketball_details) {
+    const { error: bballErr } = await supabase.from('basketball_activities').insert([
+      {
+        activity_id: activity.id,
+        session_category: payload.basketball_details.session_category,
+        carb_demand_g: payload.basketball_details.carb_demand_g,
+        hydration_demand_ml: payload.basketball_details.hydration_demand_ml,
+        recovery_priority: payload.basketball_details.recovery_priority,
+      },
+    ]);
+    if (bballErr) {
+      console.error('Error inserting basketball_activity details to Supabase:', bballErr.message);
+    }
+  } else if (payload.sport === 'STRENGTH_TRAINING' && payload.strength_details) {
+    const { error: strErr } = await supabase.from('strength_training_activities').insert([
+      {
+        activity_id: activity.id,
+        training_type: payload.strength_details.training_type,
+        protein_demand_g: payload.strength_details.protein_demand_g,
+        targeted_muscle_groups: payload.strength_details.targeted_muscle_groups,
+        total_volume_kg: payload.strength_details.total_volume_kg,
+        total_sets: payload.strength_details.total_sets,
+        total_reps: payload.strength_details.total_reps,
+      },
+    ]);
+    if (strErr) {
+      console.error('Error inserting strength_training_activity details to Supabase:', strErr.message);
+    }
+  }
+
+  return activity;
+}
+
+/**
+ * Update an existing activity session in Supabase.
+ */
+export async function updateActivitySession(
+  activityId: string,
+  payload: LogActivitySessionPayload
+): Promise<any> {
+  const { data: activity, error: actErr } = await supabase
+    .from('activities')
+    .update({
+      sport: payload.sport,
+      session_type: payload.session_type,
+      duration_minutes: payload.duration_minutes,
+      intensity: payload.intensity,
+      estimated_expenditure_kcal: payload.estimated_expenditure_kcal,
+    })
+    .eq('id', activityId)
+    .select()
+    .single();
+
+  if (actErr) {
+    console.error('Error updating activity in Supabase:', actErr.message);
+    throw actErr;
+  }
+
+  if (payload.sport === 'BASKETBALL' && payload.basketball_details) {
+    await supabase
+      .from('basketball_activities')
+      .update({
+        session_category: payload.basketball_details.session_category,
+        carb_demand_g: payload.basketball_details.carb_demand_g,
+        hydration_demand_ml: payload.basketball_details.hydration_demand_ml,
+        recovery_priority: payload.basketball_details.recovery_priority,
+      })
+      .eq('activity_id', activityId);
+  } else if (payload.sport === 'STRENGTH_TRAINING' && payload.strength_details) {
+    await supabase
+      .from('strength_training_activities')
+      .update({
+        training_type: payload.strength_details.training_type,
+        protein_demand_g: payload.strength_details.protein_demand_g,
+        targeted_muscle_groups: payload.strength_details.targeted_muscle_groups,
+        total_volume_kg: payload.strength_details.total_volume_kg,
+        total_sets: payload.strength_details.total_sets,
+        total_reps: payload.strength_details.total_reps,
+      })
+      .eq('activity_id', activityId);
+  }
+
+  return activity;
+}
+
+
 

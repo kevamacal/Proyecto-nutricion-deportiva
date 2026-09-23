@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Trophy, Dumbbell, Flame, Droplet, Plus, Trash2, Activity, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { logActivity } from '../../services/api';
+import { logActivitySession, updateActivitySession } from '../../services/supabaseApi';
 import { BaseModal } from '../Common/BaseModal';
 import type { LoggedActivityEntry, StrengthExerciseSet } from '../../types';
 
@@ -131,13 +131,47 @@ export const WorkoutLoggingModal: React.FC<WorkoutLoggingModalProps> = ({
     setError(null);
 
     try {
-      await logActivity({
+      const sessionType =
+        sport === 'BASKETBALL'
+          ? sessionCategory === 'MATCH'
+            ? 'Partido Oficial / Pachanga'
+            : 'Entrenamiento / Tiros'
+          : trainingType;
+
+      const payload = {
         user_id: user?.id || 'demo-user-id',
-        sport_type: sport,
+        sport,
+        session_type: sessionType,
         duration_minutes: durationMinutes,
-        weight_kg: athleteWeightKg,
-        intensity: intensity.toLowerCase(),
-      });
+        intensity,
+        estimated_expenditure_kcal: estActiveCalories,
+        basketball_details:
+          sport === 'BASKETBALL'
+            ? {
+                session_category: sessionCategory,
+                carb_demand_g: Math.round(athleteWeightKg * (sessionCategory === 'MATCH' ? 1.2 : 1.0)),
+                hydration_demand_ml: estHydrationMl,
+                recovery_priority: 'GLYCOGEN_REPLETON_AND_HYDRATION',
+              }
+            : undefined,
+        strength_details:
+          sport === 'STRENGTH_TRAINING'
+            ? {
+                training_type: trainingType,
+                protein_demand_g: estProteinDemandG,
+                targeted_muscle_groups: muscleGroups.split(',').map((m) => m.trim()).filter(Boolean),
+                total_volume_kg: totalVolumeKg,
+                total_sets: totalSetsCount,
+                total_reps: totalRepsCount,
+              }
+            : undefined,
+      };
+
+      if (initialActivity) {
+        await updateActivitySession(initialActivity.id, payload);
+      } else {
+        await logActivitySession(payload);
+      }
 
       onSuccess();
       onClose();
@@ -148,6 +182,7 @@ export const WorkoutLoggingModal: React.FC<WorkoutLoggingModalProps> = ({
       setLoading(false);
     }
   };
+
 
   return (
     <BaseModal

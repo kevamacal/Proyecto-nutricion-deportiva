@@ -6,6 +6,7 @@
 
 import { supabase } from '../lib/supabase';
 import type { PantryItem, LoggedMealEntry } from '../types';
+import { mapMealRowToLoggedMealEntry, resolveServingSize } from '../utils/nutritionUtils';
 
 export interface CatalogFoodItem {
   id?: string;
@@ -249,9 +250,6 @@ export async function fetchFoodCatalog(): Promise<CatalogFoodItem[]> {
       ? item.nutritional_information[0]
       : item.nutritional_information;
 
-    const isUnitBased = ['unit', 'unidad', 'unidades', 'porción', 'porcion', 'pieza', 'piezas'].includes((item.default_unit || '').toLowerCase());
-    const defaultServingSize = isUnitBased ? 1 : 100;
-
     return {
       id: item.id,
       food_item_id: item.id,
@@ -260,7 +258,7 @@ export async function fetchFoodCatalog(): Promise<CatalogFoodItem[]> {
       default_unit: item.default_unit || 'g',
       is_custom: item.is_custom || false,
       nutrition: {
-        serving_size: (nutr?.serving_size && nutr.serving_size > 0) ? nutr.serving_size : defaultServingSize,
+        serving_size: resolveServingSize(nutr?.serving_size, item.default_unit),
         calories_kcal: nutr?.calories_kcal || 0,
         protein_g: nutr?.protein_g || 0,
         carbohydrates_g: nutr?.carbohydrates_g || 0,
@@ -364,9 +362,6 @@ export async function fetchPantryInventory(userId: string): Promise<PantryItem[]
     else if (carbs > 20) densityClass = 'CARB_DENSE';
     else if (fat > 12) densityClass = 'FAT_DENSE';
 
-    const isPantryUnitBased = ['unit', 'unidad', 'unidades', 'porción', 'porcion', 'pieza', 'piezas'].includes((food?.default_unit || row.unit || '').toLowerCase());
-    const defaultServingSize = isPantryUnitBased ? 1 : 100;
-
     return {
       inventory_item_id: row.id,
       food_item_id: row.food_item_id,
@@ -380,7 +375,7 @@ export async function fetchPantryInventory(userId: string): Promise<PantryItem[]
       density_class: densityClass,
       nutrition: nutr
         ? {
-          serving_size: (nutr.serving_size && nutr.serving_size > 0) ? nutr.serving_size : defaultServingSize,
+          serving_size: resolveServingSize(nutr.serving_size, food?.default_unit || row.unit),
           calories_kcal: nutr.calories_kcal || 0,
           protein_g: nutr.protein_g || 0,
           carbohydrates_g: nutr.carbohydrates_g || 0,
@@ -594,30 +589,7 @@ export async function fetchLoggedMealsForDate(userId: string, dateStr: string): 
     return [];
   }
 
-  return (data || []).map((row: any) => ({
-    id: row.id,
-    user_id: row.user_id,
-    meal_type: row.meal_type,
-    name: row.name || undefined,
-    logged_at: row.logged_at,
-    total_calories_kcal: row.total_calories_kcal,
-    total_protein_g: row.total_protein_g,
-    total_carbs_g: row.total_carbs_g,
-    total_fat_g: row.total_fat_g,
-    notes: row.notes || undefined,
-    items: (row.meal_items || []).map((mi: any) => ({
-      id: mi.id,
-      meal_id: mi.meal_id,
-      food_item_id: mi.food_item_id,
-      name: mi.food_items?.name || 'Ingrediente',
-      quantity: mi.quantity,
-      unit: mi.unit,
-      calories_kcal: mi.calories_kcal,
-      protein_g: mi.protein_g,
-      carbohydrates_g: mi.carbohydrates_g,
-      fat_g: mi.fat_g,
-    })),
-  }));
+  return (data || []).map(mapMealRowToLoggedMealEntry);
 }
 
 /**
@@ -636,30 +608,7 @@ export async function fetchRecentUserMeals(userId: string): Promise<LoggedMealEn
     return [];
   }
 
-  return (data || []).map((row: any) => ({
-    id: row.id,
-    user_id: row.user_id,
-    meal_type: row.meal_type,
-    name: row.name || undefined,
-    logged_at: row.logged_at,
-    total_calories_kcal: row.total_calories_kcal,
-    total_protein_g: row.total_protein_g,
-    total_carbs_g: row.total_carbs_g,
-    total_fat_g: row.total_fat_g,
-    notes: row.notes || undefined,
-    items: (row.meal_items || []).map((mi: any) => ({
-      id: mi.id,
-      meal_id: mi.meal_id,
-      food_item_id: mi.food_item_id,
-      name: mi.food_items?.name || 'Ingrediente',
-      quantity: mi.quantity,
-      unit: mi.unit,
-      calories_kcal: mi.calories_kcal,
-      protein_g: mi.protein_g,
-      carbohydrates_g: mi.carbohydrates_g,
-      fat_g: mi.fat_g,
-    })),
-  }));
+  return (data || []).map(mapMealRowToLoggedMealEntry);
 }
 
 /**

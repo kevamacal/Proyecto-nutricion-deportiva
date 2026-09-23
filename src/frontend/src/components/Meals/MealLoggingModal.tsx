@@ -12,6 +12,8 @@ import type { LoggedMealEntry, PantryItem } from '../../types';
 import { FoodSelectorModal, type SelectedBatchItem } from '../Food/FoodSelectorModal';
 import { FoodCategoryBadge } from '../Common/FoodCategoryBadge';
 import { BaseModal } from '../Common/BaseModal';
+import { formatEnumLabel, MEAL_TYPE_LABELS } from '../../utils/enumMappers';
+import { isUnitBased, resolveServingSize } from '../../utils/nutritionUtils';
 
 interface DraftIngredient {
   id: string;
@@ -102,18 +104,8 @@ export const MealLoggingModal: React.FC<MealLoggingModalProps> = ({
     fat: Math.round(calculatedTotals.fat * 10) / 10,
   };
 
-  const isUnitBasedName = (unitName?: string) => {
-    if (!unitName) return false;
-    const u = unitName.toLowerCase();
-    return ['unit', 'unidad', 'unidades', 'porción', 'porcion', 'pieza', 'piezas', 'lata', 'latas', 'envase'].includes(u);
-  };
-
   const getBaseServingSize = (food?: CatalogFoodItem, selectedUnit?: string) => {
-    if (food?.nutrition?.serving_size && food.nutrition.serving_size > 0) {
-      return food.nutrition.serving_size;
-    }
-    const unitToTest = selectedUnit || food?.default_unit || 'g';
-    return isUnitBasedName(unitToTest) ? 1 : 100;
+    return resolveServingSize(food?.nutrition?.serving_size, selectedUnit || food?.default_unit);
   };
 
   const handleBatchSelectIngredients = (items: SelectedBatchItem[]) => {
@@ -139,7 +131,7 @@ export const MealLoggingModal: React.FC<MealLoggingModalProps> = ({
 
   const handleSingleSelectIngredient = (food: CatalogFoodItem) => {
     const defaultUnit = food.default_unit || 'g';
-    const isUnit = isUnitBasedName(defaultUnit);
+    const isUnit = isUnitBased(defaultUnit);
     const defaultQty = isUnit ? (food.nutrition?.serving_size && food.nutrition.serving_size < 50 ? food.nutrition.serving_size : 1) : 100;
 
     const newIng: DraftIngredient = {
@@ -635,14 +627,7 @@ export const MealLoggingModal: React.FC<MealLoggingModalProps> = ({
                 </div>
               ) : (
                 recentMeals.map((meal) => {
-                  const slotLabelMap: Record<string, string> = {
-                    BREAKFAST: 'Desayuno',
-                    LUNCH: 'Almuerzo / Comida',
-                    DINNER: 'Cena',
-                    SNACK: 'Merienda / Snack',
-                    POST_WORKOUT: 'Post-Entrenamiento',
-                  };
-                  const slotTitle = slotLabelMap[meal.meal_type] || meal.meal_type;
+                  const slotTitle = formatEnumLabel(meal.meal_type, MEAL_TYPE_LABELS);
                   const displayName = meal.name || slotTitle;
 
                   return (

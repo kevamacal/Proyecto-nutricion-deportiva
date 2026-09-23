@@ -14,6 +14,7 @@ import {
 import type { RemainingBalance, MacroBalance, PantryItem, LoggedMealEntry } from '../../types';
 import { fetchLoggedMealsForDate } from '../../services/supabaseApi';
 import { FoodCategoryBadge } from '../Common/FoodCategoryBadge';
+import { formatEnumLabel, MEAL_TYPE_LABELS } from '../../utils/enumMappers';
 
 interface DashboardOverviewProps {
   userId?: string;
@@ -286,15 +287,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
               {loggedMeals.map((meal) => {
                 const mealTime = meal.logged_at ? new Date(meal.logged_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--';
-                const slotLabelMap: Record<string, string> = {
-                  BREAKFAST: 'Desayuno',
-                  LUNCH: 'Almuerzo / Comida',
-                  DINNER: 'Cena',
-                  SNACK: 'Merienda / Snack',
-                  POST_WORKOUT: 'Post-Entrenamiento',
-                };
-
-                const slotTitle = slotLabelMap[meal.meal_type] || meal.meal_type;
+                const slotTitle = formatEnumLabel(meal.meal_type, MEAL_TYPE_LABELS);
                 const displayName = meal.name || slotTitle;
 
                 return (

@@ -3,6 +3,7 @@ import { Search, Utensils, Filter, Check, Trash2, Plus, ShoppingBag, PlusCircle,
 import { createCustomFoodItem, type CatalogFoodItem, type CreateCustomFoodPayload } from '../../services/supabaseApi';
 import { getFoodMeta, getCategoryMeta } from './foodMeta';
 import { BaseModal } from '../Common/BaseModal';
+import { isUnitBased } from '../../utils/nutritionUtils';
 
 import type { PantryItem } from '../../types';
 
@@ -476,9 +477,8 @@ export const FoodSelectorModal: React.FC<FoodSelectorModalProps> = ({
       if (next[foodId]) {
         delete next[foodId];
       } else {
-        const normalizedUnit = (food.default_unit || 'g').toLowerCase();
-        const isUnitBased = ['unit', 'unidad', 'unidades', 'porción', 'porcion'].includes(normalizedUnit);
-        const defaultQty = isUnitBased ? (food.nutrition?.serving_size && food.nutrition.serving_size < 50 ? food.nutrition.serving_size : 1) : (food.nutrition?.serving_size || 100);
+        const isUnit = isUnitBased(food.default_unit);
+        const defaultQty = isUnit ? (food.nutrition?.serving_size && food.nutrition.serving_size < 50 ? food.nutrition.serving_size : 1) : (food.nutrition?.serving_size || 100);
 
         next[foodId] = {
           food,

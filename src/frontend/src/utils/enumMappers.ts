@@ -6,10 +6,10 @@
 
 export const MEAL_TYPE_LABELS: Record<string, string> = {
   BREAKFAST: 'Desayuno',
-  LUNCH: 'Almuerzo',
+  LUNCH: 'Almuerzo / Comida',
   DINNER: 'Cena',
-  SNACK: 'Merienda',
-  POST_WORKOUT: 'Post-Entreno',
+  SNACK: 'Merienda / Snack',
+  POST_WORKOUT: 'Post-Entrenamiento',
 };
 
 export const DENSITY_CLASS_LABELS: Record<string, string> = {

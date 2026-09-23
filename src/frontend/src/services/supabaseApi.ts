@@ -5,7 +5,8 @@
  */
 
 import { supabase } from '../lib/supabase';
-import type { PantryItem } from '../types';
+import type { PantryItem, LoggedMealEntry } from '../types';
+import { mapMealRowToLoggedMealEntry, resolveServingSize } from '../utils/nutritionUtils';
 
 export interface CatalogFoodItem {
   id?: string;
@@ -65,13 +66,16 @@ export interface AddPantryItemPayload {
 export interface LogMealPayload {
   user_id: string;
   meal_type: string;
+  name?: string;
+  image_url?: string;
   total_calories_kcal: number;
   total_protein_g: number;
   total_carbs_g: number;
   total_fat_g: number;
   notes?: string;
   items?: Array<{
-    food_item_id: string;
+    food_item_id?: string | null;
+    name?: string;
     quantity: number;
     unit: string;
     calories_kcal: number;
@@ -254,7 +258,7 @@ export async function fetchFoodCatalog(): Promise<CatalogFoodItem[]> {
       default_unit: item.default_unit || 'g',
       is_custom: item.is_custom || false,
       nutrition: {
-        serving_size: nutr?.serving_size || 100,
+        serving_size: resolveServingSize(nutr?.serving_size, item.default_unit),
         calories_kcal: nutr?.calories_kcal || 0,
         protein_g: nutr?.protein_g || 0,
         carbohydrates_g: nutr?.carbohydrates_g || 0,
@@ -371,7 +375,7 @@ export async function fetchPantryInventory(userId: string): Promise<PantryItem[]
       density_class: densityClass,
       nutrition: nutr
         ? {
-          serving_size: nutr.serving_size || 100,
+          serving_size: resolveServingSize(nutr.serving_size, food?.default_unit || row.unit),
           calories_kcal: nutr.calories_kcal || 0,
           protein_g: nutr.protein_g || 0,
           carbohydrates_g: nutr.carbohydrates_g || 0,
@@ -566,22 +570,111 @@ export async function fetchDailySummary(userId: string, dateStr: string) {
 }
 
 /**
- * Log a new meal entry in Supabase.
+ * Fetch detailed logged meals with items for a specific user and date.
+ */
+export async function fetchLoggedMealsForDate(userId: string, dateStr: string): Promise<LoggedMealEntry[]> {
+  const startOfDay = `${dateStr}T00:00:00.000Z`;
+  const endOfDay = `${dateStr}T23:59:59.999Z`;
+
+  const { data, error } = await supabase
+    .from('meals')
+    .select('*, meal_items(*, food_items(name, category))')
+    .eq('user_id', userId)
+    .gte('logged_at', startOfDay)
+    .lte('logged_at', endOfDay)
+    .order('logged_at', { ascending: true });
+
+  if (error) {
+    console.error('Error fetching logged meals for date from Supabase:', error.message);
+    return [];
+  }
+
+  return (data || []).map(mapMealRowToLoggedMealEntry);
+}
+
+/**
+ * Fetch recent logged meals for a user to allow 1-click repetition.
+ */
+export async function fetchRecentUserMeals(userId: string): Promise<LoggedMealEntry[]> {
+  const { data, error } = await supabase
+    .from('meals')
+    .select('*, meal_items(*, food_items(name, category))')
+    .eq('user_id', userId)
+    .order('logged_at', { ascending: false })
+    .limit(10);
+
+  if (error) {
+    console.error('Error fetching recent user meals from Supabase:', error.message);
+    return [];
+  }
+
+  return (data || []).map(mapMealRowToLoggedMealEntry);
+}
+
+/**
+ * Deduct consumed food quantities from the user's available pantry inventory in Supabase.
+ * If remaining quantity reaches 0, updates status to 'CONSUMED'.
+ */
+export async function deductPantryInventory(
+  userId: string,
+  consumedItems: Array<{ food_item_id?: string | null; quantity: number }>
+): Promise<void> {
+  if (!userId || !consumedItems || consumedItems.length === 0) return;
+
+  try {
+    const { data: availableStock, error } = await supabase
+      .from('inventory_items')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('status', 'AVAILABLE');
+
+    if (error || !availableStock) {
+      console.warn('Could not fetch inventory stock for deduction:', error?.message);
+      return;
+    }
+
+    for (const item of consumedItems) {
+      if (!item.food_item_id || item.quantity <= 0) continue;
+
+      const row = availableStock.find((r) => r.food_item_id === item.food_item_id);
+      if (row) {
+        const currentQty = Number(row.quantity) || 0;
+        const newQty = Math.max(0, currentQty - Number(item.quantity));
+        const newStatus = newQty === 0 ? 'CONSUMED' : 'AVAILABLE';
+
+        await supabase
+          .from('inventory_items')
+          .update({
+            quantity: newQty,
+            status: newStatus,
+          })
+          .eq('id', row.id);
+      }
+    }
+  } catch (err) {
+    console.error('Error deducting pantry inventory:', err);
+  }
+}
+
+/**
+ * Log a new meal entry in Supabase and automatically deduct consumed stock from pantry inventory.
  */
 export async function logMeal(payload: LogMealPayload): Promise<any> {
+  const insertPayload: Record<string, any> = {
+    user_id: payload.user_id,
+    meal_type: payload.meal_type || 'POST_WORKOUT',
+    total_calories_kcal: payload.total_calories_kcal,
+    total_protein_g: payload.total_protein_g,
+    total_carbs_g: payload.total_carbs_g,
+    total_fat_g: payload.total_fat_g,
+    notes: payload.notes || null,
+  };
+
+  if (payload.name) insertPayload.name = payload.name;
+
   const { data: meal, error: mealErr } = await supabase
     .from('meals')
-    .insert([
-      {
-        user_id: payload.user_id,
-        meal_type: payload.meal_type || 'POST_WORKOUT',
-        total_calories_kcal: payload.total_calories_kcal,
-        total_protein_g: payload.total_protein_g,
-        total_carbs_g: payload.total_carbs_g,
-        total_fat_g: payload.total_fat_g,
-        notes: payload.notes || null,
-      },
-    ])
+    .insert([insertPayload])
     .select()
     .single();
 
@@ -591,22 +684,31 @@ export async function logMeal(payload: LogMealPayload): Promise<any> {
   }
 
   if (payload.items && payload.items.length > 0) {
-    const mealItems = payload.items.map((item) => ({
-      meal_id: meal.id,
-      food_item_id: item.food_item_id,
-      quantity: item.quantity,
-      unit: item.unit,
-      calories_kcal: item.calories_kcal,
-      protein_g: item.protein_g,
-      carbohydrates_g: item.carbohydrates_g,
-      fat_g: item.fat_g,
-    }));
+    // Filter items to ensure food_item_id is valid UUID if provided
+    const mealItems = payload.items
+      .filter((item) => item.food_item_id)
+      .map((item) => ({
+        meal_id: meal.id,
+        food_item_id: item.food_item_id,
+        quantity: item.quantity,
+        unit: item.unit,
+        calories_kcal: item.calories_kcal,
+        protein_g: item.protein_g,
+        carbohydrates_g: item.carbohydrates_g,
+        fat_g: item.fat_g,
+      }));
 
-    const { error: itemsErr } = await supabase.from('meal_items').insert(mealItems);
-    if (itemsErr) {
-      console.error('Error logging meal items to Supabase:', itemsErr.message);
+    if (mealItems.length > 0) {
+      const { error: itemsErr } = await supabase.from('meal_items').insert(mealItems);
+      if (itemsErr) {
+        console.error('Error logging meal items to Supabase:', itemsErr.message);
+      }
     }
+
+    // Deduct consumed stock from user's available pantry inventory
+    await deductPantryInventory(payload.user_id, payload.items);
   }
 
   return meal;
 }
+

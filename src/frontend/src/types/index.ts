@@ -53,6 +53,13 @@ export interface PantryItem {
   days_until_expiration: number | null;
   status: string;
   density_class: 'PROTEIN_DENSE' | 'CARB_DENSE' | 'FAT_DENSE' | 'BALANCED';
+  nutrition?: {
+    serving_size: number;
+    calories_kcal: number;
+    protein_g: number;
+    carbohydrates_g: number;
+    fat_g: number;
+  };
 }
 
 export interface RecipeIngredient {
@@ -92,3 +99,31 @@ export interface AgentQueryResult {
   inventory_output?: { user_id: string; total_items_found: number; inventory_items: PantryItem[] } | null;
   recipe_output?: RecipeOutput | null;
 }
+
+export interface LoggedMealItem {
+  id?: string;
+  meal_id?: string;
+  food_item_id?: string;
+  name?: string;
+  quantity: number;
+  unit: string;
+  calories_kcal: number;
+  protein_g: number;
+  carbohydrates_g: number;
+  fat_g: number;
+}
+
+export interface LoggedMealEntry {
+  id: string;
+  user_id: string;
+  meal_type: string;
+  name?: string;
+  logged_at: string;
+  total_calories_kcal: number;
+  total_protein_g: number;
+  total_carbs_g: number;
+  total_fat_g: number;
+  notes?: string;
+  items?: LoggedMealItem[];
+}
+

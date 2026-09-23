@@ -6,6 +6,7 @@ import { fetchFoodCatalog, addPantryItemsBatch, logMeal, type CatalogFoodItem } 
 import { FoodSelectorModal, type SelectedBatchItem } from './Food/FoodSelectorModal';
 import { getFoodMeta, getCategoryMeta } from './Food/foodMeta';
 import { DENSITY_CLASS_LABELS, MEAL_TYPE_LABELS } from '../utils/enumMappers';
+import { ConfirmDeleteModal } from './Common/ConfirmDeleteModal';
 
 interface PantryManagerProps {
   items: PantryItem[];
@@ -26,6 +27,7 @@ export const PantryManager: React.FC<PantryManagerProps> = ({
 }) => {
   const [showBatchAddModal, setShowBatchAddModal] = useState(false);
   const [showMealModal, setShowMealModal] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<PantryItem | null>(null);
   const [catalog, setCatalog] = useState<CatalogFoodItem[]>([]);
 
   // Form states for Meal (stores exact PostgreSQL Enum values)
@@ -200,7 +202,7 @@ export const PantryManager: React.FC<PantryManagerProps> = ({
                         {item.available_quantity} {item.unit}
                       </div>
                       <button
-                        onClick={() => onDeleteItem(item.inventory_item_id)}
+                        onClick={() => setItemToDelete(item)}
                         style={{
                           background: 'none',
                           border: 'none',
@@ -356,6 +358,19 @@ export const PantryManager: React.FC<PantryManagerProps> = ({
           </div>
         )}
       </AnimatePresence>
+
+      {/* Delete Confirmation Modal for Pantry Item */}
+      <ConfirmDeleteModal
+        isOpen={Boolean(itemToDelete)}
+        title="Eliminar Alimento de la Despensa"
+        itemName={itemToDelete ? `${itemToDelete.name} (${itemToDelete.available_quantity} ${itemToDelete.unit})` : ''}
+        onClose={() => setItemToDelete(null)}
+        onConfirm={async () => {
+          if (itemToDelete) {
+            await onDeleteItem(itemToDelete.inventory_item_id);
+          }
+        }}
+      />
     </section>
   );
 };

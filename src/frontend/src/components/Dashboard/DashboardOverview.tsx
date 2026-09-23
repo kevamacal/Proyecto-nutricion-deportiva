@@ -14,6 +14,7 @@ import type { RemainingBalance, MacroBalance, PantryItem, LoggedMealEntry, Logge
 import { fetchLoggedMealsForDate } from '../../services/supabaseApi';
 import { LoggedMealCard } from '../Meals/LoggedMealCard';
 import { LoggedWorkoutsTimeline } from '../Sports/LoggedWorkoutsTimeline';
+import { WaterIntakeCard } from '../Common/WaterIntakeCard';
 
 interface DashboardOverviewProps {
   userId?: string;
@@ -241,7 +242,15 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
         </div>
       </motion.div>
 
-      {/* 3. LOGGED WORKOUTS TIMELINE CARD */}
+      {/* 3. WATER HYDRATION INTAKE CARD */}
+      <motion.div variants={itemVariants}>
+        <WaterIntakeCard
+          userId={userId || ''}
+          targetHydrationMl={hydrationDemandMl}
+        />
+      </motion.div>
+
+      {/* 4. LOGGED WORKOUTS TIMELINE CARD */}
       <motion.div variants={itemVariants}>
         <LoggedWorkoutsTimeline
           activities={loggedActivities}

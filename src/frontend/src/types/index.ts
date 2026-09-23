@@ -182,4 +182,12 @@ export interface LoggedActivityEntry {
   };
 }
 
+export interface HydrationLogEntry {
+  id: string;
+  user_id: string;
+  amount_ml: number;
+  logged_at: string;
+}
+
+
 

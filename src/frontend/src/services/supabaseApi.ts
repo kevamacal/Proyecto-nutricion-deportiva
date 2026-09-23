@@ -5,7 +5,7 @@
  */
 
 import { supabase } from '../lib/supabase';
-import type { PantryItem, LoggedMealEntry, LoggedActivityEntry } from '../types';
+import type { PantryItem, LoggedMealEntry, LoggedActivityEntry, HydrationLogEntry } from '../types';
 import { mapMealRowToLoggedMealEntry, resolveServingSize } from '../utils/nutritionUtils';
 
 export interface CatalogFoodItem {
@@ -923,6 +923,82 @@ export async function updateActivitySession(
 
   return activity;
 }
+
+// ============================================================================
+// 6. HYDRATION INTAKE LOGS
+// ============================================================================
+
+/**
+ * Fetch today's logged water intake entries for a user.
+ */
+export async function fetchDailyHydrationLogs(
+  userId: string,
+  dateStr: string
+): Promise<HydrationLogEntry[]> {
+  const startOfDay = `${dateStr}T00:00:00.000Z`;
+  const endOfDay = `${dateStr}T23:59:59.999Z`;
+
+  const { data, error } = await supabase
+    .from('hydration_logs')
+    .select('*')
+    .eq('user_id', userId)
+    .gte('logged_at', startOfDay)
+    .lte('logged_at', endOfDay)
+    .order('logged_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching hydration logs from Supabase:', error.message);
+    return [];
+  }
+
+  return (data || []).map((row: any) => ({
+    id: row.id,
+    user_id: row.user_id,
+    amount_ml: row.amount_ml,
+    logged_at: row.logged_at,
+  }));
+}
+
+/**
+ * Log a new water intake entry in Supabase.
+ */
+export async function logWaterIntake(userId: string, amountMl: number): Promise<HydrationLogEntry> {
+  const { data, error } = await supabase
+    .from('hydration_logs')
+    .insert([
+      {
+        user_id: userId,
+        amount_ml: amountMl,
+      },
+    ])
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error logging water intake to Supabase:', error.message);
+    throw error;
+  }
+
+  return {
+    id: data.id,
+    user_id: data.user_id,
+    amount_ml: data.amount_ml,
+    logged_at: data.logged_at,
+  };
+}
+
+/**
+ * Delete a water intake log entry from Supabase.
+ */
+export async function deleteHydrationLog(logId: string): Promise<void> {
+  const { error } = await supabase.from('hydration_logs').delete().eq('id', logId);
+
+  if (error) {
+    console.error('Error deleting hydration log from Supabase:', error.message);
+    throw error;
+  }
+}
+
 
 
 

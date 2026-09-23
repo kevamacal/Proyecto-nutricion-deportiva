@@ -12,7 +12,7 @@ import type { LoggedMealEntry, PantryItem } from '../../types';
 import { FoodSelectorModal, type SelectedBatchItem } from '../Food/FoodSelectorModal';
 import { FoodCategoryBadge } from '../Common/FoodCategoryBadge';
 import { BaseModal } from '../Common/BaseModal';
-import { formatEnumLabel, MEAL_TYPE_LABELS } from '../../utils/enumMappers';
+import { LoggedMealCard } from './LoggedMealCard';
 import { isUnitBased, resolveServingSize } from '../../utils/nutritionUtils';
 
 interface DraftIngredient {
@@ -626,53 +626,12 @@ export const MealLoggingModal: React.FC<MealLoggingModalProps> = ({
                   No hay comidas registradas recientemente. Añade una en la pestaña &quot;Añadir Comida&quot;.
                 </div>
               ) : (
-                recentMeals.map((meal) => {
-                  const slotTitle = formatEnumLabel(meal.meal_type, MEAL_TYPE_LABELS);
-                  const displayName = meal.name || slotTitle;
-
-                  return (
-                    <div
-                      key={meal.id}
-                      style={{
-                        background: 'rgba(18, 22, 32, 0.85)',
-                        border: '1px solid var(--glass-border-bright)',
-                        borderRadius: 'var(--radius-md)',
-                        padding: '0.85rem 1rem',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        gap: '0.85rem',
-                      }}
-                    >
-                      <FoodCategoryBadge foodName={displayName} category={meal.meal_type} size="md" />
-
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
-                          <span style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--ink-chalk)' }}>
-                            {displayName}
-                          </span>
-                          <span style={{ background: 'rgba(0, 230, 118, 0.15)', color: '#00E676', fontSize: '0.65rem', fontWeight: 800, padding: '0.15rem 0.45rem', borderRadius: '4px' }}>
-                            {slotTitle.toUpperCase()}
-                          </span>
-                        </div>
-
-                        <div style={{ fontSize: '0.78rem', color: 'var(--ink-muted)', marginTop: '0.25rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                          <span style={{ color: 'var(--accent-ember)', fontWeight: 700 }}>{meal.total_calories_kcal} kcal</span>
-                          <span>•</span>
-                          <span style={{ color: '#00E676', fontWeight: 700 }}>{meal.total_protein_g}g prot</span>
-                          <span>•</span>
-                          <span style={{ color: '#FF6B35', fontWeight: 700 }}>{meal.total_carbs_g}g carb</span>
-                          <span>•</span>
-                          <span style={{ color: '#A855F7', fontWeight: 700 }}>{meal.total_fat_g}g grasa</span>
-                        </div>
-
-                        {meal.items && meal.items.length > 0 && (
-                          <div style={{ fontSize: '0.72rem', color: 'var(--ink-muted)', marginTop: '0.35rem' }}>
-                            Ingredientes: {meal.items.map((it) => `${it.name} (${it.quantity}${it.unit})`).join(', ')}
-                          </div>
-                        )}
-                      </div>
-
+                recentMeals.map((meal) => (
+                  <LoggedMealCard
+                    key={meal.id}
+                    meal={meal}
+                    showIngredientsList={true}
+                    actionButton={
                       <button
                         type="button"
                         onClick={() => handleRepeatRecentMeal(meal)}
@@ -681,9 +640,9 @@ export const MealLoggingModal: React.FC<MealLoggingModalProps> = ({
                       >
                         Repetir Comida <ArrowRight size={14} />
                       </button>
-                    </div>
-                  );
-                })
+                    }
+                  />
+                ))
               )}
             </div>
           </div>

@@ -249,6 +249,9 @@ export async function fetchFoodCatalog(): Promise<CatalogFoodItem[]> {
       ? item.nutritional_information[0]
       : item.nutritional_information;
 
+    const isUnitBased = ['unit', 'unidad', 'unidades', 'porción', 'porcion', 'pieza', 'piezas'].includes((item.default_unit || '').toLowerCase());
+    const defaultServingSize = isUnitBased ? 1 : 100;
+
     return {
       id: item.id,
       food_item_id: item.id,
@@ -257,7 +260,7 @@ export async function fetchFoodCatalog(): Promise<CatalogFoodItem[]> {
       default_unit: item.default_unit || 'g',
       is_custom: item.is_custom || false,
       nutrition: {
-        serving_size: nutr?.serving_size || 100,
+        serving_size: (nutr?.serving_size && nutr.serving_size > 0) ? nutr.serving_size : defaultServingSize,
         calories_kcal: nutr?.calories_kcal || 0,
         protein_g: nutr?.protein_g || 0,
         carbohydrates_g: nutr?.carbohydrates_g || 0,
@@ -361,6 +364,9 @@ export async function fetchPantryInventory(userId: string): Promise<PantryItem[]
     else if (carbs > 20) densityClass = 'CARB_DENSE';
     else if (fat > 12) densityClass = 'FAT_DENSE';
 
+    const isPantryUnitBased = ['unit', 'unidad', 'unidades', 'porción', 'porcion', 'pieza', 'piezas'].includes((food?.default_unit || row.unit || '').toLowerCase());
+    const defaultServingSize = isPantryUnitBased ? 1 : 100;
+
     return {
       inventory_item_id: row.id,
       food_item_id: row.food_item_id,
@@ -374,7 +380,7 @@ export async function fetchPantryInventory(userId: string): Promise<PantryItem[]
       density_class: densityClass,
       nutrition: nutr
         ? {
-          serving_size: nutr.serving_size || 100,
+          serving_size: (nutr.serving_size && nutr.serving_size > 0) ? nutr.serving_size : defaultServingSize,
           calories_kcal: nutr.calories_kcal || 0,
           protein_g: nutr.protein_g || 0,
           carbohydrates_g: nutr.carbohydrates_g || 0,

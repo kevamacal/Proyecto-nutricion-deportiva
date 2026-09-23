@@ -102,6 +102,20 @@ export const MealLoggingModal: React.FC<MealLoggingModalProps> = ({
     fat: Math.round(calculatedTotals.fat * 10) / 10,
   };
 
+  const isUnitBasedName = (unitName?: string) => {
+    if (!unitName) return false;
+    const u = unitName.toLowerCase();
+    return ['unit', 'unidad', 'unidades', 'porción', 'porcion', 'pieza', 'piezas', 'lata', 'latas', 'envase'].includes(u);
+  };
+
+  const getBaseServingSize = (food?: CatalogFoodItem, selectedUnit?: string) => {
+    if (food?.nutrition?.serving_size && food.nutrition.serving_size > 0) {
+      return food.nutrition.serving_size;
+    }
+    const unitToTest = selectedUnit || food?.default_unit || 'g';
+    return isUnitBasedName(unitToTest) ? 1 : 100;
+  };
+
   const handleBatchSelectIngredients = (items: SelectedBatchItem[]) => {
     const newIngredients: DraftIngredient[] = items.map(({ food, quantity, unit }, index) => ({
       id: `ing_${Date.now()}_${index}`,
@@ -110,7 +124,7 @@ export const MealLoggingModal: React.FC<MealLoggingModalProps> = ({
       category: food.category,
       quantity,
       unit,
-      base_serving_size: food.nutrition?.serving_size || 100,
+      base_serving_size: getBaseServingSize(food, unit),
       base_calories_kcal: food.nutrition?.calories_kcal || 0,
       base_protein_g: food.nutrition?.protein_g || 0,
       base_carbs_g: food.nutrition?.carbohydrates_g || 0,
@@ -124,14 +138,18 @@ export const MealLoggingModal: React.FC<MealLoggingModalProps> = ({
   };
 
   const handleSingleSelectIngredient = (food: CatalogFoodItem) => {
+    const defaultUnit = food.default_unit || 'g';
+    const isUnit = isUnitBasedName(defaultUnit);
+    const defaultQty = isUnit ? (food.nutrition?.serving_size && food.nutrition.serving_size < 50 ? food.nutrition.serving_size : 1) : 100;
+
     const newIng: DraftIngredient = {
       id: `ing_${Date.now()}`,
       food_item_id: food.food_item_id || food.id,
       name: food.name,
       category: food.category,
-      quantity: 100,
-      unit: food.default_unit || 'g',
-      base_serving_size: food.nutrition?.serving_size || 100,
+      quantity: defaultQty,
+      unit: defaultUnit,
+      base_serving_size: getBaseServingSize(food, defaultUnit),
       base_calories_kcal: food.nutrition?.calories_kcal || 0,
       base_protein_g: food.nutrition?.protein_g || 0,
       base_carbs_g: food.nutrition?.carbohydrates_g || 0,
@@ -149,7 +167,12 @@ export const MealLoggingModal: React.FC<MealLoggingModalProps> = ({
 
   const handleUpdateIngredientUnit = (id: string, unit: string) => {
     setDraftIngredients((prev) =>
-      prev.map((ing) => (ing.id === id ? { ...ing, unit } : ing))
+      prev.map((ing) => {
+        if (ing.id !== id) return ing;
+        const foodFromCatalog = catalog.find((c) => c.food_item_id === ing.food_item_id || c.id === ing.food_item_id);
+        const newServingSize = getBaseServingSize(foodFromCatalog, unit);
+        return { ...ing, unit, base_serving_size: newServingSize };
+      })
     );
   };
 
@@ -165,6 +188,7 @@ export const MealLoggingModal: React.FC<MealLoggingModalProps> = ({
     if (recentMeal.items && recentMeal.items.length > 0) {
       const loaded: DraftIngredient[] = recentMeal.items.map((item, idx) => {
         const foodFromCatalog = catalog.find((c) => c.food_item_id === item.food_item_id || c.id === item.food_item_id);
+        const servingSize = getBaseServingSize(foodFromCatalog, item.unit);
 
         return {
           id: `ing_rep_${Date.now()}_${idx}`,
@@ -173,11 +197,11 @@ export const MealLoggingModal: React.FC<MealLoggingModalProps> = ({
           category: foodFromCatalog?.category || 'General',
           quantity: item.quantity,
           unit: item.unit || 'g',
-          base_serving_size: foodFromCatalog?.nutrition?.serving_size || 100,
-          base_calories_kcal: foodFromCatalog?.nutrition?.calories_kcal || (item.quantity > 0 ? (item.calories_kcal / item.quantity) * 100 : item.calories_kcal),
-          base_protein_g: foodFromCatalog?.nutrition?.protein_g || (item.quantity > 0 ? (item.protein_g / item.quantity) * 100 : item.protein_g),
-          base_carbs_g: foodFromCatalog?.nutrition?.carbohydrates_g || (item.quantity > 0 ? (item.carbohydrates_g / item.quantity) * 100 : item.carbohydrates_g),
-          base_fat_g: foodFromCatalog?.nutrition?.fat_g || (item.quantity > 0 ? (item.fat_g / item.quantity) * 100 : item.fat_g),
+          base_serving_size: servingSize,
+          base_calories_kcal: foodFromCatalog?.nutrition?.calories_kcal || (item.quantity > 0 ? (item.calories_kcal / item.quantity) * servingSize : item.calories_kcal),
+          base_protein_g: foodFromCatalog?.nutrition?.protein_g || (item.quantity > 0 ? (item.protein_g / item.quantity) * servingSize : item.protein_g),
+          base_carbs_g: foodFromCatalog?.nutrition?.carbohydrates_g || (item.quantity > 0 ? (item.carbohydrates_g / item.quantity) * servingSize : item.carbohydrates_g),
+          base_fat_g: foodFromCatalog?.nutrition?.fat_g || (item.quantity > 0 ? (item.fat_g / item.quantity) * servingSize : item.fat_g),
         };
       });
 
@@ -253,8 +277,7 @@ export const MealLoggingModal: React.FC<MealLoggingModalProps> = ({
       <BaseModal
         isOpen={isOpen}
         onClose={onClose}
-        title="Ensamblador de Comidas"
-        subtitle="Calcula macros deterministas según tus ingredientes."
+        title="Creador de Comidas"
         icon={<Utensils className="w-5 h-5 text-[#C1622B]" />}
         maxWidth="680px"
       >
@@ -279,7 +302,7 @@ export const MealLoggingModal: React.FC<MealLoggingModalProps> = ({
               gap: '0.4rem',
             }}
           >
-            <Layers className="w-4 h-4" /> Ensamblar Comida
+            <Layers className="w-4 h-4" /> Añadir Comida
           </button>
 
           <button
@@ -337,7 +360,7 @@ export const MealLoggingModal: React.FC<MealLoggingModalProps> = ({
                   id="meal-builder-name"
                   type="text"
                   required
-                  placeholder="Ej: Almuerzo Deportivo Pechuga + Arroz"
+                  placeholder="Ej: Pechuga de pollo con Arroz y Huevo"
                   value={mealName}
                   onChange={(e) => setMealName(e.target.value)}
                   style={{
@@ -608,7 +631,7 @@ export const MealLoggingModal: React.FC<MealLoggingModalProps> = ({
             >
               {recentMeals.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--ink-muted)', background: 'rgba(18, 22, 32, 0.4)', borderRadius: 'var(--radius-md)' }}>
-                  No hay comidas registradas recientemente. Construye una en la pestaña &quot;Ensamblar Comida&quot;.
+                  No hay comidas registradas recientemente. Añade una en la pestaña &quot;Añadir Comida&quot;.
                 </div>
               ) : (
                 recentMeals.map((meal) => {

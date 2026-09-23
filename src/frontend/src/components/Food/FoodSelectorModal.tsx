@@ -476,7 +476,10 @@ export const FoodSelectorModal: React.FC<FoodSelectorModalProps> = ({
       if (next[foodId]) {
         delete next[foodId];
       } else {
-        const defaultQty = food.default_unit === 'unidades' || food.default_unit === 'unidad' ? 6 : 500;
+        const normalizedUnit = (food.default_unit || 'g').toLowerCase();
+        const isUnitBased = ['unit', 'unidad', 'unidades', 'porción', 'porcion'].includes(normalizedUnit);
+        const defaultQty = isUnitBased ? (food.nutrition?.serving_size && food.nutrition.serving_size < 50 ? food.nutrition.serving_size : 1) : (food.nutrition?.serving_size || 100);
+
         next[foodId] = {
           food,
           quantity: defaultQty,
@@ -897,7 +900,11 @@ export const FoodSelectorModal: React.FC<FoodSelectorModalProps> = ({
                           <option value="g" style={{ background: '#121620', color: '#FFFFFF' }}>g</option>
                           <option value="ml" style={{ background: '#121620', color: '#FFFFFF' }}>ml</option>
                           <option value="unidades" style={{ background: '#121620', color: '#FFFFFF' }}>unidades</option>
+                          <option value="unidad" style={{ background: '#121620', color: '#FFFFFF' }}>unidad</option>
                           <option value="porción" style={{ background: '#121620', color: '#FFFFFF' }}>porción</option>
+                          {food.default_unit && !['g', 'ml', 'unidades', 'unidad', 'porción'].includes(food.default_unit.toLowerCase()) && (
+                            <option value={food.default_unit} style={{ background: '#121620', color: '#FFFFFF' }}>{food.default_unit}</option>
+                          )}
                         </select>
 
                         <button

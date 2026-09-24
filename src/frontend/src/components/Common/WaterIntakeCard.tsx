@@ -6,7 +6,7 @@ import {
   fetchDailyHydrationLogs,
   logWaterIntake,
   deleteHydrationLog,
-} from '../../services/supabaseApi';
+} from '../../services/api';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 
 interface WaterIntakeCardProps {

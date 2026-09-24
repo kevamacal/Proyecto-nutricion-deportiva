@@ -14,14 +14,14 @@ import { WorkoutLoggingModal } from './components/Sports/WorkoutLoggingModal';
 import { MealLoggingModal } from './components/Meals/MealLoggingModal';
 import type { RemainingBalance, PantryItem, AgentQueryResult, MacroBalance, LoggedActivityEntry } from './types';
 import type { CanonicalAppState, CalculatedTargetsData } from './types/flow';
-import { calculateTargets } from './services/api';
 import {
+  calculateTargets,
   fetchDailySummary,
   fetchPantryInventory,
   deletePantryItem,
   fetchLoggedActivitiesForDate,
   deleteActivitySession,
-} from './services/supabaseApi';
+} from './services/api';
 import { User, Bot, ShoppingBag, Trophy, Activity } from 'lucide-react';
 
 const TODAY_DATE = new Date().toISOString().split('T')[0];

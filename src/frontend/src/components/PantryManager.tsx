@@ -1,18 +1,18 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Package, Dumbbell, Trophy, Plus, Trash2, Utensils, X } from 'lucide-react';
+import { Package, Activity, Plus, Trash2, Utensils, X } from 'lucide-react';
 import type { PantryItem } from '../types';
 import { fetchFoodCatalog, addPantryItemsBatch, logMeal, type CatalogFoodItem } from '../services/supabaseApi';
 import { FoodSelectorModal, type SelectedBatchItem } from './Food/FoodSelectorModal';
 import { getFoodMeta, getCategoryMeta } from './Food/foodMeta';
 import { DENSITY_CLASS_LABELS, MEAL_TYPE_LABELS } from '../utils/enumMappers';
+import { ConfirmDeleteModal } from './Common/ConfirmDeleteModal';
 
 interface PantryManagerProps {
   items: PantryItem[];
   userId: string;
   onRefresh: () => void;
-  onQuickBasketball: () => void;
-  onQuickGym: () => void;
+  onQuickWorkout: () => void;
   onDeleteItem: (itemId: string) => void;
   onMealLogged: () => void;
 }
@@ -21,13 +21,13 @@ export const PantryManager: React.FC<PantryManagerProps> = ({
   items,
   userId,
   onRefresh,
-  onQuickBasketball,
-  onQuickGym,
+  onQuickWorkout,
   onDeleteItem,
   onMealLogged,
 }) => {
   const [showBatchAddModal, setShowBatchAddModal] = useState(false);
   const [showMealModal, setShowMealModal] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<PantryItem | null>(null);
   const [catalog, setCatalog] = useState<CatalogFoodItem[]>([]);
 
   // Form states for Meal (stores exact PostgreSQL Enum values)
@@ -202,7 +202,7 @@ export const PantryManager: React.FC<PantryManagerProps> = ({
                         {item.available_quantity} {item.unit}
                       </div>
                       <button
-                        onClick={() => onDeleteItem(item.inventory_item_id)}
+                        onClick={() => setItemToDelete(item)}
                         style={{
                           background: 'none',
                           border: 'none',
@@ -223,17 +223,22 @@ export const PantryManager: React.FC<PantryManagerProps> = ({
         )}
 
         <div style={{ borderTop: '1px solid var(--line-graphite)', paddingTop: '1.25rem', marginTop: '1rem' }}>
-          <h3 className="panel-title" style={{ fontSize: '1.05rem', marginBottom: '0.75rem' }}>
-            ⚡ Registro Rápido de Sesiones Deportivas
-          </h3>
-          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-            <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="btn-scoreboard" onClick={onQuickBasketball}>
-              <Trophy className="w-4 h-4" />
-              🏀 Partidazo (90 min Baloncesto)
-            </motion.button>
-            <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="btn-scoreboard lake" onClick={onQuickGym}>
-              <Dumbbell className="w-4 h-4" />
-              🏋️ Entreno Pesas (60 min Fuerza)
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
+            <div>
+              <h3 className="panel-title" style={{ fontSize: '1.05rem' }}>
+                ⚡ Registrar Entrenamiento
+              </h3>
+              <p style={{ fontSize: '0.8rem', color: 'var(--ink-muted)', marginTop: '0.2rem' }}>
+                ¿Acabas de hacer ejercicio? Registra tu sesión para ajustar tu balance energético diario.
+              </p>
+            </div>
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="btn-scoreboard"
+              onClick={onQuickWorkout}
+            >
+              <Activity className="w-4 h-4" /> Registrar Entreno
             </motion.button>
           </div>
         </div>
@@ -353,6 +358,19 @@ export const PantryManager: React.FC<PantryManagerProps> = ({
           </div>
         )}
       </AnimatePresence>
+
+      {/* Delete Confirmation Modal for Pantry Item */}
+      <ConfirmDeleteModal
+        isOpen={Boolean(itemToDelete)}
+        title="Eliminar Alimento de la Despensa"
+        itemName={itemToDelete ? `${itemToDelete.name} (${itemToDelete.available_quantity} ${itemToDelete.unit})` : ''}
+        onClose={() => setItemToDelete(null)}
+        onConfirm={async () => {
+          if (itemToDelete) {
+            await onDeleteItem(itemToDelete.inventory_item_id);
+          }
+        }}
+      />
     </section>
   );
 };

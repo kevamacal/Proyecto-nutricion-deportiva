@@ -3,6 +3,7 @@
 import pytest
 
 from src.backend.core.nutrition.formulas import (
+    calculate_baseline_hydration,
     calculate_bmr,
     calculate_daily_calories_target,
     calculate_full_nutritional_profile,
@@ -105,3 +106,12 @@ def test_full_nutritional_profile_pipeline():
     assert "daily_protein_g_target" in result
     assert "daily_fat_g_target" in result
     assert "daily_carbs_g_target" in result
+    assert "daily_hydration_ml_target" in result
+    assert result["daily_hydration_ml_target"] == 2800.0  # 80kg * 35 ml/kg
+
+
+def test_calculate_baseline_hydration():
+    assert calculate_baseline_hydration(70.0) == 2450.0
+    assert calculate_baseline_hydration(80.0) == 2800.0
+    with pytest.raises(ValueError):
+        calculate_baseline_hydration(0.0)

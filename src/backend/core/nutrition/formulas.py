@@ -199,4 +199,3 @@ def calculate_full_nutritional_profile(
         "daily_hydration_ml_target": hydration_base,
         **macros,
     }
-

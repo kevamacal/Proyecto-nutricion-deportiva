@@ -115,4 +115,3 @@ def test_calculate_baseline_hydration():
     assert calculate_baseline_hydration(80.0) == 2800.0
     with pytest.raises(ValueError):
         calculate_baseline_hydration(0.0)
-

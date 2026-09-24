@@ -72,6 +72,7 @@ const MainSPAContent: React.FC = () => {
   });
 
   const [hydrationDemandMl, setHydrationDemandMl] = useState<number>(0);
+  const [workoutHydrationMl, setWorkoutHydrationMl] = useState<number>(0);
   const [pantryItems, setPantryItems] = useState<PantryItem[]>([]);
   const [triggerQuery, setTriggerQuery] = useState<string | null>(null);
 
@@ -114,8 +115,10 @@ const MainSPAContent: React.FC = () => {
       setLoggedActivities(activities);
 
       const activeKcalBurned = activities.reduce((acc, a) => acc + (a.estimated_expenditure_kcal || 0), 0);
-      const totalHydrationDemand = activities.reduce((acc, a) => acc + (a.basketball_details?.hydration_demand_ml || 0), 0);
-      setHydrationDemandMl(totalHydrationDemand);
+      const workoutHydration = activities.reduce((acc, a) => acc + (a.basketball_details?.hydration_demand_ml || 0), 0);
+      const baseHydration = user.weight_kg ? Math.round(user.weight_kg * 35) : 2500;
+      setWorkoutHydrationMl(workoutHydration);
+      setHydrationDemandMl(baseHydration + workoutHydration);
 
       if (items.length === 0) {
         setAppState('PANTRY_EMPTY_GUIDED');
@@ -178,7 +181,10 @@ const MainSPAContent: React.FC = () => {
 
   const handleQueryResult = (result: AgentQueryResult) => {
     if (result.sports_output?.hydration_demand_ml) {
-      setHydrationDemandMl(result.sports_output.hydration_demand_ml);
+      const workoutFluid = result.sports_output.hydration_demand_ml;
+      const baseHydration = user?.weight_kg ? Math.round(user.weight_kg * 35) : 2500;
+      setWorkoutHydrationMl(workoutFluid);
+      setHydrationDemandMl(baseHydration + workoutFluid);
     }
 
     if (result.nutrition_output) {
@@ -313,6 +319,7 @@ const MainSPAContent: React.FC = () => {
                 consumed={consumed}
                 dailyTargets={dailyTargets}
                 hydrationDemandMl={hydrationDemandMl}
+                workoutHydrationMl={workoutHydrationMl}
                 pantryItems={pantryItems}
                 loggedActivities={loggedActivities}
                 onOpenWorkoutModal={() => handleOpenWorkoutModal(null)}

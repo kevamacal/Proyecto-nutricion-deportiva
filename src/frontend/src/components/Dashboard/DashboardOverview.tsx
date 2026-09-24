@@ -22,6 +22,7 @@ interface DashboardOverviewProps {
   consumed: MacroBalance;
   dailyTargets: MacroBalance;
   hydrationDemandMl: number;
+  workoutHydrationMl?: number;
   pantryItems: PantryItem[];
   loggedActivities: LoggedActivityEntry[];
   onOpenWorkoutModal: () => void;
@@ -58,6 +59,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
   consumed,
   dailyTargets,
   hydrationDemandMl,
+  workoutHydrationMl,
   pantryItems,
   loggedActivities,
   onOpenWorkoutModal,
@@ -247,6 +249,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
         <WaterIntakeCard
           userId={userId || ''}
           targetHydrationMl={hydrationDemandMl}
+          workoutHydrationMl={workoutHydrationMl}
         />
       </motion.div>
 

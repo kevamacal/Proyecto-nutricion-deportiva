@@ -155,6 +155,20 @@ def calculate_macronutrient_targets(
     }
 
 
+def calculate_baseline_hydration(weight_kg: float) -> float:
+    """Calculate baseline daily fluid requirement (35 ml per kg bodyweight).
+
+    Args:
+        weight_kg: Weight in kilograms (> 0).
+
+    Returns:
+        Baseline daily hydration target in ml (rounded to 2 decimal places).
+    """
+    if weight_kg <= 0:
+        raise ValueError("Weight must be strictly positive")
+    return round(weight_kg * 35.0, 2)
+
+
 def calculate_full_nutritional_profile(
     weight_kg: float,
     height_cm: float,
@@ -168,7 +182,7 @@ def calculate_full_nutritional_profile(
 
     Returns:
         Dict containing bmr, tdee, daily_calories_target, daily_protein_g_target,
-        daily_carbs_g_target, and daily_fat_g_target.
+        daily_carbs_g_target, daily_fat_g_target, and daily_hydration_ml_target.
     """
     bmr = calculate_bmr(weight_kg, height_cm, age, is_male=is_male)
     tdee = calculate_tdee(bmr, activity_level)
@@ -176,10 +190,13 @@ def calculate_full_nutritional_profile(
     macros = calculate_macronutrient_targets(
         weight_kg, calories_target, nutritional_goal
     )
+    hydration_base = calculate_baseline_hydration(weight_kg)
 
     return {
         "bmr": bmr,
         "tdee": tdee,
         "daily_calories_target": calories_target,
+        "daily_hydration_ml_target": hydration_base,
         **macros,
     }
+

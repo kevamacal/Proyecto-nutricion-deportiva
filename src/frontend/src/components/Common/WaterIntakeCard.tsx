@@ -12,12 +12,14 @@ import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 interface WaterIntakeCardProps {
   userId: string;
   targetHydrationMl: number;
+  workoutHydrationMl?: number;
   onIntakeUpdated?: () => void;
 }
 
 export const WaterIntakeCard: React.FC<WaterIntakeCardProps> = ({
   userId,
   targetHydrationMl,
+  workoutHydrationMl = 0,
   onIntakeUpdated,
 }) => {
   const [logs, setLogs] = useState<HydrationLogEntry[]>([]);
@@ -28,6 +30,7 @@ export const WaterIntakeCard: React.FC<WaterIntakeCardProps> = ({
 
   const todayStr = new Date().toISOString().split('T')[0];
   const defaultTarget = targetHydrationMl > 0 ? targetHydrationMl : 2500;
+  const baseTarget = Math.max(0, defaultTarget - workoutHydrationMl);
 
   const loadLogs = async () => {
     if (!userId) return;
@@ -99,7 +102,16 @@ export const WaterIntakeCard: React.FC<WaterIntakeCardProps> = ({
         {/* Progress bar */}
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: 'var(--ink-muted)', marginBottom: '0.35rem' }}>
-            <span>Meta recomendada hoy</span>
+            <span>
+              Meta recomendada hoy{' '}
+              {workoutHydrationMl > 0 ? (
+                <span style={{ color: 'var(--accent-lake)', fontWeight: 600 }}>
+                  ({baseTarget} ml base + {workoutHydrationMl} ml entreno)
+                </span>
+              ) : (
+                <span style={{ color: 'var(--ink-muted)' }}>(base diaria)</span>
+              )}
+            </span>
             <span style={{ fontWeight: 700, color: 'var(--accent-lake)' }}>{progressPct}% alcanzado</span>
           </div>
           <div className="macro-bar-track" style={{ height: '8px' }}>

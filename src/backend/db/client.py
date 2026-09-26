@@ -1,12 +1,25 @@
 """Supabase DB Client Initialization for Backend Data Access Layer."""
 
+from typing import Any
+
 from src.backend.settings import settings
-from supabase import Client, create_client  # type: ignore[attr-defined]
 
-_client: Client | None = None
+try:
+    from supabase import create_client  # type: ignore[attr-defined]
+except ImportError:
+    try:
+        from supabase._sync.client import (  # type: ignore[attr-defined,no-redef]
+            create_client,
+        )
+    except ImportError:
+        from supabase.client import (  # type: ignore[attr-defined,no-redef]
+            create_client,
+        )
+
+_client: Any = None
 
 
-def get_supabase_client() -> Client:
+def get_supabase_client() -> Any:
     """Return singleton Supabase client instance using backend settings credentials."""
     global _client
     if _client is None:

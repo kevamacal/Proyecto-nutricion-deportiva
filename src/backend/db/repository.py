@@ -139,7 +139,12 @@ class FoodCatalogRepository:
     ) -> dict[str, Any]:
         """Insert new custom food item and its nutritional information."""
         food_res = self.client.table("food_items").insert(food_payload).execute()
-        if not food_res or not food_res.data or not isinstance(food_res.data, list) or len(food_res.data) == 0:
+        if (
+            not food_res
+            or not food_res.data
+            or not isinstance(food_res.data, list)
+            or len(food_res.data) == 0
+        ):
             raise RuntimeError("Failed to create food item in database")
         created_food = cast(dict[str, Any], food_res.data[0])
 
@@ -154,7 +159,10 @@ class FoodCatalogRepository:
         )
         created_nutr = (
             cast(dict[str, Any], nutr_res.data[0])
-            if nutr_res and nutr_res.data and isinstance(nutr_res.data, list) and len(nutr_res.data) > 0
+            if nutr_res
+            and nutr_res.data
+            and isinstance(nutr_res.data, list)
+            and len(nutr_res.data) > 0
             else nutrition_payload_full
         )
 
@@ -266,7 +274,12 @@ class MealRepository:
     ) -> dict[str, Any]:
         """Insert meal entry and associated meal_items."""
         res = self.client.table("meals").insert(meal_data).execute()
-        if not res or not res.data or not isinstance(res.data, list) or len(res.data) == 0:
+        if (
+            not res
+            or not res.data
+            or not isinstance(res.data, list)
+            or len(res.data) == 0
+        ):
             raise RuntimeError("Failed to insert meal")
         meal = cast(dict[str, Any], res.data[0])
 
@@ -319,7 +332,12 @@ class ActivityRepository:
     ) -> dict[str, Any]:
         """Create new activity record with optional sports specialization rows."""
         act_res = self.client.table("activities").insert(activity_data).execute()
-        if not act_res or not act_res.data or not isinstance(act_res.data, list) or len(act_res.data) == 0:
+        if (
+            not act_res
+            or not act_res.data
+            or not isinstance(act_res.data, list)
+            or len(act_res.data) == 0
+        ):
             raise RuntimeError("Failed to insert activity")
         activity = cast(dict[str, Any], act_res.data[0])
         act_id = activity["id"]
@@ -351,7 +369,10 @@ class ActivityRepository:
         )
         updated_act = (
             cast(dict[str, Any], act_res.data[0])
-            if act_res and act_res.data and isinstance(act_res.data, list) and len(act_res.data) > 0
+            if act_res
+            and act_res.data
+            and isinstance(act_res.data, list)
+            and len(act_res.data) > 0
             else activity_data
         )
 

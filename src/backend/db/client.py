@@ -1,20 +1,21 @@
 """Supabase DB Client Initialization for Backend Data Access Layer."""
 
+import os
+import sys
 from typing import Any
 
 from src.backend.settings import settings
 
+# Temporarily isolate sys.path from local working directory '.' to prevent
+# root ./supabase/ directory (database migrations) from shadowing the installed
+# third-party 'supabase' Python package in site-packages.
+_orig_path = list(sys.path)
 try:
+    _cwd = os.getcwd()
+    sys.path = [p for p in sys.path if p != _cwd and p != "." and p != ""]
     from supabase import create_client  # type: ignore[attr-defined]
-except ImportError:
-    try:
-        from supabase._sync.client import (  # type: ignore[attr-defined,no-redef]
-            create_client,
-        )
-    except ImportError:
-        from supabase.client import (  # type: ignore[attr-defined,no-redef]
-            create_client,
-        )
+finally:
+    sys.path = _orig_path
 
 _client: Any = None
 

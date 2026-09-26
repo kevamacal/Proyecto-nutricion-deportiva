@@ -20,6 +20,10 @@ async function apiClient<T>(
   queryParams?: Record<string, string | number | undefined>
 ): Promise<{ ok: boolean; status: number; data: T }> {
   const cleanPath = path.replace(/^\/+/, '');
+  if (!/^[a-zA-Z0-9_\-\/%]+$/.test(cleanPath)) {
+    throw new Error(`Invalid API path: ${path}`);
+  }
+
   const base = typeof window !== 'undefined' ? window.location.origin : 'http://localhost';
   const url = new URL(base);
   url.pathname = `${API_BASE_URL}/${cleanPath}`;

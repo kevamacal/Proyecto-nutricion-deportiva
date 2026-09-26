@@ -10,6 +10,36 @@ import type {
 
 const API_BASE_URL = '/api/v1';
 
+/**
+ * Centralized, secure API client wrapper for issuing HTTP requests.
+ * Encapsulates URL resolution using native URL object and safe path normalization.
+ */
+async function apiClient<T>(
+  path: string,
+  options?: RequestInit,
+  queryParams?: Record<string, string | number | undefined>
+): Promise<{ ok: boolean; status: number; data: T }> {
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  const base = typeof window !== 'undefined' ? window.location.origin : 'http://localhost';
+  const url = new URL(`${API_BASE_URL}${normalizedPath}`, base);
+
+  if (queryParams) {
+    Object.entries(queryParams).forEach(([key, val]) => {
+      if (val !== undefined && val !== null) {
+        url.searchParams.append(key, String(val));
+      }
+    });
+  }
+
+  const response = await fetch(url.href, options);
+  let data: any = null;
+  const contentType = response.headers.get('content-type');
+  if (response.status !== 204 && contentType && contentType.includes('application/json')) {
+    data = await response.json();
+  }
+  return { ok: response.ok, status: response.status, data };
+}
+
 export interface TargetCalculationRequest {
   user_id: string;
   weight_kg: number;
@@ -144,51 +174,51 @@ export interface LogActivitySessionPayload {
 // ============================================================================
 
 export async function loginUser(email: string, password?: string) {
-  const response = await fetch(`${API_BASE_URL}/auth/login`, {
+  const res = await apiClient<any>('/auth/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password: password || '' }),
   });
-  if (!response.ok) {
-    throw new Error(`Auth failed with status ${response.status}`);
+  if (!res.ok) {
+    throw new Error(`Auth failed with status ${res.status}`);
   }
-  return response.json();
+  return res.data;
 }
 
 export async function registerUser(email: string, name: string, password?: string, primarySport?: string) {
-  const response = await fetch(`${API_BASE_URL}/auth/register`, {
+  const res = await apiClient<any>('/auth/register', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, name, password: password || '', primary_sport: primarySport || 'BASKETBALL' }),
   });
-  if (!response.ok) {
-    throw new Error(`Registration failed with status ${response.status}`);
+  if (!res.ok) {
+    throw new Error(`Registration failed with status ${res.status}`);
   }
-  return response.json();
+  return res.data;
 }
 
 export async function fetchUserProfile(userId: string): Promise<SupabaseUserProfile | null> {
-  const response = await fetch(`${API_BASE_URL}/profile/${encodeURIComponent(userId)}`);
-  if (response.status === 404) return null;
-  if (!response.ok) {
-    throw new Error(`Error fetching profile: ${response.status}`);
+  const res = await apiClient<SupabaseUserProfile>(`/profile/${encodeURIComponent(userId)}`);
+  if (res.status === 404) return null;
+  if (!res.ok) {
+    throw new Error(`Error fetching profile: ${res.status}`);
   }
-  return response.json();
+  return res.data;
 }
 
 export async function updateUserProfile(
   userId: string,
   updates: Partial<SupabaseUserProfile>
 ): Promise<SupabaseUserProfile | null> {
-  const response = await fetch(`${API_BASE_URL}/profile/${encodeURIComponent(userId)}`, {
+  const res = await apiClient<SupabaseUserProfile>(`/profile/${encodeURIComponent(userId)}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(updates),
   });
-  if (!response.ok) {
-    throw new Error(`Error updating profile: ${response.status}`);
+  if (!res.ok) {
+    throw new Error(`Error updating profile: ${res.status}`);
   }
-  return response.json();
+  return res.data;
 }
 
 export async function saveUserProfile(profile: SupabaseUserProfile): Promise<SupabaseUserProfile> {
@@ -200,15 +230,15 @@ export async function ensureUserProfileExists(
   email?: string,
   name?: string
 ): Promise<SupabaseUserProfile | null> {
-  const response = await fetch(`${API_BASE_URL}/profile/ensure`, {
+  const res = await apiClient<SupabaseUserProfile>('/profile/ensure', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ user_id: userId, email, name }),
   });
-  if (!response.ok) {
+  if (!res.ok) {
     return null;
   }
-  return response.json();
+  return res.data;
 }
 
 // ============================================================================
@@ -216,23 +246,23 @@ export async function ensureUserProfileExists(
 // ============================================================================
 
 export async function fetchFoodCatalog(): Promise<CatalogFoodItem[]> {
-  const response = await fetch(`${API_BASE_URL}/foods`);
-  if (!response.ok) {
-    throw new Error(`Error fetching food catalog: ${response.status}`);
+  const res = await apiClient<CatalogFoodItem[]>('/foods');
+  if (!res.ok) {
+    throw new Error(`Error fetching food catalog: ${res.status}`);
   }
-  return response.json();
+  return res.data;
 }
 
 export async function createCustomFoodItem(payload: CreateCustomFoodPayload): Promise<CatalogFoodItem> {
-  const response = await fetch(`${API_BASE_URL}/foods/custom`, {
+  const res = await apiClient<CatalogFoodItem>('/foods/custom', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   });
-  if (!response.ok) {
-    throw new Error(`Error creating custom food: ${response.status}`);
+  if (!res.ok) {
+    throw new Error(`Error creating custom food: ${res.status}`);
   }
-  return response.json();
+  return res.data;
 }
 
 // ============================================================================
@@ -240,43 +270,43 @@ export async function createCustomFoodItem(payload: CreateCustomFoodPayload): Pr
 // ============================================================================
 
 export async function fetchPantryInventory(userId: string): Promise<PantryItem[]> {
-  const response = await fetch(`${API_BASE_URL}/pantry/${encodeURIComponent(userId)}`);
-  if (!response.ok) {
-    throw new Error(`Error fetching pantry: ${response.status}`);
+  const res = await apiClient<PantryItem[]>(`/pantry/${encodeURIComponent(userId)}`);
+  if (!res.ok) {
+    throw new Error(`Error fetching pantry: ${res.status}`);
   }
-  return response.json();
+  return res.data;
 }
 
 export async function addPantryItem(payload: AddPantryItemPayload): Promise<any> {
-  const response = await fetch(`${API_BASE_URL}/pantry/item`, {
+  const res = await apiClient<any>('/pantry/item', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   });
-  if (!response.ok) {
-    throw new Error(`Error adding pantry item: ${response.status}`);
+  if (!res.ok) {
+    throw new Error(`Error adding pantry item: ${res.status}`);
   }
-  return response.json();
+  return res.data;
 }
 
 export async function addPantryItemsBatch(payloads: AddPantryItemPayload[]): Promise<any[]> {
-  const response = await fetch(`${API_BASE_URL}/pantry/batch`, {
+  const res = await apiClient<any[]>('/pantry/batch', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ items: payloads }),
   });
-  if (!response.ok) {
-    throw new Error(`Error batch adding pantry items: ${response.status}`);
+  if (!res.ok) {
+    throw new Error(`Error batch adding pantry items: ${res.status}`);
   }
-  return response.json();
+  return res.data;
 }
 
 export async function deletePantryItem(itemId: string): Promise<void> {
-  const response = await fetch(`${API_BASE_URL}/pantry/${encodeURIComponent(itemId)}`, {
+  const res = await apiClient<void>(`/pantry/${encodeURIComponent(itemId)}`, {
     method: 'DELETE',
   });
-  if (!response.ok) {
-    throw new Error(`Error deleting pantry item: ${response.status}`);
+  if (!res.ok) {
+    throw new Error(`Error deleting pantry item: ${res.status}`);
   }
 }
 
@@ -285,39 +315,39 @@ export async function deletePantryItem(itemId: string): Promise<void> {
 // ============================================================================
 
 export async function fetchDailySummary(userId: string, dateStr: string) {
-  const response = await fetch(`${API_BASE_URL}/summary/daily?user_id=${encodeURIComponent(userId)}&date=${encodeURIComponent(dateStr)}`);
-  if (!response.ok) {
-    throw new Error(`Error fetching daily summary: ${response.status}`);
+  const res = await apiClient<any>('/summary/daily', undefined, { user_id: userId, date: dateStr });
+  if (!res.ok) {
+    throw new Error(`Error fetching daily summary: ${res.status}`);
   }
-  return response.json();
+  return res.data;
 }
 
 export async function fetchLoggedMealsForDate(userId: string, dateStr: string): Promise<LoggedMealEntry[]> {
-  const response = await fetch(`${API_BASE_URL}/meals?user_id=${encodeURIComponent(userId)}&date=${encodeURIComponent(dateStr)}`);
-  if (!response.ok) {
+  const res = await apiClient<LoggedMealEntry[]>('/meals', undefined, { user_id: userId, date: dateStr });
+  if (!res.ok) {
     return [];
   }
-  return response.json();
+  return res.data;
 }
 
 export async function fetchRecentUserMeals(userId: string): Promise<LoggedMealEntry[]> {
-  const response = await fetch(`${API_BASE_URL}/meals/recent/${encodeURIComponent(userId)}`);
-  if (!response.ok) {
+  const res = await apiClient<LoggedMealEntry[]>(`/meals/recent/${encodeURIComponent(userId)}`);
+  if (!res.ok) {
     return [];
   }
-  return response.json();
+  return res.data;
 }
 
 export async function logMeal(payload: LogMealPayload): Promise<any> {
-  const response = await fetch(`${API_BASE_URL}/meals`, {
+  const res = await apiClient<any>('/meals', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   });
-  if (!response.ok) {
-    throw new Error(`Error logging meal: ${response.status}`);
+  if (!res.ok) {
+    throw new Error(`Error logging meal: ${res.status}`);
   }
-  return response.json();
+  return res.data;
 }
 
 // ============================================================================
@@ -328,46 +358,46 @@ export async function fetchLoggedActivitiesForDate(
   userId: string,
   dateStr: string
 ): Promise<LoggedActivityEntry[]> {
-  const response = await fetch(`${API_BASE_URL}/activities?user_id=${encodeURIComponent(userId)}&date=${encodeURIComponent(dateStr)}`);
-  if (!response.ok) {
+  const res = await apiClient<LoggedActivityEntry[]>('/activities', undefined, { user_id: userId, date: dateStr });
+  if (!res.ok) {
     return [];
   }
-  return response.json();
+  return res.data;
 }
 
 export async function logActivitySession(payload: LogActivitySessionPayload): Promise<any> {
-  const response = await fetch(`${API_BASE_URL}/activities/session`, {
+  const res = await apiClient<any>('/activities/session', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   });
-  if (!response.ok) {
-    throw new Error(`Error logging activity session: ${response.status}`);
+  if (!res.ok) {
+    throw new Error(`Error logging activity session: ${res.status}`);
   }
-  return response.json();
+  return res.data;
 }
 
 export async function updateActivitySession(
   activityId: string,
   payload: LogActivitySessionPayload
 ): Promise<any> {
-  const response = await fetch(`${API_BASE_URL}/activities/session/${encodeURIComponent(activityId)}`, {
+  const res = await apiClient<any>(`/activities/session/${encodeURIComponent(activityId)}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   });
-  if (!response.ok) {
-    throw new Error(`Error updating activity session: ${response.status}`);
+  if (!res.ok) {
+    throw new Error(`Error updating activity session: ${res.status}`);
   }
-  return response.json();
+  return res.data;
 }
 
 export async function deleteActivitySession(activityId: string): Promise<void> {
-  const response = await fetch(`${API_BASE_URL}/activities/session/${encodeURIComponent(activityId)}`, {
+  const res = await apiClient<void>(`/activities/session/${encodeURIComponent(activityId)}`, {
     method: 'DELETE',
   });
-  if (!response.ok) {
-    throw new Error(`Error deleting activity session: ${response.status}`);
+  if (!res.ok) {
+    throw new Error(`Error deleting activity session: ${res.status}`);
   }
 }
 
@@ -376,31 +406,31 @@ export async function deleteActivitySession(activityId: string): Promise<void> {
 // ============================================================================
 
 export async function fetchDailyHydrationLogs(userId: string, dateStr: string): Promise<HydrationLogEntry[]> {
-  const response = await fetch(`${API_BASE_URL}/hydration?user_id=${encodeURIComponent(userId)}&date=${encodeURIComponent(dateStr)}`);
-  if (!response.ok) {
+  const res = await apiClient<HydrationLogEntry[]>('/hydration', undefined, { user_id: userId, date: dateStr });
+  if (!res.ok) {
     return [];
   }
-  return response.json();
+  return res.data;
 }
 
 export async function logWaterIntake(userId: string, amountMl: number): Promise<HydrationLogEntry> {
-  const response = await fetch(`${API_BASE_URL}/hydration`, {
+  const res = await apiClient<HydrationLogEntry>('/hydration', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ user_id: userId, amount_ml: amountMl }),
   });
-  if (!response.ok) {
-    throw new Error(`Error logging water intake: ${response.status}`);
+  if (!res.ok) {
+    throw new Error(`Error logging water intake: ${res.status}`);
   }
-  return response.json();
+  return res.data;
 }
 
 export async function deleteHydrationLog(logId: string): Promise<void> {
-  const response = await fetch(`${API_BASE_URL}/hydration/${encodeURIComponent(logId)}`, {
+  const res = await apiClient<void>(`/hydration/${encodeURIComponent(logId)}`, {
     method: 'DELETE',
   });
-  if (!response.ok) {
-    throw new Error(`Error deleting hydration log: ${response.status}`);
+  if (!res.ok) {
+    throw new Error(`Error deleting hydration log: ${res.status}`);
   }
 }
 
@@ -411,27 +441,27 @@ export async function deleteHydrationLog(logId: string): Promise<void> {
 export async function calculateTargets(
   payload: TargetCalculationRequest
 ): Promise<TargetCalculationResponse> {
-  const response = await fetch(`${API_BASE_URL}/nutrition/calculate_targets`, {
+  const res = await apiClient<TargetCalculationResponse>('/nutrition/calculate_targets', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   });
-  if (!response.ok) {
-    throw new Error(`Error calculating targets: ${response.status}`);
+  if (!res.ok) {
+    throw new Error(`Error calculating targets: ${res.status}`);
   }
-  return response.json();
+  return res.data;
 }
 
 export async function logActivity(payload: ActivityLogPayload): Promise<any> {
-  const response = await fetch(`${API_BASE_URL}/activities/log`, {
+  const res = await apiClient<any>('/activities/log', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   });
-  if (!response.ok) {
-    throw new Error(`Error logging activity: ${response.status}`);
+  if (!res.ok) {
+    throw new Error(`Error logging activity: ${res.status}`);
   }
-  return response.json();
+  return res.data;
 }
 
 export async function sendAgentQuery(
@@ -439,7 +469,7 @@ export async function sendAgentQuery(
   userId: string,
   date: string = '2026-09-15'
 ): Promise<AgentQueryResult> {
-  const response = await fetch(`${API_BASE_URL}/agent/orchestrator/query`, {
+  const res = await apiClient<AgentQueryResult>('/agent/orchestrator/query', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -451,9 +481,9 @@ export async function sendAgentQuery(
     }),
   });
 
-  if (!response.ok) {
-    throw new Error(`API error HTTP ${response.status}`);
+  if (!res.ok) {
+    throw new Error(`API error HTTP ${res.status}`);
   }
 
-  return response.json();
+  return res.data;
 }

@@ -19,9 +19,10 @@ async function apiClient<T>(
   options?: RequestInit,
   queryParams?: Record<string, string | number | undefined>
 ): Promise<{ ok: boolean; status: number; data: T }> {
-  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  const cleanPath = path.replace(/^\/+/, '');
   const base = typeof window !== 'undefined' ? window.location.origin : 'http://localhost';
-  const url = new URL(`${API_BASE_URL}${normalizedPath}`, base);
+  const url = new URL(base);
+  url.pathname = `${API_BASE_URL}/${cleanPath}`;
 
   if (queryParams) {
     Object.entries(queryParams).forEach(([key, val]) => {
@@ -34,7 +35,7 @@ async function apiClient<T>(
   const response = await fetch(url.href, options);
   let data: any = null;
   const contentType = response.headers.get('content-type');
-  if (response.status !== 204 && contentType && contentType.includes('application/json')) {
+  if (response.status !== 204 && contentType?.includes('application/json')) {
     data = await response.json();
   }
   return { ok: response.ok, status: response.status, data };

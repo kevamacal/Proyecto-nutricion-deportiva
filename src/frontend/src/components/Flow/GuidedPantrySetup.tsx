@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { fetchFoodCatalog, addPantryItemsBatch, type CatalogFoodItem } from '../../services/supabaseApi';
+import { fetchFoodCatalog, addPantryItemsBatch, type CatalogFoodItem } from '../../services/api';
 import { FoodSelectorModal, type SelectedBatchItem } from '../Food/FoodSelectorModal';
 import { ShoppingBag, Plus, Sparkles } from 'lucide-react';
 

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Package, Activity, Plus, Trash2, Utensils, X } from 'lucide-react';
 import type { PantryItem } from '../types';
-import { fetchFoodCatalog, addPantryItemsBatch, logMeal, type CatalogFoodItem } from '../services/supabaseApi';
+import { fetchFoodCatalog, addPantryItemsBatch, logMeal, type CatalogFoodItem } from '../services/api';
 import { FoodSelectorModal, type SelectedBatchItem } from './Food/FoodSelectorModal';
 import { getFoodMeta, getCategoryMeta } from './Food/foodMeta';
 import { DENSITY_CLASS_LABELS, MEAL_TYPE_LABELS } from '../utils/enumMappers';

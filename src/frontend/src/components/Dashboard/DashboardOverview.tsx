@@ -11,7 +11,7 @@ import {
   Plus,
 } from 'lucide-react';
 import type { RemainingBalance, MacroBalance, PantryItem, LoggedMealEntry, LoggedActivityEntry } from '../../types';
-import { fetchLoggedMealsForDate } from '../../services/supabaseApi';
+import { fetchLoggedMealsForDate } from '../../services/api';
 import { LoggedMealCard } from '../Meals/LoggedMealCard';
 import { LoggedWorkoutsTimeline } from '../Sports/LoggedWorkoutsTimeline';
 import { WaterIntakeCard } from '../Common/WaterIntakeCard';

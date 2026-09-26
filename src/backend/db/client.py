@@ -1,7 +1,7 @@
 """Supabase DB Client Initialization for Backend Data Access Layer."""
 
 from src.backend.settings import settings
-from supabase import Client, create_client
+from supabase import Client, create_client  # type: ignore[attr-defined]
 
 _client: Client | None = None
 

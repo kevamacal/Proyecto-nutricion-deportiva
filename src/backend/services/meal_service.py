@@ -9,6 +9,7 @@ from src.backend.api.v1.schemas import (
     LoggedMealEntryResponse,
     LoggedMealItemResponse,
     LogMealRequest,
+    MealItemPayload,
 )
 from src.backend.db.repository import meal_repository, pantry_repository
 
@@ -111,7 +112,9 @@ class MealService:
             items=formatted_items,
         )
 
-    def _deduct_pantry_inventory(self, user_id: str, items: list[Any]) -> None:
+    def _deduct_pantry_inventory(
+        self, user_id: str, items: list[MealItemPayload]
+    ) -> None:
         """Domain logic to deduct consumed food items from available pantry inventory."""
         if not user_id or not items:
             return
@@ -124,13 +127,11 @@ class MealService:
             self._process_single_item_deduction(item, available_stock)
 
     def _process_single_item_deduction(
-        self, item: Any, available_stock: list[dict[str, Any]]
+        self, item: MealItemPayload, available_stock: list[dict[str, Any]]
     ) -> None:
         """Deduct stock for a single consumed item if present in pantry."""
-        food_id = (
-            str(item.food_item_id) if getattr(item, "food_item_id", None) else None
-        )
-        qty = float(item.quantity) if getattr(item, "quantity", None) else 0.0
+        food_id = str(item.food_item_id) if item.food_item_id else None
+        qty = float(item.quantity) if item.quantity else 0.0
         if not food_id or qty <= 0:
             return
 

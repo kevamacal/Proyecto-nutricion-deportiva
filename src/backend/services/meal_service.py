@@ -121,22 +121,28 @@ class MealService:
             return
 
         for item in items:
-            food_id = (
-                str(item.food_item_id) if getattr(item, "food_item_id", None) else None
-            )
-            qty = float(item.quantity) if getattr(item, "quantity", None) else 0.0
-            if not food_id or qty <= 0:
-                continue
+            self._process_single_item_deduction(item, available_stock)
 
-            match_row = next(
-                (r for r in available_stock if str(r.get("food_item_id")) == food_id),
-                None,
-            )
-            if match_row:
-                curr_qty = float(match_row.get("quantity", 0.0))
-                new_qty = max(0.0, curr_qty - qty)
-                new_status = "CONSUMED" if new_qty == 0 else "AVAILABLE"
-                pantry_repository.update_quantity(match_row["id"], new_qty, new_status)
+    def _process_single_item_deduction(
+        self, item: Any, available_stock: list[dict[str, Any]]
+    ) -> None:
+        """Deduct stock for a single consumed item if present in pantry."""
+        food_id = (
+            str(item.food_item_id) if getattr(item, "food_item_id", None) else None
+        )
+        qty = float(item.quantity) if getattr(item, "quantity", None) else 0.0
+        if not food_id or qty <= 0:
+            return
+
+        match_row = next(
+            (r for r in available_stock if str(r.get("food_item_id")) == food_id),
+            None,
+        )
+        if match_row:
+            curr_qty = float(match_row.get("quantity", 0.0))
+            new_qty = max(0.0, curr_qty - qty)
+            new_status = "CONSUMED" if new_qty == 0 else "AVAILABLE"
+            pantry_repository.update_quantity(match_row["id"], new_qty, new_status)
 
     def _format_meal_list(
         self, raw_meals: list[dict[str, Any]]

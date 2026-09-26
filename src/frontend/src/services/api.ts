@@ -168,7 +168,7 @@ export async function registerUser(email: string, name: string, password?: strin
 }
 
 export async function fetchUserProfile(userId: string): Promise<SupabaseUserProfile | null> {
-  const response = await fetch(`${API_BASE_URL}/profile/${userId}`);
+  const response = await fetch(`${API_BASE_URL}/profile/${encodeURIComponent(userId)}`);
   if (response.status === 404) return null;
   if (!response.ok) {
     throw new Error(`Error fetching profile: ${response.status}`);
@@ -180,7 +180,7 @@ export async function updateUserProfile(
   userId: string,
   updates: Partial<SupabaseUserProfile>
 ): Promise<SupabaseUserProfile | null> {
-  const response = await fetch(`${API_BASE_URL}/profile/${userId}`, {
+  const response = await fetch(`${API_BASE_URL}/profile/${encodeURIComponent(userId)}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(updates),
@@ -240,7 +240,7 @@ export async function createCustomFoodItem(payload: CreateCustomFoodPayload): Pr
 // ============================================================================
 
 export async function fetchPantryInventory(userId: string): Promise<PantryItem[]> {
-  const response = await fetch(`${API_BASE_URL}/pantry/${userId}`);
+  const response = await fetch(`${API_BASE_URL}/pantry/${encodeURIComponent(userId)}`);
   if (!response.ok) {
     throw new Error(`Error fetching pantry: ${response.status}`);
   }
@@ -272,7 +272,7 @@ export async function addPantryItemsBatch(payloads: AddPantryItemPayload[]): Pro
 }
 
 export async function deletePantryItem(itemId: string): Promise<void> {
-  const response = await fetch(`${API_BASE_URL}/pantry/${itemId}`, {
+  const response = await fetch(`${API_BASE_URL}/pantry/${encodeURIComponent(itemId)}`, {
     method: 'DELETE',
   });
   if (!response.ok) {
@@ -285,7 +285,7 @@ export async function deletePantryItem(itemId: string): Promise<void> {
 // ============================================================================
 
 export async function fetchDailySummary(userId: string, dateStr: string) {
-  const response = await fetch(`${API_BASE_URL}/summary/daily?user_id=${userId}&date=${dateStr}`);
+  const response = await fetch(`${API_BASE_URL}/summary/daily?user_id=${encodeURIComponent(userId)}&date=${encodeURIComponent(dateStr)}`);
   if (!response.ok) {
     throw new Error(`Error fetching daily summary: ${response.status}`);
   }
@@ -293,7 +293,7 @@ export async function fetchDailySummary(userId: string, dateStr: string) {
 }
 
 export async function fetchLoggedMealsForDate(userId: string, dateStr: string): Promise<LoggedMealEntry[]> {
-  const response = await fetch(`${API_BASE_URL}/meals?user_id=${userId}&date=${dateStr}`);
+  const response = await fetch(`${API_BASE_URL}/meals?user_id=${encodeURIComponent(userId)}&date=${encodeURIComponent(dateStr)}`);
   if (!response.ok) {
     return [];
   }
@@ -301,7 +301,7 @@ export async function fetchLoggedMealsForDate(userId: string, dateStr: string): 
 }
 
 export async function fetchRecentUserMeals(userId: string): Promise<LoggedMealEntry[]> {
-  const response = await fetch(`${API_BASE_URL}/meals/recent/${userId}`);
+  const response = await fetch(`${API_BASE_URL}/meals/recent/${encodeURIComponent(userId)}`);
   if (!response.ok) {
     return [];
   }
@@ -328,7 +328,7 @@ export async function fetchLoggedActivitiesForDate(
   userId: string,
   dateStr: string
 ): Promise<LoggedActivityEntry[]> {
-  const response = await fetch(`${API_BASE_URL}/activities?user_id=${userId}&date=${dateStr}`);
+  const response = await fetch(`${API_BASE_URL}/activities?user_id=${encodeURIComponent(userId)}&date=${encodeURIComponent(dateStr)}`);
   if (!response.ok) {
     return [];
   }
@@ -351,7 +351,7 @@ export async function updateActivitySession(
   activityId: string,
   payload: LogActivitySessionPayload
 ): Promise<any> {
-  const response = await fetch(`${API_BASE_URL}/activities/session/${activityId}`, {
+  const response = await fetch(`${API_BASE_URL}/activities/session/${encodeURIComponent(activityId)}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
@@ -363,7 +363,7 @@ export async function updateActivitySession(
 }
 
 export async function deleteActivitySession(activityId: string): Promise<void> {
-  const response = await fetch(`${API_BASE_URL}/activities/session/${activityId}`, {
+  const response = await fetch(`${API_BASE_URL}/activities/session/${encodeURIComponent(activityId)}`, {
     method: 'DELETE',
   });
   if (!response.ok) {
@@ -376,7 +376,7 @@ export async function deleteActivitySession(activityId: string): Promise<void> {
 // ============================================================================
 
 export async function fetchDailyHydrationLogs(userId: string, dateStr: string): Promise<HydrationLogEntry[]> {
-  const response = await fetch(`${API_BASE_URL}/hydration?user_id=${userId}&date=${dateStr}`);
+  const response = await fetch(`${API_BASE_URL}/hydration?user_id=${encodeURIComponent(userId)}&date=${encodeURIComponent(dateStr)}`);
   if (!response.ok) {
     return [];
   }
@@ -396,7 +396,7 @@ export async function logWaterIntake(userId: string, amountMl: number): Promise<
 }
 
 export async function deleteHydrationLog(logId: string): Promise<void> {
-  const response = await fetch(`${API_BASE_URL}/hydration/${logId}`, {
+  const response = await fetch(`${API_BASE_URL}/hydration/${encodeURIComponent(logId)}`, {
     method: 'DELETE',
   });
   if (!response.ok) {

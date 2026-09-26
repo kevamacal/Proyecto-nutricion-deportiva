@@ -1,5 +1,6 @@
 """FastAPI router handling athletic activity logging, calculations, and persistence."""
 
+from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Query, status
@@ -15,28 +16,22 @@ from src.backend.services.activity_service import activity_service
 router = APIRouter(prefix="/api/v1/activities", tags=["Activities"])
 
 
-@router.post(
-    "/log", status_code=status.HTTP_201_CREATED, response_model=ActivityLogResponse
-)
+@router.post("/log", status_code=status.HTTP_201_CREATED)
 def log_activity(payload: ActivityLogRequest) -> ActivityLogResponse:
     """Calculate energy expenditure and recovery demands for session."""
     return activity_service.log_activity(payload)
 
 
-@router.get("", response_model=list[LoggedActivityEntryResponse])
+@router.get("")
 def get_logged_activities(
-    user_id: UUID = Query(...),
-    date: str = Query(...),
+    user_id: Annotated[UUID, Query()],
+    date: Annotated[str, Query()],
 ) -> list[LoggedActivityEntryResponse]:
     """Fetch logged athletic activities for user and date."""
     return activity_service.get_logged_activities(user_id, date)
 
 
-@router.post(
-    "/session",
-    response_model=LoggedActivityEntryResponse,
-    status_code=status.HTTP_201_CREATED,
-)
+@router.post("/session", status_code=status.HTTP_201_CREATED)
 def log_activity_session(
     payload: LogActivitySessionRequest,
 ) -> LoggedActivityEntryResponse:
@@ -44,7 +39,7 @@ def log_activity_session(
     return activity_service.log_activity_session(payload)
 
 
-@router.put("/session/{activity_id}", response_model=LoggedActivityEntryResponse)
+@router.put("/session/{activity_id}")
 def update_activity_session(
     activity_id: UUID, payload: LogActivitySessionRequest
 ) -> LoggedActivityEntryResponse:

@@ -15,19 +15,19 @@ from src.backend.services.pantry_service import pantry_service
 router = APIRouter(prefix="/api/v1/pantry", tags=["Pantry Inventory"])
 
 
-@router.get("/{user_id}", response_model=list[PantryItemResponse])
+@router.get("/{user_id}")
 def get_pantry(user_id: UUID) -> list[PantryItemResponse]:
     """Fetch active pantry stock for user."""
     return pantry_service.get_inventory(user_id)
 
 
-@router.post("/item", response_model=dict[str, Any])
+@router.post("/item")
 def add_pantry_item(payload: AddPantryItemRequest) -> dict[str, Any]:
     """Add item to pantry inventory."""
     return pantry_service.add_pantry_item(payload)
 
 
-@router.post("/batch", response_model=list[dict[str, Any]])
+@router.post("/batch")
 def add_pantry_batch(payload: AddPantryBatchRequest) -> list[dict[str, Any]]:
     """Batch add items to pantry inventory."""
     return pantry_service.add_pantry_batch(payload)

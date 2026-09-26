@@ -15,17 +15,23 @@ class AuthRepository:
     def __init__(self) -> None:
         self.client = get_supabase_client()
 
+    @staticmethod
+    def _dump_user_object(user_obj: Any) -> dict[str, Any]:
+        """Safely serialize Supabase user model object into dictionary."""
+        if not user_obj:
+            return {}
+        if hasattr(user_obj, "model_dump"):
+            return cast(dict[str, Any], user_obj.model_dump())
+        if hasattr(user_obj, "dict"):
+            return cast(dict[str, Any], user_obj.dict())
+        return {}
+
     def sign_in(self, email: str, password: str) -> dict[str, Any]:
         """Sign in user with email and password."""
         res = self.client.auth.sign_in_with_password(
             {"email": email, "password": password}
         )
-        user_obj = res.user
-        user_data = (
-            user_obj.model_dump()
-            if user_obj and hasattr(user_obj, "model_dump")
-            else (user_obj.dict() if user_obj and hasattr(user_obj, "dict") else {})
-        )
+        user_data = self._dump_user_object(res.user)
         session_data = (
             res.session.model_dump()
             if res.session and hasattr(res.session, "model_dump")
@@ -44,12 +50,7 @@ class AuthRepository:
                 "options": {"data": {"name": name, "primary_sport": primary_sport}},
             }
         )
-        user_obj = res.user
-        user_data = (
-            user_obj.model_dump()
-            if user_obj and hasattr(user_obj, "model_dump")
-            else (user_obj.dict() if user_obj and hasattr(user_obj, "dict") else {})
-        )
+        user_data = self._dump_user_object(res.user)
         session_data = (
             res.session.model_dump()
             if res.session and hasattr(res.session, "model_dump")

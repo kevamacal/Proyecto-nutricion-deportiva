@@ -80,21 +80,23 @@ export const WaterIntakeCard: React.FC<WaterIntakeCardProps> = ({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       className="panel-card"
-      style={{ borderTop: '3px solid var(--accent-lake)' }}
     >
       <div className="panel-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h3 className="panel-title" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-          <Droplet size={20} style={{ color: 'var(--accent-lake)' }} /> Registro de Hidratación
-        </h3>
+        <div>
+          <span className="panel-eyebrow">Hidratación</span>
+          <h3 className="panel-title" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <Droplet size={18} style={{ color: 'var(--accent-lake)' }} /> Registro de agua
+          </h3>
+        </div>
         <span
           style={{
             fontFamily: 'var(--font-display)',
-            fontSize: '1.2rem',
+            fontSize: '1.1rem',
             fontWeight: 800,
             color: 'var(--accent-lake)',
           }}
         >
-          {totalConsumedMl} <span style={{ fontSize: '0.8rem', color: 'var(--ink-muted)' }}>/ {defaultTarget} ml</span>
+          {totalConsumedMl} <span style={{ fontSize: '0.78rem', color: 'var(--ink-muted)' }}>/ {defaultTarget} ml</span>
         </span>
       </div>
 

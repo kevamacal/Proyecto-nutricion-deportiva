@@ -271,3 +271,256 @@ def test_onboarding_choice_buttons_expose_pressed_state():
 def test_reduced_motion_is_respected():
     css = _read("index.css")
     assert "prefers-reduced-motion: reduce" in css
+
+
+# ---------------------------------------------------------------------------
+# Scoreboard hierarchy - sports_nutrition_ui_direction
+# ---------------------------------------------------------------------------
+
+
+def test_dashboard_has_exactly_one_thick_rule():
+    """ "Thick rule = hierarchy" only means something if there is exactly one.
+
+    Four panels distinguished only by a coloured top border is the
+    generated-design tell: nothing is more important than anything else, and
+    the remaining-calories number ends up carrying the same weight as the
+    pantry item count.
+    """
+    dashboard = _read("components/Dashboard/DashboardOverview.tsx")
+    assert "panel-scoreboard" in dashboard, (
+        "The balance panel must carry the thick rule"
+    )
+    assert "borderTop: '3px" not in dashboard, (
+        "No dashboard panel may define its own coloured top border; hierarchy "
+        "comes from the single .panel-scoreboard rule and from hairlines"
+    )
+    assert dashboard.count("panel-scoreboard") == 1, (
+        "Exactly one panel per view may claim the thick rule"
+    )
+
+
+def test_side_column_panels_do_not_claim_hierarchy():
+    """Panels rendered beside the balance must defer to it."""
+    for component in [
+        "components/Common/WaterIntakeCard.tsx",
+        "components/Sports/LoggedWorkoutsTimeline.tsx",
+    ]:
+        source = _read(component)
+        assert "borderTop: '3px" not in source, (
+            f"{component} renders inside the dashboard's side column and must "
+            "not draw its own thick rule"
+        )
+        assert "panel-eyebrow" in source, (
+            f"{component} must use the shared eyebrow anatomy so side-column "
+            "panels match the main column"
+        )
+
+
+def test_macro_gauges_live_inside_the_balance_panel():
+    """Three equal cards for macros reads as an index, not a scoreboard.
+
+    The gauges belong inside the balance, divided by hairlines, so the whole
+    balance is one continuous readout.
+    """
+    dashboard = _read("components/Dashboard/DashboardOverview.tsx")
+    assert "gauges.map" in dashboard, "Gauges must be rendered from one shared list"
+    assert dashboard.count("panel-card") <= 3, (
+        "The dashboard must merge related panels rather than stack one card per "
+        "metric; balance + meals + pantry is the expected count"
+    )
+    for hairline in ("panel-divider",):
+        assert dashboard.count(hairline) >= 2, (
+            "The balance panel separates its sections with hairlines, not cards"
+        )
+
+
+def test_gauge_rows_share_a_left_edge():
+    """A donut has no baseline; a row does. No ring charts in this design."""
+    dashboard = _read("components/Dashboard/DashboardOverview.tsx")
+    for chart in ("conic-gradient", "donut", "PieChart", "polar"):
+        assert chart not in dashboard, (
+            f"Macronutrients must use horizontal fuel gauges, not '{chart}'"
+        )
+
+
+def test_macro_targets_are_whole_grams():
+    """A target of "522.15g" is a rounding artefact leaking into the UI.
+
+    Targets arrive from the backend as floats. An athlete reads a target, not a
+    float, and the extra precision makes the scoreboard look unfinished.
+    """
+    dashboard = _read("components/Dashboard/DashboardOverview.tsx")
+    for target in ("protein_g", "carbohydrates_g", "fat_g"):
+        assert f"target: Math.round(dailyTargets.{target})" in dashboard, (
+            f"Macro target {target} must be rounded for display"
+        )
+
+
+def test_only_one_primary_action_per_dashboard_view():
+    """ "Spend the boldness in one place."
+
+    The desktop screenshot had two ember-filled buttons competing: the balance's
+    primary action and the workouts empty-state button. An empty state repeats
+    an action, it does not re-declare it as the page's primary.
+    """
+    for component in [
+        "components/Dashboard/DashboardOverview.tsx",
+        "components/Sports/LoggedWorkoutsTimeline.tsx",
+    ]:
+        source = _read(component)
+        assert "btn-action-pill primary" not in source, (
+            f"{component} must not add a second ember-filled action; the balance "
+            "panel owns the view's single primary action"
+        )
+
+
+# ---------------------------------------------------------------------------
+# Desktop layout
+# ---------------------------------------------------------------------------
+
+
+def test_desktop_gets_a_second_column_not_a_wider_one():
+    """A wider single column is the lazy fix; the side column is the real one."""
+    css = _read("index.css")
+    assert "@media (min-width: 1024px)" in css, "There is no desktop breakpoint"
+    assert "grid-template-columns: 1fr 320px" in css, (
+        "The desktop dashboard must be 1fr / 320px, never a 50/50 split"
+    )
+    assert "max-width: 1120px" in css, "The container must grow on desktop"
+
+
+def test_bottom_nav_is_hidden_on_desktop():
+    """A fixed bottom bar with reserved padding is the wrong model for a pointer.
+
+    This originally asserted only that `.mobile-bottom-nav` appeared *somewhere*
+    inside the media query. It passed while both nav bars were rendering,
+    because the base `display: flex` rule sat *after* the media query and won on
+    source order. Order is now part of the assertion.
+    """
+    css = _read("index.css")
+
+    base = re.search(r"^\.mobile-bottom-nav\s*\{[^}]*\}", css, flags=re.MULTILINE)
+    assert base, "Missing base .mobile-bottom-nav rule"
+
+    override = re.search(
+        r"@media \(min-width: 1024px\)\s*\{\s*[^}]*?\.mobile-bottom-nav\s*\{[^}]*?display: none",
+        css,
+        re.DOTALL,
+    )
+    assert override, ".mobile-bottom-nav must be hidden at desktop widths"
+    assert override.start() > base.start(), (
+        "The desktop override must come AFTER the base rule; both are "
+        "single-class selectors, so a preceding override silently loses"
+    )
+
+
+def test_only_one_nav_is_visible_at_each_width():
+    """The bug visible in the desktop screenshot: the bottom bar and the top nav
+    rendered together, because two same-specificity rules contradicted and the
+    later one won.
+    """
+    css = _read("index.css")
+    desktop = css[css.index("@media (min-width: 1024px)") :]
+
+    hidden = set(re.findall(r"\.([a-z-]+)\s*\{\s*display: none", desktop))
+    shown = set(re.findall(r"\.([a-z-]+)\s*\{\s*display: flex", desktop))
+
+    assert "mobile-bottom-nav" in hidden, "Bottom nav must be hidden on desktop"
+    assert "desktop-nav" in shown, "Segmented nav must be shown on desktop"
+    assert not hidden & shown, (
+        f"Classes cannot be both shown and hidden at desktop widths: {hidden & shown}"
+    )
+
+
+def test_navigation_labels_have_a_single_source_of_truth():
+    """The two nav models must not drift apart."""
+    app = _read("App.tsx")
+    assert "NAV_ITEMS" in app
+    assert app.count("NAV_ITEMS.map") == 2, (
+        "Both the desktop and mobile nav must render from NAV_ITEMS"
+    )
+
+
+def test_nav_visibility_is_owned_by_one_class():
+    """Guards a real bug: `.nav-segment` setting `display` after `.desktop-nav`
+    hid it, so the desktop segmented nav also rendered on phones.
+
+    Two rules with equal specificity means the outcome depends on source order,
+    which is not something a reader should have to verify.
+    """
+    css = _read("index.css")
+
+    nav_segment = re.search(r"\.nav-segment\s*\{[^}]*\}", css)
+    assert nav_segment, "Missing .nav-segment rule"
+    assert "display:" not in nav_segment.group(0), (
+        ".nav-segment must not set display: .desktop-nav owns visibility in "
+        "both directions, otherwise source order decides the outcome"
+    )
+
+    desktop_nav = re.search(r"\.desktop-nav\s*\{[^}]*\}", css)
+    assert desktop_nav and "display: none" in desktop_nav.group(0), (
+        ".desktop-nav must be hidden by default (mobile)"
+    )
+    assert re.search(
+        r"@media \(min-width: 1024px\)\s*\{[^@]*?\.desktop-nav\s*\{[^}]*display: flex",
+        css,
+        re.DOTALL,
+    ), ".desktop-nav must become visible at desktop widths"
+
+
+def test_scoreboard_grid_works_without_the_desktop_media_query():
+    """The grid is a desktop upgrade, not a dependency.
+
+    If `.scoreboard-grid` is only styled inside the media query, mobile gets an
+    unstyled block element and the two columns collapse together with no gap
+    between them.
+    """
+    css = _read("index.css")
+    desktop_start = css.index("@media (min-width: 1024px)")
+
+    base_rule = re.search(r"\.scoreboard-grid\s*\{[^}]*\}", css[:desktop_start])
+    assert base_rule, (
+        ".scoreboard-grid needs a base rule so mobile keeps column spacing"
+    )
+    assert "gap:" in base_rule.group(0), (
+        "Without a base gap, the main and side columns touch on mobile"
+    )
+    assert "flex-direction: column" in base_rule.group(0), (
+        "Mobile must stack the two columns"
+    )
+
+
+# ---------------------------------------------------------------------------
+# The visual spec must exist
+# ---------------------------------------------------------------------------
+
+
+def test_visual_identity_spec_is_present_and_not_overwritten():
+    """The drift this issue fixes started because these files were misfiled.
+
+    `sports_nutrition_ui_direction/SKILL.MD` held the *flow* document, and the
+    flow path referenced by AGENTS.md 2.4 did not exist, so the visual identity
+    was written nowhere.
+    """
+    skills = Path(__file__).parent.parent / "skills"
+
+    ui_spec = skills / "sports_nutrition_ui_direction" / "SKILL.md"
+    assert ui_spec.is_file(), f"Missing visual identity spec: {ui_spec}"
+    ui_text = ui_spec.read_text(encoding="utf-8")
+    assert "UI Direction" in ui_text, (
+        "sports_nutrition_ui_direction must document the visual identity, not the flow"
+    )
+    assert "Canonical application states" not in ui_text, (
+        "The flow document has leaked back into the UI direction spec"
+    )
+
+    flow_spec = skills / "sports_nutrition_flow_direction" / "SKILL.md"
+    assert flow_spec.is_file(), (
+        f"AGENTS.md 2.4 references {flow_spec}, which must exist"
+    )
+    assert "Canonical application states" in flow_spec.read_text(encoding="utf-8")
+
+    agents = Path(__file__).parent.parent / "AGENTS.md"
+    assert "sports_nutrition_flow_direction/SKILL.md" in agents.read_text(
+        encoding="utf-8"
+    )

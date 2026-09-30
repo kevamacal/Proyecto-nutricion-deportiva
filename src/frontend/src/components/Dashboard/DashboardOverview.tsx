@@ -4,7 +4,6 @@ import {
   Utensils,
   Activity,
   ShoppingBag,
-  TrendingUp,
   ChevronRight,
   Droplet,
   Sparkles,
@@ -108,288 +107,256 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
 
   const topPantryItems = pantryItems.slice(0, 3);
 
+  /** Shared left edge so the three progressions are comparable by eye. */
+  const gauges = [
+    { key: 'prot', label: 'Proteína', value: eatenProt, target: Math.round(dailyTargets.protein_g), pct: protPct, color: 'var(--accent-ember)' },
+    { key: 'carb', label: 'Carbohidratos', value: eatenCarb, target: Math.round(dailyTargets.carbohydrates_g), pct: carbPct, color: 'var(--accent-gold)' },
+    { key: 'fat', label: 'Grasas', value: eatenFat, target: Math.round(dailyTargets.fat_g), pct: fatPct, color: 'var(--accent-lake)' },
+  ];
+
   return (
     <motion.div
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', width: '100%' }}
+      className="scoreboard-grid"
     >
-      {/* 1. HERO BIOENERGETICS CARD (ONBOARDING WIZARD STYLE) */}
-      <motion.div
-        variants={itemVariants}
-        className="panel-card"
-        style={{
-          borderTop: '3px solid var(--accent-ember)',
-          padding: '1.5rem',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '1.25rem',
-        }}
-      >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: '0.8rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--ink-muted)', letterSpacing: '0.5px' }}>
-            Calorías Restantes Hoy
-          </span>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: 'var(--accent-lake)', fontSize: '0.85rem', fontWeight: 700 }}>
-            <Droplet size={16} /> {Math.round(hydrationDemandMl)} ml agua
-          </div>
-        </div>
-
-        <div>
-          <div
-            style={{
-              fontFamily: 'var(--font-display)',
-              fontSize: '3.2rem',
-              fontWeight: 800,
-              color: 'var(--accent-ember)',
-              lineHeight: 1,
-              marginTop: '0.2rem',
-            }}
-          >
-            {Math.round(remainingBalance.remaining_calories_kcal)}{' '}
-            <span style={{ fontSize: '1.2rem', color: 'var(--ink-muted)', fontWeight: 600 }}>kcal</span>
-          </div>
-          <div style={{ fontSize: '0.8rem', color: 'var(--ink-muted)', marginTop: '0.35rem' }}>
-            {Math.round(consumed.calories_kcal)} kcal consumidas de {dailyTargets.calories_kcal} kcal objetivo
-          </div>
-        </div>
-
-        {/* Action Buttons Grid - Unified Workout & Meal Entry */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.65rem', marginTop: '0.5rem' }}>
-          <motion.button
-            whileHover={{ scale: 1.01 }}
-            whileTap={{ scale: 0.99 }}
-            onClick={onOpenWorkoutModal}
-            className="btn-scoreboard"
-            style={{ padding: '0.9rem', justifyContent: 'center', fontSize: '0.9rem', gap: '0.4rem' }}
-          >
-            <Activity size={18} /> Registrar entrenamiento
-          </motion.button>
-          <motion.button
-            whileHover={{ scale: 1.01 }}
-            whileTap={{ scale: 0.99 }}
-            onClick={onOpenMeal}
-            className="btn-scoreboard secondary"
-            style={{ padding: '0.9rem', justifyContent: 'center', fontSize: '0.9rem', gap: '0.4rem' }}
-          >
-            <Utensils size={18} /> Registrar comida
-          </motion.button>
-        </div>
-      </motion.div>
-
-
-      {/* 2. MACRONUTRIENT FUEL GAUGE CARD */}
-      <motion.div variants={itemVariants} className="panel-card" style={{ borderTop: '3px solid var(--accent-lake)' }}>
-        <div className="panel-header">
-          <h3 className="panel-title">
-            <TrendingUp size={20} style={{ color: 'var(--accent-lake)' }} /> Macronutrientes
-          </h3>
-        </div>
-
-        <div className="panel-body" style={{ gap: '1rem' }}>
-          {/* Protein */}
-          <div style={{ background: 'var(--surface-card)', padding: '0.85rem', border: '1px solid var(--line-graphite)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.05rem', fontWeight: 700 }}>
-              <span>Proteínas</span>
-              <span style={{ color: 'var(--accent-ember)', fontFamily: 'var(--font-display)', fontSize: '1.25rem' }}>
-                {eatenProt}g / {dailyTargets.protein_g}g ({protPct}%)
-              </span>
-            </div>
-            <div className="macro-bar-track" style={{ height: '8px' }}>
-              <motion.div
-                className="macro-bar-fill prot"
-                initial={{ width: 0 }}
-                animate={{ width: `${protPct}%` }}
-                transition={{ duration: 0.4, ease: 'easeOut' }}
-              />
-            </div>
-          </div>
-
-          {/* Carbs */}
-          <div style={{ background: 'var(--surface-card)', padding: '0.85rem', border: '1px solid var(--line-graphite)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.05rem', fontWeight: 700 }}>
-              <span>Carbohidratos</span>
-              <span style={{ color: 'var(--accent-gold)', fontFamily: 'var(--font-display)', fontSize: '1.25rem' }}>
-                {eatenCarb}g / {dailyTargets.carbohydrates_g}g ({carbPct}%)
-              </span>
-            </div>
-            <div className="macro-bar-track" style={{ height: '8px' }}>
-              <motion.div
-                className="macro-bar-fill carb"
-                initial={{ width: 0 }}
-                animate={{ width: `${carbPct}%` }}
-                transition={{ duration: 0.4, ease: 'easeOut' }}
-              />
-            </div>
-          </div>
-
-          {/* Fats */}
-          <div style={{ background: 'var(--surface-card)', padding: '0.85rem', border: '1px solid var(--line-graphite)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.05rem', fontWeight: 700 }}>
-              <span>Grasas Saludables</span>
-              <span style={{ color: 'var(--accent-lake)', fontFamily: 'var(--font-display)', fontSize: '1.25rem' }}>
-                {eatenFat}g / {dailyTargets.fat_g}g ({fatPct}%)
-              </span>
-            </div>
-            <div className="macro-bar-track" style={{ height: '8px' }}>
-              <motion.div
-                className="macro-bar-fill fat"
-                initial={{ width: 0 }}
-                animate={{ width: `${fatPct}%` }}
-                transition={{ duration: 0.4, ease: 'easeOut' }}
-              />
-            </div>
-          </div>
-        </div>
-      </motion.div>
-
-      {/* 3. WATER HYDRATION INTAKE CARD */}
-      <motion.div variants={itemVariants}>
-        <WaterIntakeCard
-          userId={userId || ''}
-          targetHydrationMl={hydrationDemandMl}
-          workoutHydrationMl={workoutHydrationMl}
-        />
-      </motion.div>
-
-      {/* 4. LOGGED WORKOUTS TIMELINE CARD */}
-      <motion.div variants={itemVariants}>
-        <LoggedWorkoutsTimeline
-          activities={loggedActivities}
-          onOpenModal={onOpenWorkoutModal}
-          onEditActivity={onEditActivity}
-          onDeleteActivity={onDeleteActivity}
-        />
-      </motion.div>
-
-      {/* 4. DAILY CONSUMPTION TIMELINE CARD */}
-      <motion.div variants={itemVariants} className="panel-card" style={{ borderTop: '3px solid var(--accent-moss)' }}>
-
-        <div className="panel-header">
-          <h3 className="panel-title">
-            <Utensils size={20} style={{ color: 'var(--accent-moss)' }} /> Tus comidas de hoy ({loggedMeals.length})
-          </h3>
-          <button
-            type="button"
-            onClick={onOpenMeal}
-            style={{
-              background: 'rgba(87, 184, 148, 0.15)',
-              border: '1px solid var(--accent-moss)',
-              color: 'var(--accent-moss)',
-              fontSize: '0.78rem',
-              fontWeight: 700,
-              padding: '0.35rem 0.75rem',
-              borderRadius: 'var(--radius-sm)',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.3rem',
-            }}
-          >
-            <Plus size={14} /> Registrar comida
-          </button>
-        </div>
-
-        <div className="panel-body">
-          {loggedMeals.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '1.5rem 1rem', color: 'var(--ink-muted)', background: 'var(--surface-card)', border: '1px dashed var(--line-heavy)', borderRadius: 'var(--radius-md)' }}>
-              <Utensils size={32} style={{ color: 'var(--ink-muted)', margin: '0 auto 0.5rem auto', opacity: 0.5 }} />
-              <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--ink-chalk)' }}>Todavía no has registrado nada hoy</div>
-              <div style={{ fontSize: '0.8rem', color: 'var(--ink-muted)', margin: '0.2rem auto 0.85rem', maxWidth: '340px' }}>
-                Registra lo que comas y verás al instante cuánto te queda para completar tus objetivos.
+      {/* ============ MAIN COLUMN ============ */}
+      <div className="scoreboard-column">
+        {/* BALANCE: the only panel carrying the thick rule and the loud number.
+            The gauges live inside it, split by rules rather than card edges, so
+            the balance reads as one scoreboard instead of four equal tiles. */}
+        <motion.div variants={itemVariants} className="panel-card panel-scoreboard">
+          <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.15rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
+              <span className="panel-eyebrow">Balance de hoy</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', color: 'var(--accent-lake)', fontSize: '0.8rem', fontWeight: 700 }}>
+                <Droplet size={14} /> {Math.round(hydrationDemandMl)} ml
               </div>
-              <button
-                type="button"
-                onClick={onOpenMeal}
-                className="btn-action-pill primary"
-                style={{ justifyContent: 'center' }}
+            </div>
+
+            <div>
+              <div
+                style={{
+                  fontFamily: 'var(--font-display)',
+                  fontSize: '3.6rem',
+                  fontWeight: 800,
+                  color: 'var(--accent-ember)',
+                  lineHeight: 0.95,
+                }}
               >
-                <Plus size={16} /> Registrar mi primera comida
-              </button>
+                {Math.round(remainingBalance.remaining_calories_kcal)}
+                <span style={{ fontSize: '1.1rem', color: 'var(--ink-muted)', fontWeight: 600, marginLeft: '0.4rem' }}>
+                  kcal disponibles
+                </span>
+              </div>
+              <div style={{ fontSize: '0.82rem', color: 'var(--ink-muted)', marginTop: '0.4rem' }}>
+                {Math.round(consumed.calories_kcal)} kcal de {dailyTargets.calories_kcal} kcal objetivo
+              </div>
             </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
-              {loggedMeals.map((meal) => (
-                <LoggedMealCard key={meal.id} meal={meal} showTime={true} />
-              ))}
-            </div>
-          )}
-        </div>
-      </motion.div>
 
-      {/* 3. QUICK RECIPE & PANTRY SNAPSHOT CARD */}
-      <motion.div variants={itemVariants} className="panel-card" style={{ borderTop: '3px solid var(--line-heavy)' }}>
-        <div className="panel-header">
-          <h3 className="panel-title">
-            <ShoppingBag size={20} style={{ color: 'var(--accent-ember)' }} /> Tu despensa ({pantryItems.length})
-          </h3>
-          <button
-            onClick={() => onNavigateTab('PANTRY')}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: 'var(--accent-ember)',
-              fontSize: '0.8rem',
-              fontWeight: 700,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.2rem',
-            }}
-          >
-            Ver toda <ChevronRight size={16} />
-          </button>
-        </div>
+            <hr className="panel-divider" />
 
-        <div className="panel-body">
-          {topPantryItems.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '1rem 0', color: 'var(--ink-muted)', fontSize: '0.85rem' }}>
-              Tu despensa está vacía. Añade alimentos y te proponemos recetas con lo que tienes.
-            </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              {topPantryItems.map((item) => (
-                <div
-                  key={item.inventory_item_id}
-                  style={{
-                    background: 'var(--surface-card)',
-                    border: '1px solid var(--line-graphite)',
-                    padding: '0.65rem 0.85rem',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                  }}
-                >
-                  <div>
-                    <div style={{ fontWeight: 700, color: 'var(--ink-chalk)', fontSize: '0.85rem' }}>{item.name}</div>
-                    <div style={{ fontSize: '0.72rem', color: 'var(--ink-muted)' }}>{item.category}</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
+              {gauges.map((g) => (
+                <div key={g.key}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.35rem' }}>
+                    <span style={{ fontSize: '0.9rem', color: 'var(--ink-secondary)' }}>{g.label}</span>
+                    <span style={{ fontFamily: 'var(--font-display)', fontSize: '1rem', color: g.color, fontWeight: 800 }}>
+                      {g.value}g <span style={{ color: 'var(--ink-muted)', fontWeight: 600 }}>/ {g.target}g</span>
+                    </span>
                   </div>
-
-                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 800, color: 'var(--accent-ember)', fontSize: '1rem' }}>
-                    {item.available_quantity} <span style={{ fontSize: '0.72rem', color: 'var(--ink-muted)' }}>{item.unit}</span>
+                  <div className="macro-bar-track" style={{ height: '8px' }}>
+                    <motion.div
+                      className={`macro-bar-fill ${g.key}`}
+                      initial={{ width: 0 }}
+                      animate={{ width: `${g.pct}%` }}
+                      transition={{ duration: 0.3, ease: 'easeOut' }}
+                    />
                   </div>
                 </div>
               ))}
             </div>
-          )}
 
-          <motion.button
-            whileHover={{ scale: 1.01 }}
-            whileTap={{ scale: 0.99 }}
-            onClick={() =>
-              onSendChatQuery(
-                '¿Qué puedo cenar rápido aprovechando los alimentos de mi despensa?'
-              )
-            }
-            className="btn-action-pill"
-            style={{ width: '100%', justifyContent: 'center', marginTop: '0.5rem' }}
-          >
-            <Sparkles size={16} /> Ver recetas con lo que tengo
-          </motion.button>
-        </div>
-      </motion.div>
+            <hr className="panel-divider" />
+
+            {/* One primary action per view. */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.65rem' }}>
+              <motion.button
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
+                onClick={onOpenMeal}
+                className="btn-scoreboard"
+                style={{ padding: '0.9rem', justifyContent: 'center', fontSize: '0.9rem', gap: '0.4rem' }}
+              >
+                <Utensils size={18} /> Registrar comida
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
+                onClick={onOpenWorkoutModal}
+                className="btn-scoreboard secondary"
+                style={{ padding: '0.9rem', justifyContent: 'center', fontSize: '0.9rem', gap: '0.4rem' }}
+              >
+                <Activity size={18} /> Registrar entrenamiento
+              </motion.button>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* TODAY'S MEALS */}
+        <motion.div variants={itemVariants} className="panel-card">
+          <div className="panel-header">
+            <div>
+              <span className="panel-eyebrow">Ingesta</span>
+              <h3 className="panel-title">
+                <Utensils size={18} style={{ color: 'var(--accent-moss)' }} />
+                Tus comidas de hoy ({loggedMeals.length})
+              </h3>
+            </div>
+            <button
+              type="button"
+              onClick={onOpenMeal}
+              style={{
+                background: 'none',
+                border: '1px solid var(--line-heavy)',
+                color: 'var(--ink-secondary)',
+                fontSize: '0.78rem',
+                fontWeight: 700,
+                padding: '0.35rem 0.75rem',
+                borderRadius: 'var(--radius-sm)',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.3rem',
+              }}
+            >
+              <Plus size={14} /> Añadir
+            </button>
+          </div>
+
+          <div className="panel-body">
+            {loggedMeals.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '1.5rem 1rem', color: 'var(--ink-muted)', background: 'var(--surface-card)', border: '1px dashed var(--line-heavy)', borderRadius: 'var(--radius-md)' }}>
+                <Utensils size={32} style={{ color: 'var(--ink-muted)', margin: '0 auto 0.5rem auto', opacity: 0.5 }} />
+                <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--ink-chalk)' }}>Todavía no has registrado nada hoy</div>
+                <div style={{ fontSize: '0.8rem', color: 'var(--ink-muted)', margin: '0.2rem auto 0.85rem', maxWidth: '340px' }}>
+                  Registra lo que comas y verás al instante cuánto te queda para completar tus objetivos.
+                </div>
+                <button
+                  type="button"
+                  onClick={onOpenMeal}
+                  className="btn-action-pill"
+                  style={{ justifyContent: 'center' }}
+                >
+                  <Plus size={16} /> Registrar mi primera comida
+                </button>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+                {loggedMeals.map((meal) => (
+                  <LoggedMealCard key={meal.id} meal={meal} showTime={true} />
+                ))}
+              </div>
+            )}
+          </div>
+        </motion.div>
+      </div>
+
+      {/* ============ SIDE COLUMN ============ */}
+      <div className="scoreboard-column">
+        <motion.div variants={itemVariants}>
+          <WaterIntakeCard
+            userId={userId || ''}
+            targetHydrationMl={hydrationDemandMl}
+            workoutHydrationMl={workoutHydrationMl}
+          />
+        </motion.div>
+
+        <motion.div variants={itemVariants}>
+          <LoggedWorkoutsTimeline
+            activities={loggedActivities}
+            onOpenModal={onOpenWorkoutModal}
+            onEditActivity={onEditActivity}
+            onDeleteActivity={onDeleteActivity}
+          />
+        </motion.div>
+
+        <motion.div variants={itemVariants} className="panel-card">
+          <div className="panel-header">
+            <div>
+              <span className="panel-eyebrow">Despensa</span>
+              <h3 className="panel-title">
+                <ShoppingBag size={18} style={{ color: 'var(--accent-ember)' }} />
+                {pantryItems.length} {pantryItems.length === 1 ? 'alimento' : 'alimentos'}
+              </h3>
+            </div>
+            <button
+              onClick={() => onNavigateTab('PANTRY')}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: 'var(--accent-ember)',
+                fontSize: '0.8rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.2rem',
+              }}
+            >
+              Ver toda <ChevronRight size={16} />
+            </button>
+          </div>
+
+          <div className="panel-body">
+            {topPantryItems.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '1rem 0', color: 'var(--ink-muted)', fontSize: '0.85rem' }}>
+                Tu despensa está vacía. Añade alimentos y te proponemos recetas con lo que tienes.
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                {topPantryItems.map((item) => (
+                  <div
+                    key={item.inventory_item_id}
+                    style={{
+                      background: 'var(--surface-card)',
+                      border: '1px solid var(--line-graphite)',
+                      padding: '0.65rem 0.85rem',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontWeight: 700, color: 'var(--ink-chalk)', fontSize: '0.85rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name}</div>
+                      <div style={{ fontSize: '0.72rem', color: 'var(--ink-muted)' }}>{item.category}</div>
+                    </div>
+
+                    <div style={{ fontFamily: 'var(--font-display)', fontWeight: 800, color: 'var(--accent-ember)', fontSize: '1rem', whiteSpace: 'nowrap' }}>
+                      {item.available_quantity} <span style={{ fontSize: '0.72rem', color: 'var(--ink-muted)' }}>{item.unit}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <motion.button
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.99 }}
+              onClick={() =>
+                onSendChatQuery(
+                  '¿Qué puedo cenar rápido aprovechando los alimentos de mi despensa?'
+                )
+              }
+              className="btn-action-pill"
+              style={{ width: '100%', justifyContent: 'center', marginTop: '0.5rem' }}
+            >
+              <Sparkles size={16} /> Ver recetas con lo que tengo
+            </motion.button>
+          </div>
+        </motion.div>
+      </div>
     </motion.div>
   );
 };
-

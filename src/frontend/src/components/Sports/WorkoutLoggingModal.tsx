@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Trophy, Dumbbell, Flame, Droplet, Plus, Trash2, Activity, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { logActivitySession, updateActivitySession } from '../../services/supabaseApi';
+import { logActivitySession, updateActivitySession } from '../../services/api';
 import { BaseModal } from '../Common/BaseModal';
 import type { LoggedActivityEntry, StrengthExerciseSet } from '../../types';
 

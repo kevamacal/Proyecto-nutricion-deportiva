@@ -11,7 +11,7 @@ import {
   Plus,
 } from 'lucide-react';
 import type { RemainingBalance, MacroBalance, PantryItem, LoggedMealEntry, LoggedActivityEntry } from '../../types';
-import { fetchLoggedMealsForDate } from '../../services/supabaseApi';
+import { fetchLoggedMealsForDate, deleteMeal } from '../../services/api';
 import { LoggedMealCard } from '../Meals/LoggedMealCard';
 import { LoggedWorkoutsTimeline } from '../Sports/LoggedWorkoutsTimeline';
 import { WaterIntakeCard } from '../Common/WaterIntakeCard';
@@ -29,6 +29,7 @@ interface DashboardOverviewProps {
   onOpenMeal: () => void;
   onEditActivity: (activity: LoggedActivityEntry) => void;
   onDeleteActivity: (activityId: string) => Promise<void>;
+  onDeleteMeal?: (mealId: string) => Promise<void>;
   onNavigateTab: (tab: 'SCOREBOARD' | 'PANTRY' | 'PROFILE' | 'CHAT') => void;
   onSendChatQuery: (query: string) => void;
 }
@@ -66,6 +67,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
   onOpenMeal,
   onEditActivity,
   onDeleteActivity,
+  onDeleteMeal,
   onNavigateTab,
   onSendChatQuery,
 }) => {
@@ -79,6 +81,19 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
         .catch((err) => console.error('Error fetching today logged meals:', err));
     }
   }, [userId, consumed.calories_kcal]);
+
+  const handleDeleteMealItem = async (mealId: string) => {
+    try {
+      if (onDeleteMeal) {
+        await onDeleteMeal(mealId);
+      } else {
+        await deleteMeal(mealId);
+      }
+      setLoggedMeals((prev) => prev.filter((m) => m.id !== mealId));
+    } catch (err) {
+      console.error('Error deleting meal item:', err);
+    }
+  };
 
   const eatenProt = Math.min(
     dailyTargets.protein_g,
@@ -303,7 +318,12 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
               {loggedMeals.map((meal) => (
-                <LoggedMealCard key={meal.id} meal={meal} showTime={true} />
+                <LoggedMealCard
+                  key={meal.id}
+                  meal={meal}
+                  showTime={true}
+                  onDelete={handleDeleteMealItem}
+                />
               ))}
             </div>
           )}

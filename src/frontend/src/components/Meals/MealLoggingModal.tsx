@@ -7,7 +7,7 @@ import {
   fetchRecentUserMeals,
   logMeal,
   type CatalogFoodItem,
-} from '../../services/supabaseApi';
+} from '../../services/api';
 import type { LoggedMealEntry, PantryItem } from '../../types';
 import { FoodSelectorModal, type SelectedBatchItem } from '../Food/FoodSelectorModal';
 import { FoodCategoryBadge } from '../Common/FoodCategoryBadge';

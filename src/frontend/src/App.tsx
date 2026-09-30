@@ -14,14 +14,15 @@ import { WorkoutLoggingModal } from './components/Sports/WorkoutLoggingModal';
 import { MealLoggingModal } from './components/Meals/MealLoggingModal';
 import type { RemainingBalance, PantryItem, AgentQueryResult, MacroBalance, LoggedActivityEntry } from './types';
 import type { CanonicalAppState, CalculatedTargetsData } from './types/flow';
-import { calculateTargets } from './services/api';
 import {
+  calculateTargets,
   fetchDailySummary,
   fetchPantryInventory,
   deletePantryItem,
   fetchLoggedActivitiesForDate,
   deleteActivitySession,
-} from './services/supabaseApi';
+  deleteMeal,
+} from './services/api';
 import { User, Bot, ShoppingBag, Trophy, Activity } from 'lucide-react';
 
 const TODAY_DATE = new Date().toISOString().split('T')[0];
@@ -225,6 +226,15 @@ const MainSPAContent: React.FC = () => {
     }
   };
 
+  const handleDeleteMeal = async (mealId: string) => {
+    try {
+      await deleteMeal(mealId);
+      await evaluateAppState();
+    } catch (err) {
+      console.error('Error deleting meal:', err);
+    }
+  };
+
   // Loading screen while AuthContext initializes or state machine evaluates profile/inventory
   if (isLoading || (isAuthenticated && isEvaluating)) {
     return (
@@ -326,6 +336,7 @@ const MainSPAContent: React.FC = () => {
                 onOpenMeal={() => setIsMealOpen(true)}
                 onEditActivity={(activity) => handleOpenWorkoutModal(activity)}
                 onDeleteActivity={handleDeleteActivitySession}
+                onDeleteMeal={handleDeleteMeal}
                 onNavigateTab={(tab) => setActiveTab(tab)}
                 onSendChatQuery={handleSendChatQuery}
               />

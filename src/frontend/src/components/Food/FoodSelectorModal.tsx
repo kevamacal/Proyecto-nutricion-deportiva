@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Search, Utensils, Filter, Check, Trash2, Plus, ShoppingBag, PlusCircle, ArrowLeft } from 'lucide-react';
-import { createCustomFoodItem, type CatalogFoodItem, type CreateCustomFoodPayload } from '../../services/supabaseApi';
+import { createCustomFoodItem, type CatalogFoodItem, type CreateCustomFoodPayload } from '../../services/api';
 import { getFoodMeta, getCategoryMeta } from './foodMeta';
 import { BaseModal } from '../Common/BaseModal';
 import { isUnitBased } from '../../utils/nutritionUtils';

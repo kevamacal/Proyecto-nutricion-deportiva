@@ -4,7 +4,7 @@ explicit_package_bases = true
 mypy_path = "."
 
 [[tool.mypy.overrides]]
-module = "langgraph.*"
+module = ["langgraph.*", "supabase", "supabase.*"]
 ignore_missing_imports = true
 
 [tool.ruff]

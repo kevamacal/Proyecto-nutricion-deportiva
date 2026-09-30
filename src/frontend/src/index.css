@@ -127,18 +127,79 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 1rem;
+}
+
+.brand-identity {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-width: 0;
 }
 
 .brand-title {
   font-family: var(--font-display);
-  font-size: 1.6rem;
+  font-size: 1.5rem;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   color: var(--ink-chalk);
+  line-height: 1.1;
+}
+
+/* Who and when. A bar with a wordmark and nothing else is wasted space. */
+.brand-context {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  font-size: 0.78rem;
+  color: var(--ink-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.brand-context-divider {
+  width: 1px;
+  height: 0.7rem;
+  background: var(--line-heavy);
+  flex-shrink: 0;
+}
+
+/* Desktop segmented nav. `display` is deliberately NOT set here: `.desktop-nav`
+   is the only consumer and owns its own visibility in both directions. Setting
+   it in both rules would make the outcome depend on source order. */
+.nav-segment {
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--surface-card);
+  border: 1px solid var(--line-graphite);
+  padding: 0.25rem;
+}
+
+.nav-segment-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.85rem;
+  background: none;
+  border: none;
+  color: var(--ink-muted);
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.nav-segment-item:hover {
+  color: var(--ink-chalk);
+  background: rgba(242, 239, 230, 0.05);
+}
+
+.nav-segment-item.active {
+  background: var(--accent-ember);
+  color: var(--ink-chalk);
 }
 
 .brand-badge {
@@ -177,6 +238,55 @@ body {
   .app-container {
     padding: 1rem 0.85rem;
   }
+}
+
+/* Mobile is the primary case: one stacked column with the same rhythm the rest
+   of the app uses. The grid is a desktop-only upgrade, so the base rule has to
+   exist and has to come first. */
+.scoreboard-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  width: 100%;
+}
+
+/* Panel columns. On mobile they stack inside `.scoreboard-grid`; on desktop the
+   grid places them side by side. */
+.scoreboard-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  min-width: 0;
+}
+
+.desktop-nav {
+  display: none;
+}
+
+/* Desktop layout lives in the responsive section at the end of this file.
+   Base rules must always come first so overrides win on source order. */
+
+/* The one thick rule in a view. Applied to the primary scoreboard panel only. */
+.panel-scoreboard {
+  border-top: 3px solid var(--accent-ember);
+}
+
+/* Divider used inside a panel, where a second card would be wrong. */
+.panel-divider {
+  height: 1px;
+  background-color: var(--line-graphite);
+  border: none;
+}
+
+/* Section eyebrow: the small muted label that sits above a rule. */
+.panel-eyebrow {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--ink-muted);
 }
 
 /* Mobile Bottom Navigation Bar */
@@ -349,16 +459,21 @@ body {
   align-items: center;
 }
 
+/* Condensed stays - it is the scoreboard voice - but sentence case, because a
+   card heading is not a readout. Blanking the uppercase here is what lets the
+   remaining-calories number carry the emphasis it should. */
 .panel-title {
   font-family: var(--font-display);
-  font-size: 1.3rem;
+  font-size: 1.15rem;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
   color: var(--ink-chalk);
   display: flex;
   align-items: center;
   gap: 0.5rem;
+}
+
+.panel-header > .panel-eyebrow {
+  margin-bottom: 0.15rem;
 }
 
 .panel-body {
@@ -688,6 +803,46 @@ body {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1rem;
+}
+
+/* ===========================================================================
+   RESPONSIVE OVERRIDES
+
+   Deliberately last in the file. `.mobile-bottom-nav` and `.desktop-nav` are
+   plain single-class selectors, so an override only wins if it comes *after*
+   the base rule. Keeping every breakpoint in one trailing section makes the
+   ordering obvious and stops the two nav models from ever both being visible.
+   =========================================================================== */
+
+/* A second column earns the canvas; a wider single column does not.
+   1fr / 320px - the balance is why the athlete opened the app, the side
+   column is context. */
+@media (min-width: 1024px) {
+  /* The thumb model does not apply once there is a pointer. */
+  .mobile-bottom-nav {
+    display: none;
+  }
+
+  .desktop-nav {
+    display: flex;
+  }
+
+  .app-main-wrapper {
+    padding-bottom: 0;
+  }
+
+  .app-container {
+    max-width: 1120px;
+    padding: 1.75rem 2rem 3rem;
+    gap: 1.5rem;
+  }
+
+  .scoreboard-grid {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 1.5rem;
+    align-items: start;
+  }
 }
 
 /* Reduced Motion Override per accessibility requirements */

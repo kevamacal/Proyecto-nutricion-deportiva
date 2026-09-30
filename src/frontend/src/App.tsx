@@ -24,7 +24,17 @@ import {
 } from './services/supabaseApi';
 import { User, Bot, ShoppingBag, Trophy, Activity } from 'lucide-react';
 
+type TabKey = 'SCOREBOARD' | 'PANTRY' | 'PROFILE' | 'CHAT';
+
 const TODAY_DATE = new Date().toISOString().split('T')[0];
+
+/** Single source of truth for navigation order and labels across both nav models. */
+const NAV_ITEMS: { key: TabKey; label: string; icon: React.ElementType }[] = [
+  { key: 'SCOREBOARD', label: 'Tablero', icon: Trophy },
+  { key: 'PANTRY', label: 'Despensa', icon: ShoppingBag },
+  { key: 'CHAT', label: 'Asistente', icon: Bot },
+  { key: 'PROFILE', label: 'Perfil', icon: User },
+];
 
 const MainSPAContent: React.FC = () => {
   const { user, isAuthenticated, isLoading, updateProfile, setTargets } = useAuth();
@@ -34,7 +44,7 @@ const MainSPAContent: React.FC = () => {
   const [pendingTargets, setPendingTargets] = useState<CalculatedTargetsData | null>(null);
   const [isEvaluating, setIsEvaluating] = useState<boolean>(true);
 
-  const [activeTab, setActiveTab] = useState<'SCOREBOARD' | 'PANTRY' | 'PROFILE' | 'CHAT'>('SCOREBOARD');
+  const [activeTab, setActiveTab] = useState<TabKey>('SCOREBOARD');
 
   // Modals state
   const [isWorkoutModalOpen, setIsWorkoutModalOpen] = useState(false);
@@ -299,7 +309,22 @@ const MainSPAContent: React.FC = () => {
   // Active Main SPA View (Mobile-First Layout)
   return (
     <div className="app-main-wrapper">
-      <HeaderScoreboard />
+      <HeaderScoreboard>
+        {/* Desktop segmented nav. The mobile bottom bar stays for thumbs. */}
+        <nav className="nav-segment desktop-nav" aria-label="Navegación principal">
+          {NAV_ITEMS.map(({ key, label, icon: Icon }) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => setActiveTab(key)}
+              className={`nav-segment-item ${activeTab === key ? 'active' : ''}`}
+              aria-current={activeTab === key ? 'page' : undefined}
+            >
+              <Icon size={16} /> {label}
+            </button>
+          ))}
+        </nav>
+      </HeaderScoreboard>
 
       {/* Main Content Area */}
       <main className="app-container">
@@ -405,35 +430,19 @@ const MainSPAContent: React.FC = () => {
 
 
       {/* Mobile Fixed Bottom Navigation Bar */}
-      <nav className="mobile-bottom-nav">
-        <button
-          onClick={() => setActiveTab('SCOREBOARD')}
-          className={`nav-item ${activeTab === 'SCOREBOARD' ? 'active' : ''}`}
-        >
-          <Trophy size={20} />
-          <span className="nav-label">Tablero</span>
-        </button>
-        <button
-          onClick={() => setActiveTab('PANTRY')}
-          className={`nav-item ${activeTab === 'PANTRY' ? 'active' : ''}`}
-        >
-          <ShoppingBag size={20} />
-          <span className="nav-label">Despensa</span>
-        </button>
-        <button
-          onClick={() => setActiveTab('CHAT')}
-          className={`nav-item ${activeTab === 'CHAT' ? 'active' : ''}`}
-        >
-          <Bot size={20} />
-          <span className="nav-label">Asistente</span>
-        </button>
-        <button
-          onClick={() => setActiveTab('PROFILE')}
-          className={`nav-item ${activeTab === 'PROFILE' ? 'active' : ''}`}
-        >
-          <User size={20} />
-          <span className="nav-label">Perfil</span>
-        </button>
+      <nav className="mobile-bottom-nav" aria-label="Navegación principal">
+        {NAV_ITEMS.map(({ key, label, icon: Icon }) => (
+          <button
+            key={key}
+            type="button"
+            onClick={() => setActiveTab(key)}
+            className={`nav-item ${activeTab === key ? 'active' : ''}`}
+            aria-current={activeTab === key ? 'page' : undefined}
+          >
+            <Icon size={20} />
+            <span className="nav-label">{label}</span>
+          </button>
+        ))}
       </nav>
     </div>
   );

@@ -22,12 +22,14 @@ export const LoggedWorkoutsTimeline: React.FC<LoggedWorkoutsTimelineProps> = ({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       className="panel-card"
-      style={{ borderTop: '3px solid var(--accent-ember)' }}
     >
       <div className="panel-header">
-        <h3 className="panel-title">
-          <Activity size={20} style={{ color: 'var(--accent-ember)' }} /> Entrenamientos de hoy ({activities.length})
-        </h3>
+        <div>
+          <span className="panel-eyebrow">Actividad</span>
+          <h3 className="panel-title">
+            <Activity size={18} style={{ color: 'var(--accent-ember)' }} /> Entrenamientos de hoy ({activities.length})
+          </h3>
+        </div>
         <button
           type="button"
           onClick={onOpenModal}
@@ -71,7 +73,7 @@ export const LoggedWorkoutsTimeline: React.FC<LoggedWorkoutsTimelineProps> = ({
             <div style={{ fontSize: '0.8rem', color: 'var(--ink-muted)', margin: '0.2rem auto 0.85rem', maxWidth: '340px' }}>
               Suma tu partido o sesión de gimnasio para que el marcador refleje las calorías que de verdad quemas.
             </div>
-            <button type="button" onClick={onOpenModal} className="btn-action-pill primary" style={{ justifyContent: 'center' }}>
+            <button type="button" onClick={onOpenModal} className="btn-action-pill" style={{ justifyContent: 'center' }}>
               <Plus size={16} /> Registrar entrenamiento
             </button>
           </div>

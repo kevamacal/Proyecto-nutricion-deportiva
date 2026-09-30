@@ -5,6 +5,7 @@ ALL Supabase database and authentication calls MUST reside exclusively in this m
 
 from datetime import UTC, datetime
 from typing import Any, cast
+from uuid import UUID
 
 from src.backend.db.client import get_supabase_client
 
@@ -286,8 +287,72 @@ class MealRepository:
 
         created_items: list[dict[str, Any]] = []
         if items_data:
+            valid_columns = {
+                "food_item_id",
+                "quantity",
+                "unit",
+                "calories_kcal",
+                "protein_g",
+                "carbohydrates_g",
+                "fat_g",
+            }
             meal_items_payload = [
-                {**item, "meal_id": meal["id"]}
+                {
+                    **{
+                        k: (str(v) if isinstance(v, UUID) else v)
+                        for k, v in item.items()
+                        if k in valid_columns
+                    },
+                    "meal_id": meal["id"],
+                }
+                for item in items_data
+                if item.get("food_item_id")
+            ]
+            if meal_items_payload:
+                items_res = (
+                    self.client.table("meal_items").insert(meal_items_payload).execute()
+                )
+                if items_res and items_res.data and isinstance(items_res.data, list):
+                    created_items = cast(list[dict[str, Any]], items_res.data)
+
+        meal["meal_items"] = created_items
+        return meal
+
+    def delete_meal(self, meal_id: str) -> None:
+        """Delete meal entry and associated meal_items by cascade."""
+        self.client.table("meals").delete().eq("id", meal_id).execute()
+
+    def update_meal(
+        self, meal_id: str, meal_data: dict[str, Any], items_data: list[dict[str, Any]]
+    ) -> dict[str, Any]:
+        """Update existing meal entry and replace its associated meal_items."""
+        res = self.client.table("meals").update(meal_data).eq("id", meal_id).execute()
+        if not res or not res.data or not isinstance(res.data, list) or len(res.data) == 0:
+            raise RuntimeError("Failed to update meal")
+        meal = cast(dict[str, Any], res.data[0])
+
+        self.client.table("meal_items").delete().eq("meal_id", meal_id).execute()
+
+        created_items: list[dict[str, Any]] = []
+        if items_data:
+            valid_columns = {
+                "food_item_id",
+                "quantity",
+                "unit",
+                "calories_kcal",
+                "protein_g",
+                "carbohydrates_g",
+                "fat_g",
+            }
+            meal_items_payload = [
+                {
+                    **{
+                        k: (str(v) if isinstance(v, UUID) else v)
+                        for k, v in item.items()
+                        if k in valid_columns
+                    },
+                    "meal_id": meal_id,
+                }
                 for item in items_data
                 if item.get("food_item_id")
             ]

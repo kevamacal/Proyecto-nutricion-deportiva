@@ -21,6 +21,7 @@ import {
   deletePantryItem,
   fetchLoggedActivitiesForDate,
   deleteActivitySession,
+  deleteMeal,
 } from './services/api';
 import { User, Bot, ShoppingBag, Trophy, Activity } from 'lucide-react';
 
@@ -225,6 +226,15 @@ const MainSPAContent: React.FC = () => {
     }
   };
 
+  const handleDeleteMeal = async (mealId: string) => {
+    try {
+      await deleteMeal(mealId);
+      await evaluateAppState();
+    } catch (err) {
+      console.error('Error deleting meal:', err);
+    }
+  };
+
   // Loading screen while AuthContext initializes or state machine evaluates profile/inventory
   if (isLoading || (isAuthenticated && isEvaluating)) {
     return (
@@ -326,6 +336,7 @@ const MainSPAContent: React.FC = () => {
                 onOpenMeal={() => setIsMealOpen(true)}
                 onEditActivity={(activity) => handleOpenWorkoutModal(activity)}
                 onDeleteActivity={handleDeleteActivitySession}
+                onDeleteMeal={handleDeleteMeal}
                 onNavigateTab={(tab) => setActiveTab(tab)}
                 onSendChatQuery={handleSendChatQuery}
               />

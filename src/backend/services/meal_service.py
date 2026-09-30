@@ -73,7 +73,9 @@ class MealService:
         if payload.name:
             meal_data["name"] = payload.name
 
-        items_data = [item.model_dump(exclude_none=True) for item in payload.items]
+        items_data = [
+            item.model_dump(mode="json", exclude_none=True) for item in payload.items
+        ]
         created_meal = meal_repository.create_meal(meal_data, items_data)
 
         # Deduct stock from available pantry items
@@ -109,6 +111,63 @@ class MealService:
             total_fat_g=float(created_meal.get("total_fat_g", 0.0)),
             notes=created_meal.get("notes"),
             logged_at=str(created_meal.get("logged_at", datetime.now(UTC).isoformat())),
+            items=formatted_items,
+        )
+
+    def delete_meal(self, meal_id: UUID) -> None:
+        """Delete meal entry."""
+        meal_repository.delete_meal(str(meal_id))
+
+    def update_meal(
+        self, meal_id: UUID, payload: LogMealRequest
+    ) -> LoggedMealEntryResponse:
+        """Update existing logged meal entry."""
+        meal_data: dict[str, Any] = {
+            "meal_type": payload.meal_type,
+            "total_calories_kcal": payload.total_calories_kcal,
+            "total_protein_g": payload.total_protein_g,
+            "total_carbs_g": payload.total_carbs_g,
+            "total_fat_g": payload.total_fat_g,
+            "notes": payload.notes,
+        }
+        if payload.name:
+            meal_data["name"] = payload.name
+
+        items_data = [
+            item.model_dump(mode="json", exclude_none=True) for item in payload.items
+        ]
+        updated_meal = meal_repository.update_meal(str(meal_id), meal_data, items_data)
+
+        formatted_items: list[LoggedMealItemResponse] = []
+        for raw_item in updated_meal.get("meal_items", []):
+            food_info = raw_item.get("food_items") or {}
+            formatted_items.append(
+                LoggedMealItemResponse(
+                    id=UUID(raw_item["id"]) if raw_item.get("id") else None,
+                    food_item_id=UUID(raw_item["food_item_id"])
+                    if raw_item.get("food_item_id")
+                    else None,
+                    name=raw_item.get("name") or food_info.get("name"),
+                    quantity=float(raw_item.get("quantity", 0)),
+                    unit=str(raw_item.get("unit", "g")),
+                    calories_kcal=float(raw_item.get("calories_kcal", 0)),
+                    protein_g=float(raw_item.get("protein_g", 0)),
+                    carbohydrates_g=float(raw_item.get("carbohydrates_g", 0)),
+                    fat_g=float(raw_item.get("fat_g", 0)),
+                )
+            )
+
+        return LoggedMealEntryResponse(
+            id=meal_id,
+            user_id=UUID(updated_meal.get("user_id", str(payload.user_id))),
+            meal_type=str(updated_meal.get("meal_type", payload.meal_type)),
+            name=updated_meal.get("name"),
+            total_calories_kcal=float(updated_meal.get("total_calories_kcal", 0.0)),
+            total_protein_g=float(updated_meal.get("total_protein_g", 0.0)),
+            total_carbs_g=float(updated_meal.get("total_carbs_g", 0.0)),
+            total_fat_g=float(updated_meal.get("total_fat_g", 0.0)),
+            notes=updated_meal.get("notes"),
+            logged_at=str(updated_meal.get("logged_at", datetime.now(UTC).isoformat())),
             items=formatted_items,
         )
 

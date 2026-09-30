@@ -1,5 +1,5 @@
 import React from 'react';
-import { Clock } from 'lucide-react';
+import { Clock, Trash2 } from 'lucide-react';
 import type { LoggedMealEntry } from '../../types';
 import { FoodCategoryBadge } from '../Common/FoodCategoryBadge';
 import { formatEnumLabel, MEAL_TYPE_LABELS } from '../../utils/enumMappers';
@@ -9,6 +9,7 @@ interface LoggedMealCardProps {
   showTime?: boolean;
   showIngredientsList?: boolean;
   actionButton?: React.ReactNode;
+  onDelete?: (mealId: string) => void;
   style?: React.CSSProperties;
 }
 
@@ -17,6 +18,7 @@ export const LoggedMealCard: React.FC<LoggedMealCardProps> = ({
   showTime = false,
   showIngredientsList = false,
   actionButton,
+  onDelete,
   style,
 }) => {
   const slotTitle = formatEnumLabel(meal.meal_type, MEAL_TYPE_LABELS);
@@ -97,7 +99,31 @@ export const LoggedMealCard: React.FC<LoggedMealCardProps> = ({
         )}
       </div>
 
-      {actionButton}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+        {actionButton}
+
+        {onDelete && (
+          <button
+            type="button"
+            title="Eliminar ingesta"
+            onClick={() => onDelete(meal.id)}
+            style={{
+              background: 'rgba(255, 77, 77, 0.1)',
+              border: '1px solid rgba(255, 77, 77, 0.3)',
+              color: '#FF4D4D',
+              borderRadius: 'var(--radius-sm)',
+              padding: '0.4rem',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'all 0.2s ease',
+            }}
+          >
+            <Trash2 size={15} />
+          </button>
+        )}
+      </div>
     </div>
   );
 };

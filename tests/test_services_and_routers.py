@@ -151,3 +151,82 @@ def test_log_hydration_endpoint(mock_create):
     assert response.status_code == 201
     data = response.json()
     assert data["amount_ml"] == 500
+
+
+@patch("src.backend.db.repository.pantry_repository.update_quantity")
+@patch("src.backend.db.repository.pantry_repository.list_inventory")
+@patch("src.backend.db.repository.meal_repository.create_meal")
+def test_log_meal_endpoint(mock_create_meal, mock_list_inv, mock_update_qty):
+    """Test log meal endpoint with items including UUID food_item_id."""
+    user_id = str(uuid4())
+    meal_id = str(uuid4())
+    food_item_id = str(uuid4())
+
+    mock_list_inv.return_value = []
+    mock_create_meal.return_value = {
+        "id": meal_id,
+        "user_id": user_id,
+        "meal_type": "POST_WORKOUT",
+        "name": "Chicken & Rice",
+        "total_calories_kcal": 450.0,
+        "total_protein_g": 40.0,
+        "total_carbs_g": 50.0,
+        "total_fat_g": 8.0,
+        "notes": "Post workout recovery",
+        "logged_at": "2026-09-28T12:00:00.000Z",
+        "meal_items": [
+            {
+                "id": str(uuid4()),
+                "meal_id": meal_id,
+                "food_item_id": food_item_id,
+                "name": "Chicken Breast",
+                "quantity": 150.0,
+                "unit": "g",
+                "calories_kcal": 240.0,
+                "protein_g": 35.0,
+                "carbohydrates_g": 0.0,
+                "fat_g": 5.0,
+            }
+        ],
+    }
+
+    response = client.post(
+        "/api/v1/meals",
+        json={
+            "user_id": user_id,
+            "meal_type": "POST_WORKOUT",
+            "name": "Chicken & Rice",
+            "total_calories_kcal": 450.0,
+            "total_protein_g": 40.0,
+            "total_carbs_g": 50.0,
+            "total_fat_g": 8.0,
+            "items": [
+                {
+                    "food_item_id": food_item_id,
+                    "name": "Chicken Breast",
+                    "quantity": 150.0,
+                    "unit": "g",
+                    "calories_kcal": 240.0,
+                    "protein_g": 35.0,
+                    "carbohydrates_g": 0.0,
+                    "fat_g": 5.0,
+                }
+            ],
+        },
+    )
+    assert response.status_code == 201
+    data = response.json()
+    assert data["id"] == meal_id
+    assert len(data["items"]) == 1
+    assert data["items"][0]["food_item_id"] == food_item_id
+
+
+@patch("src.backend.db.repository.meal_repository.delete_meal")
+def test_delete_meal_endpoint(mock_delete):
+    """Test delete meal endpoint."""
+    meal_id = str(uuid4())
+    response = client.delete(f"/api/v1/meals/{meal_id}")
+    assert response.status_code == 200
+    assert response.json()["status"] == "success"
+    mock_delete.assert_called_once_with(meal_id)
+

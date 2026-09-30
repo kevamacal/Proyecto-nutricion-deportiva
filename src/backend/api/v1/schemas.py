@@ -321,7 +321,7 @@ class LogActivitySessionRequest(BaseModel):
     user_id: UUID
     sport: str = Field(..., pattern="^(BASKETBALL|STRENGTH_TRAINING)$")
     session_type: str = Field(..., min_length=1)
-    duration_minutes: float = Field(..., gt=0)
+    duration_minutes: int = Field(..., gt=0)
     intensity: str = Field(..., pattern="^(LOW|MEDIUM|HIGH|VERY_HIGH)$")
     estimated_expenditure_kcal: float = Field(default=0.0, ge=0)
     basketball_details: BasketballDetailsPayload | None = None
@@ -335,7 +335,7 @@ class LoggedActivityEntryResponse(BaseModel):
     user_id: UUID
     sport: str
     session_type: str
-    duration_minutes: float
+    duration_minutes: int
     intensity: str
     date: str
     estimated_expenditure_kcal: float

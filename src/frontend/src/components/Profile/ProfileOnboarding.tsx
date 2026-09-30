@@ -46,7 +46,7 @@ export const ProfileOnboarding: React.FC<{ onComplete?: () => void }> = ({ onCom
       if (onComplete) onComplete();
     } catch (err: any) {
       console.error('Failed to calculate targets:', err);
-      setError('Error calculando metas en el motor backend. Revisa los campos.');
+      setError('No hemos podido calcular tus objetivos. Revisa los datos e inténtalo de nuevo.');
     } finally {
       setLoading(false);
     }
@@ -58,20 +58,23 @@ export const ProfileOnboarding: React.FC<{ onComplete?: () => void }> = ({ onCom
         style={{
           background: 'var(--surface-hardwood, #2A2118)',
           border: '1px solid var(--line-graphite, #4A473F)',
-          borderRadius: '4px',
+          borderRadius: 'var(--radius-md)',
           padding: '1.5rem',
           color: 'var(--ink-chalk, #F2EFE6)',
         }}
       >
         <h2 style={{ fontFamily: 'Barlow Condensed, sans-serif', textTransform: 'uppercase', marginBottom: '0.5rem', fontSize: '1.75rem' }}>
-          Perfil & Objetivos Fisiológicos
+          Tu perfil y objetivos
         </h2>
         <p style={{ fontSize: '0.875rem', color: '#B3B0A6', marginBottom: '1.5rem' }}>
-          Configura tu biometría. El motor determinista calculará tu BMR, TDEE y distribución macronutricional exacta.
+          Ajusta tus datos y recalculamos al instante tus calorías y macronutrientes diarios.
         </p>
 
         {error && (
-          <div style={{ background: '#B23A48', color: '#fff', padding: '0.75rem', borderRadius: '4px', marginBottom: '1rem', fontSize: '0.875rem' }}>
+          <div
+            role="alert"
+            style={{ background: 'rgba(178, 58, 72, 0.2)', border: '1px solid var(--accent-crimson)', color: '#FF8A95', padding: '0.75rem', borderRadius: 'var(--radius-sm)', marginBottom: '1rem', fontSize: '0.875rem', fontWeight: 600 }}
+          >
             {error}
           </div>
         )}
@@ -233,7 +236,7 @@ export const ProfileOnboarding: React.FC<{ onComplete?: () => void }> = ({ onCom
               borderRadius: '2px',
             }}
           >
-            {loading ? 'Calculando con Motor Backend...' : 'Calcular Metas Fisiológicas'}
+            {loading ? 'Recalculando tus objetivos...' : 'Recalcular mis objetivos'}
           </button>
         </form>
 
@@ -246,15 +249,15 @@ export const ProfileOnboarding: React.FC<{ onComplete?: () => void }> = ({ onCom
             }}
           >
             <h3 style={{ fontSize: '1rem', textTransform: 'uppercase', color: 'var(--accent-ember, #C1622B)', marginBottom: '0.5rem' }}>
-              Resultados de tu Perfil (Backend Output)
+              Tus objetivos actuales
             </h3>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', fontSize: '0.875rem' }}>
-              <div>BMR (Metabolismo Basal): <strong>{user.targets.bmr_kcal} kcal</strong></div>
-              <div>TDEE Estimado: <strong>{user.targets.base_tdee_kcal} kcal</strong></div>
-              <div>Calorías Objetivo: <strong style={{ color: 'var(--accent-ember, #C1622B)' }}>{user.targets.calories_target_kcal} kcal</strong></div>
-              <div>Proteína Target: <strong>{user.targets.protein_target_g} g</strong></div>
-              <div>Carbohidratos Target: <strong>{user.targets.carbs_target_g} g</strong></div>
-              <div>Grasas Target: <strong>{user.targets.fat_target_g} g</strong></div>
+              <div>Energía en reposo: <strong>{user.targets.bmr_kcal} kcal</strong></div>
+              <div>Gasto diario estimado: <strong>{user.targets.base_tdee_kcal} kcal</strong></div>
+              <div>Calorías objetivo: <strong style={{ color: 'var(--accent-ember, #C1622B)' }}>{user.targets.calories_target_kcal} kcal</strong></div>
+              <div>Proteína: <strong>{user.targets.protein_target_g} g</strong></div>
+              <div>Carbohidratos: <strong>{user.targets.carbs_target_g} g</strong></div>
+              <div>Grasas: <strong>{user.targets.fat_target_g} g</strong></div>
             </div>
           </div>
         )}
@@ -272,7 +275,7 @@ export const ProfileOnboarding: React.FC<{ onComplete?: () => void }> = ({ onCom
           <div>
             <div style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>{user.name || user.email || 'Atleta'}</div>
             <div style={{ fontSize: '0.75rem', color: '#B3B0A6' }}>
-              {isDemoMode ? 'Modo Demo Activo' : `ID: ${user.id}`}
+              {isDemoMode ? 'Perfil de ejemplo' : user.email}
             </div>
           </div>
           <button
@@ -280,16 +283,16 @@ export const ProfileOnboarding: React.FC<{ onComplete?: () => void }> = ({ onCom
             onClick={() => logout()}
             style={{
               padding: '0.5rem 1rem',
-              background: 'rgba(255, 51, 102, 0.15)',
-              border: '1px solid rgba(255, 51, 102, 0.4)',
-              color: '#FF3366',
-              borderRadius: '2px',
+              background: 'rgba(178, 58, 72, 0.15)',
+              border: '1px solid var(--accent-crimson)',
+              color: '#FF8A95',
+              borderRadius: 'var(--radius-sm)',
               fontSize: '0.85rem',
               cursor: 'pointer',
               fontWeight: 600,
             }}
           >
-            Cerrar Sesión de Usuario
+            Cerrar sesión
           </button>
         </div>
       </div>

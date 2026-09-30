@@ -6,10 +6,10 @@
 
 export const MEAL_TYPE_LABELS: Record<string, string> = {
   BREAKFAST: 'Desayuno',
-  LUNCH: 'Almuerzo / Comida',
+  LUNCH: 'Almuerzo',
   DINNER: 'Cena',
-  SNACK: 'Merienda / Snack',
-  POST_WORKOUT: 'Post-Entrenamiento',
+  SNACK: 'Merienda',
+  POST_WORKOUT: 'Después del entrenamiento',
 };
 
 export const DENSITY_CLASS_LABELS: Record<string, string> = {
@@ -21,53 +21,53 @@ export const DENSITY_CLASS_LABELS: Record<string, string> = {
 
 export const ACTIVITY_SPORT_LABELS: Record<string, string> = {
   BASKETBALL: 'Baloncesto',
-  STRENGTH_TRAINING: 'Entrenamiento de Fuerza',
+  STRENGTH_TRAINING: 'Entrenamiento de fuerza',
 };
 
 export const ACTIVITY_INTENSITY_LABELS: Record<string, string> = {
   LOW: 'Baja',
   MEDIUM: 'Media',
   HIGH: 'Alta',
-  VERY_HIGH: 'Muy Alta',
+  VERY_HIGH: 'Muy alta',
 };
 
 export const BASKETBALL_SESSION_CATEGORY_LABELS: Record<string, string> = {
   TRAINING: 'Entrenamiento',
-  MATCH: 'Partido / Competición',
+  MATCH: 'Partido',
 };
 
 export const STRENGTH_TRAINING_TYPE_LABELS: Record<string, string> = {
   HYPERTROPHY: 'Hipertrofia',
-  STRENGTH: 'Fuerza Máxima',
-  POWER: 'Potencia Explosiva',
+  STRENGTH: 'Fuerza máxima',
+  POWER: 'Potencia explosiva',
   HYBRID: 'Híbrido',
-  ENDURANCE: 'Resistencia Muscular',
+  ENDURANCE: 'Resistencia muscular',
 };
 
 export const ACTIVITY_LEVEL_LABELS: Record<string, string> = {
   SEDENTARY: 'Sedentario',
-  MODERATE: 'Moderadamente Activo',
+  MODERATE: 'Moderadamente activo',
   ACTIVE: 'Activo',
-  VERY_ACTIVE: 'Muy Activo',
+  VERY_ACTIVE: 'Muy activo',
 };
 
 export const BODY_COMPOSITION_GOAL_LABELS: Record<string, string> = {
   MAINTAIN: 'Mantenimiento',
-  BULK: 'Ganancia Muscular (Volumen +12%)',
-  CUT: 'Pérdida de Grasa (Definición -20%)',
-  RECOMP: 'Recomposición Corporal',
+  BULK: 'Ganancia muscular (volumen +12%)',
+  CUT: 'Pérdida de grasa (definición -20%)',
+  RECOMP: 'Recomposición corporal',
 };
 
 export const NUTRITIONAL_GOAL_LABELS: Record<string, string> = {
-  PERFORMANCE: 'Rendimiento Deportivo',
-  HYPERTROPHY: 'Hipertrofia Muscular',
-  HEALTH: 'Salud General',
-  FAT_LOSS_FOCUS: 'Pérdida de Grasa',
+  PERFORMANCE: 'Rendimiento deportivo',
+  HYPERTROPHY: 'Hipertrofia muscular',
+  HEALTH: 'Salud general',
+  FAT_LOSS_FOCUS: 'Pérdida de grasa',
 };
 
 export const INVENTORY_STATUS_LABELS: Record<string, string> = {
   AVAILABLE: 'Disponible',
-  LOW_STOCK: 'Stock Bajo',
+  LOW_STOCK: 'Pocas unidades',
   EXPIRED: 'Caducado',
   CONSUMED: 'Consumido',
 };

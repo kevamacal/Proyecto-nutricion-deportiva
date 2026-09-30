@@ -38,10 +38,11 @@ export const TargetsConfirmation: React.FC<TargetsConfirmationProps> = ({ target
       >
 
         <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '2.25rem', fontWeight: 800, textTransform: 'uppercase', marginBottom: '0.5rem', letterSpacing: '0.5px' }}>
-          Objetivos Fisiológicos Calculados
+          Tus objetivos diarios
         </h2>
         <p style={{ color: 'var(--ink-muted)', fontSize: '0.9rem', marginBottom: '2rem' }}>
-          Calculados determinísticamente sin LLM utilizando Mifflin-St Jeor y multiplicadores METs para tu perfil.
+          Los hemos calculado a partir de tu edad, estatura, peso, actividad y objetivo. Estos son los
+          números con los que vas a trabajar a partir de ahora.
         </p>
 
         {/* Nutrition Target Summary Ledger */}
@@ -57,16 +58,16 @@ export const TargetsConfirmation: React.FC<TargetsConfirmationProps> = ({ target
           }}
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.6rem 0', borderBottom: '1px solid var(--line-graphite)', fontSize: '0.9rem' }}>
-            <span style={{ color: 'var(--ink-muted)' }}>BMR (Metabolismo Basal Reposo)</span>
+            <span style={{ color: 'var(--ink-muted)' }}>Energía en reposo</span>
             <strong style={{ fontFamily: 'var(--font-display)', fontSize: '1.3rem', color: 'var(--ink-chalk)' }}>{targets.bmr_kcal} kcal</strong>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.6rem 0', borderBottom: '1px solid var(--line-graphite)', fontSize: '0.9rem' }}>
-            <span style={{ color: 'var(--ink-muted)' }}>TDEE (Gasto Diario con Actividad)</span>
+            <span style={{ color: 'var(--ink-muted)' }}>Gasto diario estimado</span>
             <strong style={{ fontFamily: 'var(--font-display)', fontSize: '1.3rem', color: 'var(--ink-chalk)' }}>{targets.base_tdee_kcal} kcal</strong>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.85rem 0', borderBottom: '1px solid var(--line-graphite)' }}>
             <span style={{ fontWeight: 700, textTransform: 'uppercase', color: 'var(--accent-ember)', display: 'flex', alignItems: 'center', gap: '0.4rem', fontFamily: 'var(--font-display)', fontSize: '1.05rem' }}>
-              <Flame className="w-4 h-4" /> Calorías Objetivo Diarias
+              <Flame className="w-4 h-4" /> Calorías objetivo
             </span>
             <strong style={{ fontFamily: 'var(--font-display)', fontSize: '2.2rem', fontWeight: 800, color: 'var(--accent-ember)' }}>
               {targets.calories_target_kcal} <span style={{ fontSize: '0.9rem', color: 'var(--ink-muted)' }}>kcal</span>
@@ -110,7 +111,7 @@ export const TargetsConfirmation: React.FC<TargetsConfirmationProps> = ({ target
             fontSize: '1.1rem',
           }}
         >
-          Confirmar Objetivos e Ir a Despensa <ArrowRight size={20} />
+          Confirmar y montar mi despensa <ArrowRight size={20} />
         </motion.button>
       </motion.div>
     </div>

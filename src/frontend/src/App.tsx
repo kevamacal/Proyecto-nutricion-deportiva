@@ -257,10 +257,10 @@ const MainSPAContent: React.FC = () => {
                 marginBottom: '0.4rem',
               }}
             >
-              Cargando tus Datos
+              Preparando tu panel
             </h2>
             <p style={{ color: 'var(--ink-muted)', fontSize: '0.9rem', maxWidth: '360px' }}>
-              Preparando tus objetivos nutricionales y tu despensa...
+              Recuperando tus objetivos, tu despensa y lo que ya has registrado hoy.
             </p>
           </div>
         </motion.div>
@@ -347,7 +347,7 @@ const MainSPAContent: React.FC = () => {
                 onRefresh={evaluateAppState}
                 onQuickWorkout={() => handleOpenWorkoutModal(null)}
                 onDeleteItem={handleDeleteItem}
-                onMealLogged={evaluateAppState}
+                onOpenMeal={() => setIsMealOpen(true)}
               />
             </motion.div>
           )}

@@ -27,7 +27,7 @@ export const AgentChatPanel: React.FC<AgentChatPanelProps> = ({
     {
       id: '1',
       sender: 'agent',
-      text: '¡Hola! Soy tu asistente maestro de nutrición deportiva. Escribe cualquier consulta en lenguaje natural (ej. "Jugué 90 minutos de baloncesto, ¿qué cenar con mi despensa?").',
+      text: '¡Hola! Soy tu especialista en nutrición deportiva y rendimiento atlético. ¿En qué puedo ayudarte hoy? (Ej. "Jugué 90 minutos de baloncesto, ¿qué cenar con mi despensa?").',
     },
   ]);
   const [inputValue, setInputValue] = useState('');
@@ -86,7 +86,7 @@ export const AgentChatPanel: React.FC<AgentChatPanelProps> = ({
       const errorMsg: MessageItem = {
         id: (Date.now() + 1).toString(),
         sender: 'agent',
-        text: `Error de conexión con la API del orquestador: ${err.message}`,
+        text: `No hemos podido completar la consulta en este momento (${err.message}). Inténtalo de nuevo en unos segundos.`,
       };
       setMessages((prev) => [...prev, errorMsg]);
     } finally {
@@ -114,7 +114,7 @@ export const AgentChatPanel: React.FC<AgentChatPanelProps> = ({
       <div className="panel-header">
         <h2 className="panel-title">
           <Bot size={20} style={{ color: 'var(--accent-ember)' }} />
-          Asistente de Nutrición Deportiva
+          Asistente de Nutrición y Rendimiento
         </h2>
         <span style={{ fontSize: '0.78rem', color: 'var(--accent-lake)', fontWeight: 700, textTransform: 'uppercase' }}>
           ● En Línea
@@ -133,7 +133,7 @@ export const AgentChatPanel: React.FC<AgentChatPanelProps> = ({
                 className={`chat-message ${msg.sender}`}
               >
                 <span className="message-author">
-                  {msg.sender === 'user' ? 'Atleta' : `Agente Maestro${msg.intent ? ` [Nodo: ${msg.intent}]` : ''}`}
+                  {msg.sender === 'user' ? 'Atleta' : `Asistente${msg.intent ? ` · ${msg.intent}` : ''}`}
                 </span>
 
                 {msg.executionPath && (
@@ -212,10 +212,10 @@ export const AgentChatPanel: React.FC<AgentChatPanelProps> = ({
               animate={{ opacity: 1, y: 0 }}
               className="chat-message agent"
             >
-              <span className="message-author">Asistente Nutricional</span>
+              <span className="message-author">Asistente</span>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0.4rem 0', color: 'var(--ink-muted)', fontSize: '0.85rem' }}>
                 <Sparkles size={16} style={{ color: 'var(--accent-ember)' }} />
-                <span>Analizando tus requerimientos e inventario...</span>
+                <span>Cruzando tus objetivos, tu despensa y tu entrenamiento...</span>
               </div>
             </motion.div>
           )}
@@ -229,7 +229,7 @@ export const AgentChatPanel: React.FC<AgentChatPanelProps> = ({
             className="chat-input"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            placeholder="Pregunta al agente sobre tu nutrición o deporte..."
+            placeholder="Pregunta sobre tu nutrición, tu entrenamiento o tu despensa..."
           />
           <motion.button
             whileHover={{ scale: 1.02 }}

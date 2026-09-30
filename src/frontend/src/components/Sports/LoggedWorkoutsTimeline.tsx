@@ -26,7 +26,7 @@ export const LoggedWorkoutsTimeline: React.FC<LoggedWorkoutsTimelineProps> = ({
     >
       <div className="panel-header">
         <h3 className="panel-title">
-          <Activity size={20} style={{ color: 'var(--accent-ember)' }} /> Sesiones de Entrenamiento ({activities.length})
+          <Activity size={20} style={{ color: 'var(--accent-ember)' }} /> Entrenamientos de hoy ({activities.length})
         </h3>
         <button
           type="button"
@@ -45,7 +45,7 @@ export const LoggedWorkoutsTimeline: React.FC<LoggedWorkoutsTimelineProps> = ({
             gap: '0.3rem',
           }}
         >
-          <Plus size={14} /> Registrar Entreno
+          <Plus size={14} /> Añadir
         </button>
       </div>
 
@@ -56,7 +56,8 @@ export const LoggedWorkoutsTimeline: React.FC<LoggedWorkoutsTimelineProps> = ({
               textAlign: 'center',
               padding: '1.5rem 1rem',
               color: 'var(--ink-muted)',
-              background: 'rgba(18, 22, 32, 0.4)',
+              background: 'var(--surface-card)',
+              border: '1px dashed var(--line-heavy)',
               borderRadius: 'var(--radius-md)',
             }}
           >
@@ -65,11 +66,14 @@ export const LoggedWorkoutsTimeline: React.FC<LoggedWorkoutsTimelineProps> = ({
               style={{ color: 'var(--ink-muted)', margin: '0 auto 0.5rem auto', opacity: 0.5 }}
             />
             <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--ink-chalk)' }}>
-              No has registrado entrenamientos hoy
+              Sin entrenamientos registrados hoy
             </div>
-            <div style={{ fontSize: '0.8rem', color: 'var(--ink-muted)', marginTop: '0.2rem' }}>
-              Registra tu partido de baloncesto o sesión de gimnasio para calcular tus calorías activas y reajustar tu marcador.
+            <div style={{ fontSize: '0.8rem', color: 'var(--ink-muted)', margin: '0.2rem auto 0.85rem', maxWidth: '340px' }}>
+              Suma tu partido o sesión de gimnasio para que el marcador refleje las calorías que de verdad quemas.
             </div>
+            <button type="button" onClick={onOpenModal} className="btn-action-pill primary" style={{ justifyContent: 'center' }}>
+              <Plus size={16} /> Registrar entrenamiento
+            </button>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>

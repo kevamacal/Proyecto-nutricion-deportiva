@@ -42,7 +42,32 @@ export const ProfileWizard: React.FC<ProfileWizardProps> = ({ onComplete }) => {
     user_id: user?.id || 'demo-user-id',
   });
 
+  /** Live validation message for the current step, or null when it can advance. */
+  const stepIssue: string | null = (() => {
+    switch (step) {
+      case 1:
+        if (formData.age === undefined) return null;
+        if (formData.age < 14 || formData.age > 99) return 'La edad debe estar entre 14 y 99 años.';
+        return null;
+      case 3:
+        if (formData.weight_kg === undefined) return null;
+        if (formData.weight_kg < 30 || formData.weight_kg > 250) {
+          return 'El peso debe estar entre 30 y 250 kg.';
+        }
+        return null;
+      case 4:
+        if (formData.height_cm === undefined) return null;
+        if (formData.height_cm < 120 || formData.height_cm > 230) {
+          return 'La estatura debe estar entre 120 y 230 cm.';
+        }
+        return null;
+      default:
+        return null;
+    }
+  })();
+
   const isStepValid = (): boolean => {
+    if (stepIssue) return false;
     switch (step) {
       case 1:
         return typeof formData.age === 'number' && formData.age > 0;
@@ -186,32 +211,25 @@ export const ProfileWizard: React.FC<ProfileWizardProps> = ({ onComplete }) => {
                   ¿Cuál es tu edad?
                 </h2>
                 <p style={{ color: 'var(--ink-muted)', fontSize: '0.9rem', marginBottom: '2rem' }}>
-                  Calcula determinísticamente la tasa metabólica basal (BMR) con la ecuación de Mifflin-St Jeor.
+                  Con la edad podemos estimar cuánto energía quemas en reposo. Necesitamos 6 datos en total.
                 </p>
-                <input
-                  id="wizard-age-input"
-                  type="number"
-                  min="14"
-                  max="99"
-                  value={formData.age ?? ''}
-                  placeholder="Ej: 25"
-                  aria-label="Edad"
-                  onChange={(e) => {
-                    const val = Number.parseInt(e.target.value, 10);
-                    setFormData({ ...formData, age: Number.isNaN(val) ? undefined : val });
-                  }}
-                  style={{
-                    width: '100%',
-                    padding: '1.2rem',
-                    background: 'var(--bg-court)',
-                    border: '1px solid var(--line-heavy)',
-                    color: 'var(--accent-ember)',
-                    fontSize: '2.5rem',
-                    fontFamily: 'var(--font-display)',
-                    fontWeight: 800,
-                    textAlign: 'center',
-                  }}
-                />
+                <div className="metric-input">
+                  <input
+                    id="wizard-age-input"
+                    type="number"
+                    min="14"
+                    max="99"
+                    inputMode="numeric"
+                    value={formData.age ?? ''}
+                    placeholder="25"
+                    aria-label="Edad en años"
+                    onChange={(e) => {
+                      const val = Number.parseInt(e.target.value, 10);
+                      setFormData({ ...formData, age: Number.isNaN(val) ? undefined : val });
+                    }}
+                  />
+                  <span className="metric-input-unit">años</span>
+                </div>
               </div>
             )}
 
@@ -222,11 +240,12 @@ export const ProfileWizard: React.FC<ProfileWizardProps> = ({ onComplete }) => {
                   Sexo biológico
                 </h2>
                 <p style={{ color: 'var(--ink-muted)', fontSize: '0.9rem', marginBottom: '2rem' }}>
-                  Constante fisiológica para la tasa metabólica en reposo.
+                  Nos sirve para ajustar el cálculo de energía en reposo.
                 </p>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                   <button
                     type="button"
+                    aria-pressed={formData.gender === 'male'}
                     onClick={() => setFormData({ ...formData, gender: 'male' })}
                     className={`btn-action-pill ${formData.gender === 'male' ? 'primary' : ''}`}
                     style={{ padding: '1.5rem', justifyContent: 'center', fontSize: '1.1rem' }}
@@ -235,6 +254,7 @@ export const ProfileWizard: React.FC<ProfileWizardProps> = ({ onComplete }) => {
                   </button>
                   <button
                     type="button"
+                    aria-pressed={formData.gender === 'female'}
                     onClick={() => setFormData({ ...formData, gender: 'female' })}
                     className={`btn-action-pill ${formData.gender === 'female' ? 'primary' : ''}`}
                     style={{ padding: '1.5rem', justifyContent: 'center', fontSize: '1.1rem' }}
@@ -249,34 +269,27 @@ export const ProfileWizard: React.FC<ProfileWizardProps> = ({ onComplete }) => {
             {step === 3 && (
               <div>
                 <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', fontWeight: 800, textTransform: 'uppercase', marginBottom: '0.5rem', letterSpacing: '0.5px' }}>
-                  ¿Cuánto pesas (kg)?
+                  ¿Cuánto pesas?
                 </h2>
                 <p style={{ color: 'var(--ink-muted)', fontSize: '0.9rem', marginBottom: '2rem' }}>
-                  Base para la distribución de macronutrientes g/kg de masa corporal.
+                  Fijamos la distribución de proteína, carbohidratos y grasas por kilo de masa muscular.
                 </p>
-                <input
-                  id="wizard-weight-input"
-                  type="number"
-                  step="0.1"
-                  value={formData.weight_kg ?? ''}
-                  placeholder="Ej: 75.0"
-                  aria-label="Peso en kilogramos"
-                  onChange={(e) => {
-                    const val = Number.parseFloat(e.target.value);
-                    setFormData({ ...formData, weight_kg: Number.isNaN(val) ? undefined : val });
-                  }}
-                  style={{
-                    width: '100%',
-                    padding: '1.2rem',
-                    background: 'var(--bg-court)',
-                    border: '1px solid var(--line-heavy)',
-                    color: 'var(--accent-ember)',
-                    fontSize: '2.5rem',
-                    fontFamily: 'var(--font-display)',
-                    fontWeight: 800,
-                    textAlign: 'center',
-                  }}
-                />
+                <div className="metric-input">
+                  <input
+                    id="wizard-weight-input"
+                    type="number"
+                    step="0.1"
+                    inputMode="decimal"
+                    value={formData.weight_kg ?? ''}
+                    placeholder="75"
+                    aria-label="Peso en kilogramos"
+                    onChange={(e) => {
+                      const val = Number.parseFloat(e.target.value);
+                      setFormData({ ...formData, weight_kg: Number.isNaN(val) ? undefined : val });
+                    }}
+                  />
+                  <span className="metric-input-unit">kg</span>
+                </div>
               </div>
             )}
 
@@ -284,34 +297,27 @@ export const ProfileWizard: React.FC<ProfileWizardProps> = ({ onComplete }) => {
             {step === 4 && (
               <div>
                 <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', fontWeight: 800, textTransform: 'uppercase', marginBottom: '0.5rem', letterSpacing: '0.5px' }}>
-                  ¿Cuál es tu estatura (cm)?
+                  ¿Cuál es tu estatura?
                 </h2>
                 <p style={{ color: 'var(--ink-muted)', fontSize: '0.9rem', marginBottom: '2rem' }}>
-                  Completa la estimación de gasto energético basal.
+                  Con estatura, edad y peso completamos tu gasto energético basal.
                 </p>
-                <input
-                  id="wizard-height-input"
-                  type="number"
-                  step="0.5"
-                  value={formData.height_cm ?? ''}
-                  placeholder="Ej: 180"
-                  aria-label="Estatura en centímetros"
-                  onChange={(e) => {
-                    const val = Number.parseFloat(e.target.value);
-                    setFormData({ ...formData, height_cm: Number.isNaN(val) ? undefined : val });
-                  }}
-                  style={{
-                    width: '100%',
-                    padding: '1.2rem',
-                    background: 'var(--bg-court)',
-                    border: '1px solid var(--line-heavy)',
-                    color: 'var(--accent-ember)',
-                    fontSize: '2.5rem',
-                    fontFamily: 'var(--font-display)',
-                    fontWeight: 800,
-                    textAlign: 'center',
-                  }}
-                />
+                <div className="metric-input">
+                  <input
+                    id="wizard-height-input"
+                    type="number"
+                    step="0.5"
+                    inputMode="decimal"
+                    value={formData.height_cm ?? ''}
+                    placeholder="180"
+                    aria-label="Estatura en centímetros"
+                    onChange={(e) => {
+                      const val = Number.parseFloat(e.target.value);
+                      setFormData({ ...formData, height_cm: Number.isNaN(val) ? undefined : val });
+                    }}
+                  />
+                  <span className="metric-input-unit">cm</span>
+                </div>
               </div>
             )}
 
@@ -319,26 +325,32 @@ export const ProfileWizard: React.FC<ProfileWizardProps> = ({ onComplete }) => {
             {step === 5 && (
               <div>
                 <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', fontWeight: 800, textTransform: 'uppercase', marginBottom: '0.5rem', letterSpacing: '0.5px' }}>
-                  Actividad Diaria Estilo de Vida
+                  ¿Cómo es tu día a día?
                 </h2>
                 <p style={{ color: 'var(--ink-muted)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
-                  Multiplicador PAL de rutina diaria sin incluir sesiones deportivas específicas.
+                  Tu rutina normal, sin contar los entrenamientos que registrarás aparte.
                 </p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                   {[
-                    { key: 'SEDENTARY', label: 'Sedentario (Oficina / Trabajo sentado)' },
-                    { key: 'MODERATE', label: 'Moderado (Caminatas / Trabajo activo)' },
-                    { key: 'ACTIVE', label: 'Activo (Gran movimiento en el día)' },
-                    { key: 'VERY_ACTIVE', label: 'Muy Activo (Trabajo físico pesado)' },
+                    { key: 'SEDENTARY', label: 'Sedentario', hint: 'Trabajo de oficina, apenas movimiento' },
+                    { key: 'MODERATE', label: 'Moderado', hint: 'Caminatas frecuentes o trabajo activo' },
+                    { key: 'ACTIVE', label: 'Activo', hint: 'Mucho movimiento durante el día' },
+                    { key: 'VERY_ACTIVE', label: 'Muy activo', hint: 'Trabajo físico pesado' },
                   ].map((act) => (
                     <button
                       key={act.key}
                       type="button"
+                      aria-pressed={formData.activity_level === act.key}
                       onClick={() => setFormData({ ...formData, activity_level: act.key })}
                       className={`btn-action-pill ${formData.activity_level === act.key ? 'primary' : ''}`}
-                      style={{ padding: '1rem 1.25rem', justifyContent: 'flex-start', fontSize: '0.95rem' }}
+                      style={{ padding: '0.9rem 1.25rem', justifyContent: 'flex-start', fontSize: '0.95rem', textTransform: 'none', letterSpacing: 0 }}
                     >
-                      {act.label}
+                      <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '0.1rem' }}>
+                        <span>{act.label}</span>
+                        <span style={{ fontSize: '0.75rem', fontWeight: 500, textTransform: 'none', letterSpacing: 0, opacity: 0.75 }}>
+                          {act.hint}
+                        </span>
+                      </span>
                     </button>
                   ))}
                 </div>
@@ -349,26 +361,32 @@ export const ProfileWizard: React.FC<ProfileWizardProps> = ({ onComplete }) => {
             {step === 6 && (
               <div>
                 <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', fontWeight: 800, textTransform: 'uppercase', marginBottom: '0.5rem', letterSpacing: '0.5px' }}>
-                  Objetivo Nutricional
+                  ¿Cuál es tu objetivo?
                 </h2>
                 <p style={{ color: 'var(--ink-muted)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
-                  Determina la periodización nutricional y superávit/déficit calórico.
+                  Marca si quieres mantener tu peso, subirlo o definirlo. Es el último paso.
                 </p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                   {[
-                    { key: 'BULK', label: 'Ganancia Muscular / Volumen (Bulk)' },
-                    { key: 'CUT', label: 'Pérdida de Grasa / Definición (Cut)' },
-                    { key: 'RECOMP', label: 'Recomposición Corporal' },
-                    { key: 'MAINTAIN', label: 'Mantenimiento & Rendimiento Deportivo' },
+                    { key: 'BULK', label: 'Ganancia muscular', hint: 'Subir peso y masa muscular' },
+                    { key: 'CUT', label: 'Pérdida de grasa', hint: 'Definición manteniendo músculo' },
+                    { key: 'RECOMP', label: 'Recomposición corporal', hint: 'Grasa abajo y músculo arriba' },
+                    { key: 'MAINTAIN', label: 'Mantenimiento', hint: 'Sostener peso y rendimiento' },
                   ].map((g) => (
                     <button
                       key={g.key}
                       type="button"
+                      aria-pressed={formData.body_composition_goal === g.key}
                       onClick={() => setFormData({ ...formData, body_composition_goal: g.key })}
-                      className={`btn-action-pill ${(formData.body_composition_goal) === g.key ? 'primary' : ''}`}
-                      style={{ padding: '1rem 1.25rem', justifyContent: 'flex-start', fontSize: '0.95rem' }}
+                      className={`btn-action-pill ${formData.body_composition_goal === g.key ? 'primary' : ''}`}
+                      style={{ padding: '0.9rem 1.25rem', justifyContent: 'flex-start', fontSize: '0.95rem', textTransform: 'none', letterSpacing: 0 }}
                     >
-                      {g.label}
+                      <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '0.1rem' }}>
+                        <span>{g.label}</span>
+                        <span style={{ fontSize: '0.75rem', fontWeight: 500, textTransform: 'none', letterSpacing: 0, opacity: 0.75 }}>
+                          {g.hint}
+                        </span>
+                      </span>
                     </button>
                   ))}
                 </div>
@@ -377,28 +395,44 @@ export const ProfileWizard: React.FC<ProfileWizardProps> = ({ onComplete }) => {
           </motion.div>
         </AnimatePresence>
 
+        {stepIssue && (
+          <p
+            role="alert"
+            style={{
+              marginTop: '1.25rem',
+              padding: '0.65rem 0.85rem',
+              background: 'rgba(178, 58, 72, 0.18)',
+              border: '1px solid var(--accent-crimson)',
+              color: '#FF8A95',
+              fontSize: '0.85rem',
+              fontWeight: 600,
+            }}
+          >
+            {stepIssue}
+          </p>
+        )}
+
         <motion.button
           whileHover={{ scale: 1.01 }}
           whileTap={{ scale: 0.99 }}
           onClick={handleNext}
+          type="button"
           disabled={!isStepValid()}
           className="btn-scoreboard"
           style={{
-            marginTop: '2rem',
+            marginTop: '1.75rem',
             width: '100%',
             padding: '1rem',
             justifyContent: 'center',
-            opacity: isStepValid() ? 1 : 0.5,
-            cursor: isStepValid() ? 'pointer' : 'not-allowed',
           }}
         >
           {step === totalSteps ? (
             <>
-              Calcular Metas Fisiológicas <Check size={20} />
+              Ver mis objetivos <Check size={20} />
             </>
           ) : (
             <>
-              Siguiente Paso <ArrowRight size={20} />
+              Siguiente <ArrowRight size={20} />
             </>
           )}
         </motion.button>

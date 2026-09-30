@@ -164,7 +164,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
             className="btn-scoreboard"
             style={{ padding: '0.9rem', justifyContent: 'center', fontSize: '0.9rem', gap: '0.4rem' }}
           >
-            <Activity size={18} /> Registrar Entreno
+            <Activity size={18} /> Registrar entrenamiento
           </motion.button>
           <motion.button
             whileHover={{ scale: 1.01 }}
@@ -173,7 +173,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
             className="btn-scoreboard secondary"
             style={{ padding: '0.9rem', justifyContent: 'center', fontSize: '0.9rem', gap: '0.4rem' }}
           >
-            <Utensils size={18} /> Registrar Comida
+            <Utensils size={18} /> Registrar comida
           </motion.button>
         </div>
       </motion.div>
@@ -264,19 +264,19 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
       </motion.div>
 
       {/* 4. DAILY CONSUMPTION TIMELINE CARD */}
-      <motion.div variants={itemVariants} className="panel-card" style={{ borderTop: '3px solid #00E676' }}>
+      <motion.div variants={itemVariants} className="panel-card" style={{ borderTop: '3px solid var(--accent-moss)' }}>
 
         <div className="panel-header">
           <h3 className="panel-title">
-            <Utensils size={20} style={{ color: '#00E676' }} /> Línea de Ingesta Diaria ({loggedMeals.length})
+            <Utensils size={20} style={{ color: 'var(--accent-moss)' }} /> Tus comidas de hoy ({loggedMeals.length})
           </h3>
           <button
             type="button"
             onClick={onOpenMeal}
             style={{
-              background: 'rgba(0, 230, 118, 0.15)',
-              border: '1px solid #00E676',
-              color: '#00E676',
+              background: 'rgba(87, 184, 148, 0.15)',
+              border: '1px solid var(--accent-moss)',
+              color: 'var(--accent-moss)',
               fontSize: '0.78rem',
               fontWeight: 700,
               padding: '0.35rem 0.75rem',
@@ -287,18 +287,26 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
               gap: '0.3rem',
             }}
           >
-            <Plus size={14} /> Registrar Comida
+            <Plus size={14} /> Registrar comida
           </button>
         </div>
 
         <div className="panel-body">
           {loggedMeals.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '1.5rem 1rem', color: 'var(--ink-muted)', background: 'rgba(18, 22, 32, 0.4)', borderRadius: 'var(--radius-md)' }}>
+            <div style={{ textAlign: 'center', padding: '1.5rem 1rem', color: 'var(--ink-muted)', background: 'var(--surface-card)', border: '1px dashed var(--line-heavy)', borderRadius: 'var(--radius-md)' }}>
               <Utensils size={32} style={{ color: 'var(--ink-muted)', margin: '0 auto 0.5rem auto', opacity: 0.5 }} />
-              <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--ink-chalk)' }}>No has registrado ingestas hoy</div>
-              <div style={{ fontSize: '0.8rem', color: 'var(--ink-muted)', marginTop: '0.2rem' }}>
-                Construye o selecciona tu comida para registrar tus calorías y macronutrientes.
+              <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--ink-chalk)' }}>Todavía no has registrado nada hoy</div>
+              <div style={{ fontSize: '0.8rem', color: 'var(--ink-muted)', margin: '0.2rem auto 0.85rem', maxWidth: '340px' }}>
+                Registra lo que comas y verás al instante cuánto te queda para completar tus objetivos.
               </div>
+              <button
+                type="button"
+                onClick={onOpenMeal}
+                className="btn-action-pill primary"
+                style={{ justifyContent: 'center' }}
+              >
+                <Plus size={16} /> Registrar mi primera comida
+              </button>
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
@@ -314,7 +322,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
       <motion.div variants={itemVariants} className="panel-card" style={{ borderTop: '3px solid var(--line-heavy)' }}>
         <div className="panel-header">
           <h3 className="panel-title">
-            <ShoppingBag size={20} style={{ color: 'var(--accent-ember)' }} /> Despensa ({pantryItems.length})
+            <ShoppingBag size={20} style={{ color: 'var(--accent-ember)' }} /> Tu despensa ({pantryItems.length})
           </h3>
           <button
             onClick={() => onNavigateTab('PANTRY')}
@@ -328,17 +336,16 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
               display: 'flex',
               alignItems: 'center',
               gap: '0.2rem',
-              textTransform: 'uppercase',
             }}
           >
-            Ver Todo <ChevronRight size={16} />
+            Ver toda <ChevronRight size={16} />
           </button>
         </div>
 
         <div className="panel-body">
           {topPantryItems.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '1rem 0', color: 'var(--ink-muted)', fontSize: '0.85rem' }}>
-              Tu despensa está vacía. Añade alimentos para sugerir recetas.
+              Tu despensa está vacía. Añade alimentos y te proponemos recetas con lo que tienes.
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
@@ -378,7 +385,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
             className="btn-action-pill"
             style={{ width: '100%', justifyContent: 'center', marginTop: '0.5rem' }}
           >
-            <Sparkles size={16} /> Recomendar Cena con Despensa
+            <Sparkles size={16} /> Ver recetas con lo que tengo
           </motion.button>
         </div>
       </motion.div>

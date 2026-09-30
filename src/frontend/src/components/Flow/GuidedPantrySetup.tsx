@@ -94,14 +94,15 @@ export const GuidedPantrySetup: React.FC<GuidedPantrySetupProps> = ({ userId, on
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.25rem' }}>
           <ShoppingBag className="w-5 h-5 text-[#C1622B]" />
-          <span className="brand-badge">Paso Guiado 03 de 03</span>
+          <span className="brand-badge">Último paso</span>
         </div>
 
         <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '2.1rem', fontWeight: 800, textTransform: 'uppercase', marginBottom: '0.5rem', letterSpacing: '0.5px' }}>
-          Inicializa tu Despensa Deportiva
+          Monta tu despensa
         </h2>
         <p style={{ color: 'var(--ink-muted)', fontSize: '0.9rem', marginBottom: '2rem' }}>
-          Selecciona varios alimentos en lote o añade tus básicos iniciales para activar el marcador macro en tiempo real y las recomendaciones nutricionales.
+          Dinos qué tienes en casa. Con eso rellenamos el marcador de calorías y te proponemos recetas
+          que puedas cocinar de verdad, no solo en teoría.
         </p>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -118,7 +119,10 @@ export const GuidedPantrySetup: React.FC<GuidedPantrySetupProps> = ({ userId, on
             onClick={() => setShowSelectorModal(true)}
             disabled={loading}
           >
-            <Sparkles className="w-5 h-5" /> Abrir Selector Lote de Alimentos ({catalog.length} disponibles)
+            <Sparkles className="w-5 h-5" />
+            {catalog.length > 0
+              ? `Elegir alimentos (${catalog.length} disponibles)`
+              : 'Elegir alimentos'}
           </motion.button>
 
           <motion.button
@@ -130,11 +134,13 @@ export const GuidedPantrySetup: React.FC<GuidedPantrySetupProps> = ({ userId, on
               padding: '0.85rem 1.25rem',
               justifyContent: 'center',
               fontSize: '0.9rem',
+              textTransform: 'none',
+              letterSpacing: 0,
             }}
             onClick={handleAddDefaultStaples}
             disabled={loading || catalog.length === 0}
           >
-            <Plus className="w-4 h-4" /> Cargar Básicos de Despensa Rápidos (Arroz, Pechuga, Huevos)
+            <Plus className="w-4 h-4" /> Empezar con 3 básicos y ajustar luego
           </motion.button>
         </div>
       </motion.div>

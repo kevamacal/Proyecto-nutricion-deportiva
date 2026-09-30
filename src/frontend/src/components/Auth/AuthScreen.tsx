@@ -27,7 +27,7 @@ export const AuthScreen: React.FC = () => {
     if (lower.includes('email not confirmed')) {
       return 'Tu correo aún no ha sido confirmado. Revisa tu bandeja de entrada.';
     }
-    return `Error de autenticación: ${errMessage}`;
+    return 'No hemos podido iniciar tu sesión. Inténtalo de nuevo en unos segundos.';
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -301,9 +301,9 @@ export const AuthScreen: React.FC = () => {
           )}
 
           {(() => {
-            let submitLabel = 'Crear mi Cuenta de Atleta';
-            if (loading) submitLabel = 'Conectando a Supabase Auth...';
-            else if (mode === 'LOGIN') submitLabel = 'Entrar a la Plataforma';
+            let submitLabel = 'Crear mi cuenta';
+            if (loading) submitLabel = 'Un momento...';
+            else if (mode === 'LOGIN') submitLabel = 'Iniciar sesión';
 
             return (
               <button
@@ -327,7 +327,7 @@ export const AuthScreen: React.FC = () => {
         {/* Demo Fast Access Button */}
         <div style={{ marginTop: '1.5rem', paddingTop: '1.25rem', borderTop: '1px solid var(--glass-border)', textAlign: 'center' }}>
           <span style={{ fontSize: '0.78rem', color: 'var(--ink-muted)', display: 'block', marginBottom: '0.75rem' }}>
-            ¿Quieres probar la plataforma sin registrarte?
+            ¿Quieres ver cómo funciona antes de crear tu cuenta?
           </span>
           <button
             type="button"
@@ -342,7 +342,7 @@ export const AuthScreen: React.FC = () => {
               fontSize: '0.85rem',
             }}
           >
-            <Sparkles className="w-4 h-4" /> Entrar como Atleta Demo
+            <Sparkles className="w-4 h-4" /> Explorar con un perfil de ejemplo
           </button>
         </div>
       </div>
